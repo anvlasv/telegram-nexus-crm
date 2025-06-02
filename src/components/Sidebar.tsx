@@ -12,20 +12,22 @@ import {
   Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: BarChart3 },
-  { name: 'Channels', href: '/channels', icon: MessageSquare },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Scheduler', href: '/scheduler', icon: Calendar },
-  { name: 'Partners', href: '/partners', icon: Users },
-  { name: 'Marketplace', href: '/marketplace', icon: Target },
-  { name: 'Notifications', href: '/notifications', icon: Bell },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'dashboard', href: '/', icon: BarChart3 },
+  { name: 'channels', href: '/channels', icon: MessageSquare },
+  { name: 'analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'scheduler', href: '/scheduler', icon: Calendar },
+  { name: 'partners', href: '/partners', icon: Users },
+  { name: 'marketplace', href: '/marketplace', icon: Target },
+  { name: 'notifications', href: '/notifications', icon: Bell },
+  { name: 'settings', href: '/settings', icon: Settings },
 ];
 
 export const Sidebar: React.FC = () => {
   const location = useLocation();
+  const { t } = useLanguage();
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
@@ -53,7 +55,7 @@ export const Sidebar: React.FC = () => {
               )}
             >
               <item.icon className="mr-3 h-5 w-5" />
-              {item.name}
+              {t(item.name)}
             </Link>
           );
         })}
