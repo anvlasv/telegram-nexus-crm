@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { TelegramInfo } from './TelegramInfo';
 import { Globe, Bot, Database, ExternalLink } from 'lucide-react';
 
 export const Settings: React.FC = () => {
@@ -48,14 +49,20 @@ export const Settings: React.FC = () => {
         </div>
         
         <div className="space-y-4">
-          <div>
-            <h3 className="font-medium mb-2">{t('miniapp-info')}</h3>
-            <p className="text-sm text-gray-600 mb-3">{t('miniapp-description')}</p>
-            <Button variant="outline" size="sm">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Создать бота
-            </Button>
+          <TelegramInfo />
+          
+          <div className="pt-4 border-t">
+            <h3 className="font-medium mb-2">Информация о боте</h3>
+            <div className="text-sm text-gray-600 space-y-1">
+              <div>Токен бота: <code className="text-xs bg-gray-100 px-2 py-1 rounded">7696745596:AAG...x8Q</code></div>
+              <div>Web App URL: <code className="text-xs bg-gray-100 px-2 py-1 rounded break-all">https://6771f109-3495-4748-b495-455f4dce0096.lovableproject.com</code></div>
+            </div>
           </div>
+          
+          <Button variant="outline" size="sm">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Открыть @BotFather
+          </Button>
         </div>
       </Card>
 
@@ -71,7 +78,7 @@ export const Settings: React.FC = () => {
             <p className="text-sm text-gray-600 mb-3">{t('supabase-description')}</p>
             <Button variant="outline" size="sm" className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
               <Database className="h-4 w-4 mr-2" />
-              Подключить Supabase
+              Подключено к Supabase
             </Button>
           </div>
         </div>
