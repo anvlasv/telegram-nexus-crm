@@ -52,6 +52,8 @@ declare global {
           notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
           selectionChanged: () => void;
         };
+        setHeaderColor: (color: string) => void;
+        setBackgroundColor: (color: string) => void;
       };
     };
   }
@@ -61,6 +63,7 @@ export const useTelegram = () => {
   const [webApp, setWebApp] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [isInTelegram, setIsInTelegram] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
 
   useEffect(() => {
     const app = window.Telegram?.WebApp;
@@ -72,8 +75,36 @@ export const useTelegram = () => {
       setIsInTelegram(true);
       
       // Настройка темы
-      if (app.colorScheme === 'dark') {
-        document.body.classList.add('dark');
+      const isDark = app.colorScheme === 'dark';
+      setIsDarkTheme(isDark);
+      
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        // Настройка цветов для темной темы Telegram
+        app.setHeaderColor('#1f2937');
+        app.setBackgroundColor('#111827');
+      } else {
+        document.documentElement.classList.remove('dark');
+        // Настройка цветов для светлой темы Telegram
+        app.setHeaderColor('#ffffff');
+        app.setBackgroundColor('#f9fafb');
+      }
+
+      // Применение CSS переменных из Telegram
+      if (app.themeParams) {
+        const root = document.documentElement;
+        root.style.setProperty('--tg-bg-color', app.themeParams.bg_color || (isDark ? '#111827' : '#ffffff'));
+        root.style.setProperty('--tg-text-color', app.themeParams.text_color || (isDark ? '#f3f4f6' : '#111827'));
+        root.style.setProperty('--tg-hint-color', app.themeParams.hint_color || (isDark ? '#9ca3af' : '#6b7280'));
+        root.style.setProperty('--tg-button-color', app.themeParams.button_color || '#3b82f6');
+        root.style.setProperty('--tg-button-text-color', app.themeParams.button_text_color || '#ffffff');
+      }
+    } else {
+      // Проверяем системные настройки темы
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkTheme(prefersDark);
+      if (prefersDark) {
+        document.documentElement.classList.add('dark');
       }
     }
   }, []);
@@ -114,13 +145,26 @@ export const useTelegram = () => {
     }
   };
 
+  const toggleTheme = () => {
+    const newTheme = !isDarkTheme;
+    setIsDarkTheme(newTheme);
+    
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   return {
     webApp,
     user,
     isInTelegram,
+    isDarkTheme,
     sendData,
     showAlert,
     showConfirm,
     hapticFeedback,
+    toggleTheme,
   };
 };

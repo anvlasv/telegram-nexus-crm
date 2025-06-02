@@ -14,14 +14,19 @@ export const Settings: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('settings')}</h1>
-        <p className="text-gray-600 mt-1">Управление настройками системы</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('settings')}</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Управление настройками системы</p>
       </div>
+
+      {/* Telegram Integration - теперь первая секция */}
+      <TelegramInfo />
 
       {/* Language Settings */}
       <Card className="p-6">
         <div className="flex items-center space-x-3 mb-4">
-          <Globe className="h-5 w-5 text-blue-600" />
+          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
           <h2 className="text-lg font-semibold">{t('language-settings')}</h2>
         </div>
         
@@ -41,45 +46,27 @@ export const Settings: React.FC = () => {
         </div>
       </Card>
 
-      {/* Telegram Integration */}
-      <Card className="p-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <Bot className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-semibold">{t('telegram-integration')}</h2>
-        </div>
-        
-        <div className="space-y-4">
-          <TelegramInfo />
-          
-          <div className="pt-4 border-t">
-            <h3 className="font-medium mb-2">Информация о боте</h3>
-            <div className="text-sm text-gray-600 space-y-1">
-              <div>Токен бота: <code className="text-xs bg-gray-100 px-2 py-1 rounded">7696745596:AAG...x8Q</code></div>
-              <div>Web App URL: <code className="text-xs bg-gray-100 px-2 py-1 rounded break-all">https://6771f109-3495-4748-b495-455f4dce0096.lovableproject.com</code></div>
-            </div>
-          </div>
-          
-          <Button variant="outline" size="sm">
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Открыть @BotFather
-          </Button>
-        </div>
-      </Card>
-
       {/* Supabase Integration */}
       <Card className="p-6">
         <div className="flex items-center space-x-3 mb-4">
-          <Database className="h-5 w-5 text-green-600" />
+          <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+            <Database className="h-5 w-5 text-green-600 dark:text-green-400" />
+          </div>
           <h2 className="text-lg font-semibold">{t('supabase-integration')}</h2>
         </div>
         
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-gray-600 mb-3">{t('supabase-description')}</p>
-            <Button variant="outline" size="sm" className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t('supabase-description')}</p>
+            <Button variant="outline" size="sm" className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900">
               <Database className="h-4 w-4 mr-2" />
-              Подключено к Supabase
+              ✅ Подключено к Supabase
             </Button>
+          </div>
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <div>Project ID: <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">upirwcmwofvmjsqdqorj</code></div>
+            </div>
           </div>
         </div>
       </Card>
