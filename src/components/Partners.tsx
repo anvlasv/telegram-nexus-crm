@@ -10,6 +10,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { usePartners } from '@/hooks/usePartners';
 import { useToast } from '@/hooks/use-toast';
 
+interface ContactInfo {
+  email?: string;
+  phone?: string;
+}
+
 export const Partners: React.FC = () => {
   const { t } = useLanguage();
   const { partners, updatePartnerStatus } = usePartners();
@@ -62,6 +67,17 @@ export const Partners: React.FC = () => {
     }
   };
 
+  const getContactInfo = (contactInfo: any): ContactInfo => {
+    if (typeof contactInfo === 'string') {
+      try {
+        return JSON.parse(contactInfo);
+      } catch {
+        return {};
+      }
+    }
+    return contactInfo || {};
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -111,67 +127,71 @@ export const Partners: React.FC = () => {
       </div>
 
       <div className="grid gap-4">
-        {partners.map((partner) => (
-          <Card key={partner.id}>
-            <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{partner.name}</h3>
-                    <Badge className={getStatusColor(partner.status || 'pending')}>
-                      {t(partner.status || 'pending')}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    {partner.contact_info?.email && (
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {partner.contact_info.email}
-                      </div>
+        {partners.map((partner) => {
+          const contactInfo = getContactInfo(partner.contact_info);
+          
+          return (
+            <Card key={partner.id}>
+              <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">{partner.name}</h3>
+                      <Badge className={getStatusColor(partner.status || 'pending')}>
+                        {t(partner.status || 'pending')}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      {contactInfo.email && (
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {contactInfo.email}
+                        </div>
+                      )}
+                      {contactInfo.phone && (
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {contactInfo.phone}
+                        </div>
+                      )}
+                    </div>
+                    {partner.commission_rate && (
+                      <p className="text-sm">
+                        Комиссия: {partner.commission_rate}%
+                      </p>
                     )}
-                    {partner.contact_info?.phone && (
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        {partner.contact_info.phone}
-                      </div>
-                    )}
                   </div>
-                  {partner.commission_rate && (
-                    <p className="text-sm">
-                      Комиссия: {partner.commission_rate}%
-                    </p>
-                  )}
+                  <div className="flex gap-2">
+                    {partner.status === 'pending' && (
+                      <>
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleAcceptPartner(partner.id)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDeclinePartner(partner.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                    <Button size="sm" variant="ghost">
+                      <MessageSquare className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  {partner.status === 'pending' && (
-                    <>
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleAcceptPartner(partner.id)}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => handleDeclinePartner(partner.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                  <Button size="sm" variant="ghost">
-                    <MessageSquare className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

@@ -70,3 +70,21 @@ export const useUpdateChannel = () => {
     },
   });
 };
+
+export const useDeleteChannel = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('telegram_channels')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+    },
+  });
+};
