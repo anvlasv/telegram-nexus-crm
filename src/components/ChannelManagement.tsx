@@ -23,22 +23,16 @@ export const ChannelManagement: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: '',
     username: '',
-    channel_id: '',
     type: 'channel' as 'channel' | 'group',
     status: 'active' as 'active' | 'paused' | 'archived',
-    subscriber_count: 0,
   });
 
   const resetForm = () => {
     setFormData({
-      name: '',
       username: '',
-      channel_id: '',
       type: 'channel',
       status: 'active',
-      subscriber_count: 0,
     });
     setEditingChannel(null);
   };
@@ -51,15 +45,16 @@ export const ChannelManagement: React.FC = () => {
         await updateChannel.mutateAsync({
           id: editingChannel.id,
           ...formData,
-          channel_id: parseInt(formData.channel_id),
         });
         toast.success('Канал успешно обновлен');
       } else {
+        // Для нового канала указываем временные значения, которые бот обновит
         await createChannel.mutateAsync({
           ...formData,
-          channel_id: parseInt(formData.channel_id),
+          name: formData.username, // Временно используем username как name
+          channel_id: 0, // Временное значение, бот обновит
         });
-        toast.success('Канал успешно создан');
+        toast.success('Канал успешно добавлен. Бот @Teleg_CRMbot обновит данные автоматически.');
       }
       
       setIsDialogOpen(false);
@@ -73,12 +68,9 @@ export const ChannelManagement: React.FC = () => {
   const handleEdit = (channel: any) => {
     setEditingChannel(channel);
     setFormData({
-      name: channel.name,
       username: channel.username,
-      channel_id: channel.channel_id.toString(),
       type: channel.type,
       status: channel.status,
-      subscriber_count: channel.subscriber_count || 0,
     });
     setIsDialogOpen(true);
   };
@@ -141,7 +133,7 @@ export const ChannelManagement: React.FC = () => {
                   {editingChannel ? 'Редактировать канал' : t('add-channel')}
                 </DialogTitle>
                 <DialogDescription className="text-gray-600 dark:text-gray-400">
-                  {editingChannel ? 'Обновите информацию о канале' : 'Добавьте новый Telegram канал'}
+                  {editingChannel ? 'Обновите информацию о канале' : 'Подключите новый Telegram канал'}
                 </DialogDescription>
               </DialogHeader>
 
@@ -151,14 +143,13 @@ export const ChannelManagement: React.FC = () => {
                   <Bot className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div className="flex-1">
                     <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                      Настройка бота для канала
+                      Подключение канала через бота @Teleg_CRMbot
                     </h4>
                     <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
-                      <li>Добавьте бота @YourBotName в ваш канал как администратора</li>
-                      <li>Дайте боту права на публикацию сообщений</li>
-                      <li>Для получения ID канала напишите любое сообщение в канал</li>
-                      <li>Переслать это сообщение боту @userinfobot</li>
-                      <li>Скопируйте полученный ID канала (начинается с -100)</li>
+                      <li>Добавьте бота @Teleg_CRMbot в ваш канал как администратора</li>
+                      <li>Дайте боту права на публикацию сообщений и управление каналом</li>
+                      <li>Укажите username канала ниже - бот автоматически получит все остальные данные</li>
+                      <li>После подключения бот будет синхронизировать информацию о канале</li>
                     </ol>
                   </div>
                 </div>
@@ -166,30 +157,16 @@ export const ChannelManagement: React.FC = () => {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="name" className="text-gray-900 dark:text-gray-100">
-                    {t('channel-name')}
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Название вашего канала"
-                    required
-                    className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-                
-                <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Label htmlFor="username" className="text-gray-900 dark:text-gray-100">
-                      {t('channel-username')}
+                      Username канала
                     </Label>
                     <Tooltip>
                       <TooltipTrigger>
                         <HelpCircle className="h-4 w-4 text-gray-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Публичное имя канала (t.me/channel_name)</p>
+                        <p>Публичное имя канала (например: @my_channel)</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
@@ -201,49 +178,9 @@ export const ChannelManagement: React.FC = () => {
                     required
                     className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
                   />
-                </div>
-                
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Label htmlFor="channel_id" className="text-gray-900 dark:text-gray-100">
-                      {t('channel-id')}
-                    </Label>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <HelpCircle className="h-4 w-4 text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p>Цифровой ID канала. Получите его переслав сообщение из канала боту @userinfobot</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <Input
-                    id="channel_id"
-                    type="text"
-                    value={formData.channel_id}
-                    onChange={(e) => setFormData({ ...formData, channel_id: e.target.value })}
-                    placeholder="-1001234567890"
-                    required
-                    className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                  />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    ID канала всегда начинается с -100
+                    Бот @Teleg_CRMbot автоматически получит название, ID и количество подписчиков
                   </p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="subscriber_count" className="text-gray-900 dark:text-gray-100">
-                    Количество подписчиков
-                  </Label>
-                  <Input
-                    id="subscriber_count"
-                    type="number"
-                    value={formData.subscriber_count}
-                    onChange={(e) => setFormData({ ...formData, subscriber_count: parseInt(e.target.value) || 0 })}
-                    min="0"
-                    placeholder="0"
-                    className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                  />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -297,7 +234,7 @@ export const ChannelManagement: React.FC = () => {
                     disabled={createChannel.isPending || updateChannel.isPending}
                     className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                   >
-                    {editingChannel ? t('save') : t('create')}
+                    {editingChannel ? t('save') : 'Подключить канал'}
                   </Button>
                 </DialogFooter>
               </form>
@@ -313,7 +250,7 @@ export const ChannelManagement: React.FC = () => {
                 {t('no-channels')}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
-                {t('add-first-channel')}
+                Добавьте свой первый канал для начала работы
               </p>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
