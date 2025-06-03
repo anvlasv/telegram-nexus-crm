@@ -78,10 +78,11 @@ export const useTelegram = () => {
       const isDark = app.colorScheme === 'dark';
       setIsDarkTheme(isDark);
       
+      // Применение темы ко всему документу
       if (isDark) {
         document.documentElement.classList.add('dark');
         // Настройка цветов для темной темы Telegram
-        app.setHeaderColor('#1f2937');
+        app.setHeaderColor('#111827');
         app.setBackgroundColor('#111827');
       } else {
         document.documentElement.classList.remove('dark');
@@ -100,11 +101,13 @@ export const useTelegram = () => {
         root.style.setProperty('--tg-button-text-color', app.themeParams.button_text_color || '#ffffff');
       }
     } else {
-      // Проверяем системные настройки темы
+      // Проверяем системные настройки темы для веб-версии
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setIsDarkTheme(prefersDark);
       if (prefersDark) {
         document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
       }
     }
   }, []);
@@ -151,8 +154,16 @@ export const useTelegram = () => {
     
     if (newTheme) {
       document.documentElement.classList.add('dark');
+      if (webApp) {
+        webApp.setHeaderColor('#111827');
+        webApp.setBackgroundColor('#111827');
+      }
     } else {
       document.documentElement.classList.remove('dark');
+      if (webApp) {
+        webApp.setHeaderColor('#ffffff');
+        webApp.setBackgroundColor('#f9fafb');
+      }
     }
   };
 

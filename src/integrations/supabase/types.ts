@@ -9,7 +9,175 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      channel_posts: {
+        Row: {
+          channel_id: string
+          content: string | null
+          created_at: string
+          forwards_count: number | null
+          id: string
+          post_id: number
+          published_at: string
+          reactions_count: number | null
+          views_count: number | null
+        }
+        Insert: {
+          channel_id: string
+          content?: string | null
+          created_at?: string
+          forwards_count?: number | null
+          id?: string
+          post_id: number
+          published_at: string
+          reactions_count?: number | null
+          views_count?: number | null
+        }
+        Update: {
+          channel_id?: string
+          content?: string | null
+          created_at?: string
+          forwards_count?: number | null
+          id?: string
+          post_id?: number
+          published_at?: string
+          reactions_count?: number | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_posts_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          commission_rate: number | null
+          contact_info: Json | null
+          created_at: string
+          id: string
+          name: string
+          partnership_type: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          commission_rate?: number | null
+          contact_info?: Json | null
+          created_at?: string
+          id?: string
+          name: string
+          partnership_type?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          commission_rate?: number | null
+          contact_info?: Json | null
+          created_at?: string
+          id?: string
+          name?: string
+          partnership_type?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_posts: {
+        Row: {
+          channel_id: string
+          content: string
+          created_at: string
+          id: string
+          media_urls: string[] | null
+          scheduled_for: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          content: string
+          created_at?: string
+          id?: string
+          media_urls?: string[] | null
+          scheduled_for: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          media_urls?: string[] | null
+          scheduled_for?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_posts_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telegram_channels: {
+        Row: {
+          channel_id: number
+          created_at: string
+          engagement_rate: number | null
+          id: string
+          last_post_at: string | null
+          name: string
+          status: string | null
+          subscriber_count: number | null
+          type: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          channel_id: number
+          created_at?: string
+          engagement_rate?: number | null
+          id?: string
+          last_post_at?: string | null
+          name: string
+          status?: string | null
+          subscriber_count?: number | null
+          type?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          channel_id?: number
+          created_at?: string
+          engagement_rate?: number | null
+          id?: string
+          last_post_at?: string | null
+          name?: string
+          status?: string | null
+          subscriber_count?: number | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
