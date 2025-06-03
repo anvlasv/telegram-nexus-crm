@@ -51,14 +51,18 @@ export const Scheduler: React.FC = () => {
     }
 
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('User not authenticated');
+
       const { error } = await supabase
         .from('scheduled_posts')
-        .insert([{
+        .insert({
           channel_id: newPost.channelId,
           content: newPost.content,
           scheduled_for: newPost.scheduledFor,
-          status: 'pending'
-        }]);
+          status: 'pending',
+          user_id: userData.user.id
+        });
 
       if (error) throw error;
 

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, CheckCircle, AlertCircle, Info, Trash2, MarkAsRead } from 'lucide-react';
+import { Bell, CheckCircle, AlertCircle, Info, Trash2, Check } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const notifications = [
@@ -103,7 +103,7 @@ export const Notifications: React.FC = () => {
           </p>
         </div>
         <Button variant="outline">
-          <MarkAsRead className="mr-2 h-4 w-4" />
+          <Check className="mr-2 h-4 w-4" />
           Отметить все как прочитанные
         </Button>
       </div>

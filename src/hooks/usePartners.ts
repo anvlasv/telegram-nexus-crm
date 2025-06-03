@@ -8,7 +8,9 @@ type PartnerInsert = TablesInsert<'partners'>;
 type PartnerUpdate = TablesUpdate<'partners'>;
 
 export const usePartners = () => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['partners'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -20,6 +22,28 @@ export const usePartners = () => {
       return data as Partner[];
     },
   });
+
+  const updatePartnerStatus = async (partnerId: string, status: string) => {
+    const { data, error } = await supabase
+      .from('partners')
+      .update({ status })
+      .eq('id', partnerId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    // Invalidate and refetch partners data
+    queryClient.invalidateQueries({ queryKey: ['partners'] });
+    
+    return data;
+  };
+
+  return {
+    ...query,
+    partners: query.data || [],
+    updatePartnerStatus,
+  };
 };
 
 export const useCreatePartner = () => {

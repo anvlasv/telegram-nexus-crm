@@ -8,7 +8,7 @@ type ChannelInsert = TablesInsert<'telegram_channels'>;
 type ChannelUpdate = TablesUpdate<'telegram_channels'>;
 
 export const useChannels = () => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['channels'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -20,6 +20,11 @@ export const useChannels = () => {
       return data as Channel[];
     },
   });
+
+  return {
+    ...query,
+    channels: query.data || [],
+  };
 };
 
 export const useCreateChannel = () => {
@@ -49,7 +54,7 @@ export const useUpdateChannel = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, ...updates }: ChannelUpdate & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<ChannelUpdate>) => {
       const { data, error } = await supabase
         .from('telegram_channels')
         .update(updates)
@@ -59,24 +64,6 @@ export const useUpdateChannel = () => {
       
       if (error) throw error;
       return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['channels'] });
-    },
-  });
-};
-
-export const useDeleteChannel = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('telegram_channels')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['channels'] });
