@@ -10,6 +10,10 @@ import { Dashboard } from "./components/Dashboard";
 import { ChannelManagement } from "./components/ChannelManagement";
 import { Analytics } from "./components/Analytics";
 import { Settings } from "./components/Settings";
+import { Scheduler } from "./components/Scheduler";
+import { Partners } from "./components/Partners";
+import { Marketplace } from "./components/Marketplace";
+import { Notifications } from "./components/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,10 +30,10 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/channels" element={<ChannelManagement />} />
               <Route path="/analytics" element={<Analytics />} />
-              <Route path="/scheduler" element={<div className="p-8 text-center text-gray-500">Модуль планировщика скоро появится...</div>} />
-              <Route path="/partners" element={<div className="p-8 text-center text-gray-500">Модуль партнеров скоро появится...</div>} />
-              <Route path="/marketplace" element={<div className="p-8 text-center text-gray-500">Маркетплейс скоро появится...</div>} />
-              <Route path="/notifications" element={<div className="p-8 text-center text-gray-500">Уведомления скоро появятся...</div>} />
+              <Route path="/scheduler" element={<Scheduler />} />
+              <Route path="/partners" element={<Partners />} />
+              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
