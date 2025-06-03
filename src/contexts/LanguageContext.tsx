@@ -46,6 +46,12 @@ const translations = {
     'supabase-integration': 'Интеграция Supabase',
     'supabase-description': 'Подключение к базе данных и backend сервисам',
     'connected-to-supabase': 'Подключено к Supabase',
+    'telegram-integration': 'Интеграция Telegram',
+    'telegram-description': 'Настройки для работы с Telegram API',
+    'telegram-status': 'Статус подключения',
+    'theme-settings': 'Настройки темы',
+    'dark-theme': 'Темная тема',
+    'theme-description': 'Переключение между светлой и темной темой',
     
     // Channel Management
     'channel-management': 'Управление каналами',
@@ -145,6 +151,12 @@ const translations = {
     'supabase-integration': 'Supabase Integration',
     'supabase-description': 'Database and backend services connection',
     'connected-to-supabase': 'Connected to Supabase',
+    'telegram-integration': 'Telegram Integration',
+    'telegram-description': 'Settings for Telegram API integration',
+    'telegram-status': 'Connection Status',
+    'theme-settings': 'Theme Settings',
+    'dark-theme': 'Dark Theme',
+    'theme-description': 'Switch between light and dark themes',
     
     // Channel Management
     'channel-management': 'Channel Management',
@@ -216,7 +228,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [language, setLanguage] = useState<Language>('ru');
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    return translations[language][key as keyof typeof translations['ru']] || key;
   };
 
   return (
