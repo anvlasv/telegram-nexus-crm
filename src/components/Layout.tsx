@@ -16,7 +16,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset className="flex-1">
           <TopNav />
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             {children}

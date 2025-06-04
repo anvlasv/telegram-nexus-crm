@@ -18,7 +18,7 @@ export const TopNav: React.FC = () => {
   };
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
+    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6 sticky top-0 z-40 w-full backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <SidebarTrigger className="-ml-1" />
       
       <ChannelSelector />
@@ -29,7 +29,7 @@ export const TopNav: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 hidden sm:flex"
         >
           <Search className="h-4 w-4" />
         </Button>
@@ -37,7 +37,7 @@ export const TopNav: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 hidden sm:flex"
         >
           <Bell className="h-4 w-4" />
         </Button>
@@ -46,7 +46,7 @@ export const TopNav: React.FC = () => {
           variant="outline"
           size="sm"
           onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
-          className="h-8 text-xs"
+          className="h-8 text-xs hidden sm:flex"
         >
           {language.toUpperCase()}
         </Button>
@@ -55,7 +55,7 @@ export const TopNav: React.FC = () => {
           variant="outline"
           size="sm"
           onClick={toggleTheme}
-          className="h-8 text-xs"
+          className="h-8 text-xs hidden sm:flex"
         >
           {isDarkTheme ? '☀️' : '🌙'}
         </Button>

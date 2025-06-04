@@ -23,6 +23,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTelegram } from '@/hooks/useTelegram';
@@ -43,6 +44,13 @@ export function AppSidebar() {
   const location = useLocation();
   const { t } = useLanguage();
   const { user } = useTelegram();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleMenuItemClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar variant="inset" collapsible="icon" className="border-r-2 border-gray-200 dark:border-gray-700 bg-gradient-to-b from-amber-50/30 to-amber-100/20 dark:from-gray-900 dark:to-amber-900/5">
@@ -73,14 +81,15 @@ export function AppSidebar() {
                       className={`
                         transition-all duration-200 
                         ${isActive 
-                          ? 'bg-blue-50 text-blue-700 shadow-lg border-l-4 border-blue-500 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-400' 
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md text-gray-600 dark:text-gray-300'
+                          ? 'bg-blue-50 text-blue-700 shadow-lg border-l-4 border-blue-500 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-400 group-data-[collapsible=icon]:border-l-0 group-data-[collapsible=icon]:bg-blue-500 group-data-[collapsible=icon]:text-white group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:mx-1' 
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hover:bg-gray-200 dark:group-data-[collapsible=icon]:hover:bg-gray-700'
                         }
-                        rounded-lg mx-1 group-data-[collapsible=icon]:rounded-r-none
+                        rounded-lg mx-1 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:mx-1
                       `}
+                      onClick={handleMenuItemClick}
                     >
                       <Link to={item.href}>
-                        <item.icon className={isActive ? 'text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'} />
+                        <item.icon className={isActive ? 'text-blue-700 dark:text-blue-400 group-data-[collapsible=icon]:text-white' : 'text-gray-600 dark:text-gray-400'} />
                         <span className={`font-medium ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>{t(item.name)}</span>
                       </Link>
                     </SidebarMenuButton>
