@@ -12,10 +12,13 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useChannels } from '@/hooks/useChannels';
 import { ChannelInfoDialog } from '@/components/ChannelInfoDialog';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Channel = Tables<'telegram_channels'>;
 
 export const ChannelSelector: React.FC = () => {
   const { channels } = useChannels();
-  const [selectedChannel, setSelectedChannel] = useState(channels[0] || null);
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [showChannelInfo, setShowChannelInfo] = useState(false);
 
   React.useEffect(() => {

@@ -4,16 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Users, Globe, User } from 'lucide-react';
 import { getStatusColor } from '@/utils/channelUtils';
+import type { Tables } from '@/integrations/supabase/types';
 
-interface Channel {
-  id: string;
-  name?: string;
-  username: string;
-  type: 'channel' | 'group';
-  status: 'active' | 'paused' | 'archived';
-  subscriber_count?: number;
-  created_at: string;
-}
+type Channel = Tables<'telegram_channels'>;
 
 interface ChannelInfoDialogProps {
   channel: Channel;
@@ -83,7 +76,7 @@ export const ChannelInfoDialog: React.FC<ChannelInfoDialogProps> = ({
                 Статус
               </label>
               <div className="mt-1">
-                <Badge className={getStatusColor(channel.status)}>
+                <Badge className={getStatusColor(channel.status || 'active')}>
                   {channel.status === 'active' ? 'Активный' : 
                    channel.status === 'paused' ? 'Приостановлен' : 'Архивный'}
                 </Badge>
