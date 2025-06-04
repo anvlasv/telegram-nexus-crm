@@ -2,14 +2,20 @@
 import React from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, LogOut } from 'lucide-react';
 import { useTelegram } from '@/hooks/useTelegram';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { ChannelSelector } from '@/components/ChannelSelector';
 
 export const TopNav: React.FC = () => {
   const { user, isDarkTheme, toggleTheme } = useTelegram();
   const { language, setLanguage } = useLanguage();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+  };
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
@@ -52,6 +58,15 @@ export const TopNav: React.FC = () => {
           className="h-8 text-xs"
         >
           {isDarkTheme ? '☀️' : '🌙'}
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleLogout}
+          className="h-8 text-xs"
+        >
+          <LogOut className="h-4 w-4" />
         </Button>
       </div>
     </header>
