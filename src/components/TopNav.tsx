@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Bell, Search } from 'lucide-react';
 import { useTelegram } from '@/hooks/useTelegram';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ChannelSelector } from '@/components/ChannelSelector';
 
 export const TopNav: React.FC = () => {
   const { user, isDarkTheme, toggleTheme } = useTelegram();
@@ -13,6 +14,8 @@ export const TopNav: React.FC = () => {
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
       <SidebarTrigger className="-ml-1" />
+      
+      <ChannelSelector />
       
       <div className="flex-1" />
       

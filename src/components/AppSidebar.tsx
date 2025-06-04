@@ -9,7 +9,8 @@ import {
   Settings, 
   Zap,
   Target,
-  Bell
+  Bell,
+  Bot
 } from 'lucide-react';
 import {
   Sidebar,
@@ -31,6 +32,7 @@ const navigation = [
   { name: 'channels', href: '/channels', icon: MessageSquare },
   { name: 'analytics', href: '/analytics', icon: BarChart3 },
   { name: 'scheduler', href: '/scheduler', icon: Calendar },
+  { name: 'assistant', href: '/assistant', icon: Bot },
   { name: 'partners', href: '/partners', icon: Users },
   { name: 'marketplace', href: '/marketplace', icon: Target },
   { name: 'notifications', href: '/notifications', icon: Bell },
@@ -43,15 +45,15 @@ export function AppSidebar() {
   const { user } = useTelegram();
 
   return (
-    <Sidebar variant="inset" collapsible="icon" className="border-r-2 border-blue-100 dark:border-blue-800 bg-gradient-to-b from-white to-blue-50/30 dark:from-gray-900 dark:to-blue-900/10">
-      <SidebarHeader className="border-b border-blue-100 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+    <Sidebar variant="inset" collapsible="icon" className="border-r-2 border-amber-100/50 dark:border-amber-800/30 bg-gradient-to-b from-amber-50/20 to-amber-100/10 dark:from-gray-900 dark:to-amber-900/5">
+      <SidebarHeader className="border-b border-amber-100/50 dark:border-amber-800/30 bg-gradient-to-r from-amber-50/30 to-amber-100/20 dark:from-amber-900/10 dark:to-amber-900/5">
         <div className="flex items-center gap-2 px-4 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-600/80 to-orange-600/80 shadow-md">
             <Zap className="h-4 w-4 text-white" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">TelegramCRM</span>
-            <span className="truncate text-xs text-blue-600 dark:text-blue-400 font-medium">v2.0</span>
+            <span className="truncate font-bold bg-gradient-to-r from-amber-700/90 to-orange-600/90 bg-clip-text text-transparent">TelegramCRM</span>
+            <span className="truncate text-xs text-amber-600/80 dark:text-amber-400/70 font-medium">v2.0</span>
           </div>
         </div>
       </SidebarHeader>
@@ -71,15 +73,15 @@ export function AppSidebar() {
                       className={`
                         transition-all duration-200 
                         ${isActive 
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105 border-l-4 border-white' 
-                          : 'hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 hover:shadow-md'
+                          ? 'bg-gradient-to-r from-amber-600/90 to-orange-600/90 text-white shadow-lg transform scale-105 border-l-4 border-white/80' 
+                          : 'hover:bg-gradient-to-r hover:from-amber-50/60 hover:to-orange-50/60 dark:hover:from-amber-900/15 dark:hover:to-orange-900/15 hover:shadow-md'
                         }
                         rounded-lg mx-1
                       `}
                     >
                       <Link to={item.href}>
-                        <item.icon className={isActive ? 'text-white' : ''} />
-                        <span className={`font-medium ${isActive ? 'text-white' : ''}`}>{t(item.name)}</span>
+                        <item.icon className={isActive ? 'text-white' : 'text-amber-700/80 dark:text-amber-300/80'} />
+                        <span className={`font-medium ${isActive ? 'text-white' : 'text-amber-800/90 dark:text-amber-200/90'}`}>{t(item.name)}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -90,18 +92,18 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="border-t border-blue-100 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+      <SidebarFooter className="border-t border-amber-100/50 dark:border-amber-800/30 bg-gradient-to-r from-amber-50/30 to-orange-50/20 dark:from-amber-900/10 dark:to-orange-900/5">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="hover:bg-blue-100 dark:hover:bg-blue-800/30">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold shadow-md">
+            <SidebarMenuButton className="hover:bg-amber-100/60 dark:hover:bg-amber-800/20">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-600/80 to-orange-600/80 text-white font-bold shadow-md">
                 {user?.first_name?.[0] || 'U'}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold text-gray-900 dark:text-gray-100">
                   {user?.first_name || 'User'} {user?.last_name || ''}
                 </span>
-                <span className="truncate text-xs text-blue-600 dark:text-blue-400 font-medium">Admin</span>
+                <span className="truncate text-xs text-amber-600/80 dark:text-amber-400/70 font-medium">Admin</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

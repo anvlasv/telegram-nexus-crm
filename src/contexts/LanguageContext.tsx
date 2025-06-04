@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'ru' | 'en';
@@ -114,6 +113,9 @@ const translations = {
     'export': 'Экспорт',
     'import': 'Импорт',
     'refresh': 'Обновить',
+    
+    // Assistant
+    'assistant': 'Ассистент',
   },
   en: {
     // Navigation
@@ -219,6 +221,9 @@ const translations = {
     'export': 'Export',
     'import': 'Import',
     'refresh': 'Refresh',
+    
+    // Assistant
+    'assistant': 'Assistant',
   }
 };
 
