@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -39,27 +38,51 @@ export const ChannelManagement: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Attempting to save channel with data:', formData);
+    
     try {
       if (editingChannel) {
+        console.log('Updating existing channel:', editingChannel.id);
         await updateChannel.mutateAsync({
           id: editingChannel.id,
           ...formData,
         });
         toast.success('Канал успешно обновлен');
       } else {
-        await createChannel.mutateAsync({
+        console.log('Creating new channel');
+        const channelData = {
           ...formData,
-          name: formData.username,
-          channel_id: 0,
-        });
-        toast.success('Канал успешно добавлен. Бот @Teleg_CRMbot обновит данные автоматически.');
+          name: formData.username, // Временно используем username как name
+          channel_id: 0, // Бот @Teleg_CRMbot обновит это значение
+        };
+        console.log('Channel data to create:', channelData);
+        
+        await createChannel.mutateAsync(channelData);
+        toast.success('Канал успешно добавлен. Бот @Teleg_CRMbot получит данные автоматически.');
       }
       
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {
-      toast.error('Ошибка при сохранении канала');
-      console.error('Error saving channel:', error);
+      console.error('Detailed error while saving channel:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      
+      // Более детальное сообщение об ошибке
+      let errorMessage = 'Ошибка при сохранении канала';
+      if (error instanceof Error) {
+        if (error.message.includes('username')) {
+          errorMessage = 'Проверьте правильность username канала (без @)';
+        } else if (error.message.includes('auth')) {
+          errorMessage = 'Ошибка авторизации. Попробуйте перезайти в приложение';
+        } else if (error.message.includes('duplicate') || error.message.includes('unique')) {
+          errorMessage = 'Канал с таким username уже добавлен';
+        } else {
+          errorMessage = `Ошибка: ${error.message}`;
+        }
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
@@ -103,7 +126,7 @@ export const ChannelManagement: React.FC = () => {
       <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {t('channel-management')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
@@ -115,15 +138,15 @@ export const ChannelManagement: React.FC = () => {
             <DialogTrigger asChild>
               <Button 
                 onClick={resetForm}
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {t('add-channel')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <DialogContent className="sm:max-w-[500px] bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700 shadow-xl">
               <DialogHeader>
-                <DialogTitle className="text-gray-900 dark:text-gray-100">
+                <DialogTitle className="text-blue-900 dark:text-blue-100">
                   {editingChannel ? 'Редактировать канал' : t('add-channel')}
                 </DialogTitle>
                 <DialogDescription className="text-gray-600 dark:text-gray-400">
