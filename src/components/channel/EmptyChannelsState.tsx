@@ -2,20 +2,15 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { MessageSquare, Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface EmptyChannelsStateProps {
-  isDialogOpen: boolean;
-  setIsDialogOpen: (open: boolean) => void;
-  onResetForm: () => void;
+  onAddChannel: () => void;
 }
 
 export const EmptyChannelsState: React.FC<EmptyChannelsStateProps> = ({
-  isDialogOpen,
-  setIsDialogOpen,
-  onResetForm,
+  onAddChannel,
 }) => {
   const { t } = useLanguage();
 
@@ -29,14 +24,10 @@ export const EmptyChannelsState: React.FC<EmptyChannelsStateProps> = ({
         <p className="text-gray-500 dark:text-gray-400 text-center mb-6">
           Добавьте свой первый канал для начала работы
         </p>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={onResetForm} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
-              <Plus className="h-4 w-4 mr-2" />
-              {t('add-channel')}
-            </Button>
-          </DialogTrigger>
-        </Dialog>
+        <Button onClick={onAddChannel} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
+          <Plus className="h-4 w-4 mr-2" />
+          {t('add-channel')}
+        </Button>
       </CardContent>
     </Card>
   );

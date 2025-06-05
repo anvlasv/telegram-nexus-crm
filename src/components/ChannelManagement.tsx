@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Loader2 } from 'lucide-react';
 import { useChannels, useDeleteChannel } from '@/hooks/useChannels';
 import { ChannelCard } from '@/components/channel/ChannelCard';
-import { ChannelForm } from '@/components/channel/ChannelForm';
+import { ChannelFormDialog } from '@/components/channel/ChannelFormDialog';
 import { EmptyChannelsState } from '@/components/channel/EmptyChannelsState';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTelegram } from '@/hooks/useTelegram';
@@ -75,13 +75,11 @@ export const ChannelManagement = () => {
         </div>
       )}
 
-      {showForm && (
-        <ChannelForm
-          open={showForm}
-          onOpenChange={handleFormClose}
-          channel={editingChannel}
-        />
-      )}
+      <ChannelFormDialog
+        open={showForm}
+        onOpenChange={handleFormClose}
+        channel={editingChannel}
+      />
     </div>
   );
 };
