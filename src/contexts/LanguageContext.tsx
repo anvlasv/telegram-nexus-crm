@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'ru' | 'en';
@@ -27,21 +28,13 @@ const translations = {
     'engagement-rate': 'Уровень вовлечения',
     'revenue': 'Доход',
     'scheduled-posts': 'Запланированные посты',
-    'upcoming-posts': 'Предстоящие посты',
+    'upcoming-posts': 'Предстоящие и недавние посты',
     'partner-requests': 'Запросы партнеров',
     'pending-requests': 'Ожидающие запросы на рекламу',
     'view-all-posts': 'Посмотреть все посты',
     'view-all-requests': 'Посмотреть все запросы',
     'accept': 'Принять',
     'decline': 'Отклонить',
-    'channels-on-platform': 'каналов на платформе',
-    'across-all-channels': 'по всем каналам',
-    'since-last-month': 'с прошлого месяца',
-    'recent-activity': 'Последняя активность',
-    'latest-activities-on-channels': 'Последние действия в каналах',
-    'new-post-published': 'Опубликован новый пост',
-    'subscriber-joined': 'Присоединился подписчик',
-    'increased-engagement': 'Повышенная вовлеченность',
     
     // Settings
     'system-settings': 'Управление настройками системы',
@@ -59,18 +52,6 @@ const translations = {
     'theme-settings': 'Настройки темы',
     'dark-theme': 'Темная тема',
     'theme-description': 'Переключение между светлой и темной темой',
-    'profile': 'Профиль',
-    'profile-description': 'Управление личными данными и настройками профиля',
-    'profile-settings-text': 'Настройте свой профиль, изменяйте личные данные и управляйте своей учетной записью.',
-    'security': 'Безопасность',
-    'security-description': 'Настройки безопасности и доступа',
-    'security-settings-text': 'Управляйте паролями, двухфакторной аутентификацией и другими настройками безопасности.',
-    'appearance': 'Внешний вид',
-    'appearance-description': 'Настройки темы и отображения',
-    'appearance-settings-text': 'Настройте тему, цвета и другие параметры отображения интерфейса.',
-    'general-settings': 'Общие настройки',
-    'general-description': 'Основные настройки приложения',
-    'general-settings-text': 'Настройте язык, часовой пояс и другие общие параметры приложения.',
     
     // Channel Management
     'channel-management': 'Управление каналами',
@@ -105,60 +86,6 @@ const translations = {
     'total-reactions': 'Всего реакций',
     'total-forwards': 'Всего пересылок',
     'subscriber-growth': 'Рост подписчиков',
-    'total-likes': 'Всего лайков',
-    'from-last-month': 'с прошлого месяца',
-    'views-over-time': 'Просмотры за период',
-    'views-description': 'Динамика просмотров ваших постов',
-    
-    // Scheduler
-    'scheduler-description': 'Планирование и автоматическая публикация постов',
-    'no-upcoming-posts': 'Нет предстоящих постов',
-    'no-scheduled-posts': 'Нет запланированных постов',
-    'post-templates': 'Шаблоны постов',
-    'no-post-templates': 'Нет шаблонов постов',
-    
-    // Partners
-    'partners-description': 'Управление партнерскими отношениями',
-    'partnerships': 'Партнерства',
-    'active-partnerships': 'Активные партнерства',
-    'new-requests': 'Новые запросы',
-    'pending-partnership-requests': 'Ожидающие запросы о партнерстве',
-    'generated-revenue-from-partners': 'Доход от партнеров',
-    
-    // Marketplace
-    'marketplace-description': 'Маркетплейс для покупки и продажи рекламы',
-    'ads': 'Реклама',
-    'buy-ads': 'Покупка рекламы',
-    'buy-ads-description': 'Покупайте рекламные места в каналах',
-    'sales': 'Продажи',
-    'sell-ads': 'Продажа рекламы',
-    'sell-ads-description': 'Продавайте рекламные места в своих каналах',
-    'find-partners': 'Поиск партнеров',
-    'find-partners-description': 'Находите партнеров для взаимовыгодного сотрудничества',
-    
-    // Notifications
-    'notifications-description': 'Уведомления и оповещения системы',
-    'system-notification': 'Системное уведомление',
-    'important-system-message': 'Важное сообщение от системы',
-    'security-update-text': 'Обновление безопасности: Пожалуйста, обновите приложение до последней версии.',
-    'successful-action': 'Успешное действие',
-    'operation-confirmation': 'Подтверждение выполнения операции',
-    'channel-connected-text': 'Канал "Мой канал" успешно подключен к системе.',
-    'new-notification': 'Новое уведомление',
-    'new-features-info': 'Информация о новых возможностях',
-    'ai-assistant-intro': 'Представляем AI-ассистента для автоматизации контента.',
-    
-    // Assistant
-    'assistant-description': 'AI-помощник для управления контентом',
-    'ai-suggestions': 'Предложения ИИ',
-    'content-ideas': 'Идеи для контента',
-    'generate-ideas': 'Генерировать идеи для постов',
-    'analytics-insights': 'Аналитические инсайты',
-    'performance-analysis': 'Анализ производительности',
-    'get-insights': 'Получить инсайты по вашим каналам',
-    'auto-responses': 'Автоответы',
-    'smart-replies': 'Умные ответы',
-    'setup-auto-replies': 'Настроить автоматические ответы',
     
     // Статусы
     'published': 'Опубликован',
@@ -187,30 +114,6 @@ const translations = {
     'export': 'Экспорт',
     'import': 'Импорт',
     'refresh': 'Обновить',
-    
-    // Assistant
-    'assistant': 'Ассистент',
-    
-    // Новые строки
-    'create-post': 'Создать пост',
-    'schedule-post': 'Запланировать пост',
-    'view-calendar': 'Посмотреть календарь',
-    'confirm-delete-channel': 'Вы уверены, что хотите удалить этот канал?',
-    'name': 'Имя',
-    'email': 'Email',
-    'phone': 'Телефон',
-    'save-changes': 'Сохранить изменения',
-    'current-password': 'Текущий пароль',
-    'new-password': 'Новый пароль',
-    'enable-two-factor': 'Включить двухфакторную аутентификацию',
-    'login-notifications': 'Уведомления о входе',
-    'dark-mode': 'Темная тема',
-    'language': 'Язык',
-    'enable-animations': 'Включить анимации',
-    'enable-notifications': 'Включить уведомления',
-    'auto-save': 'Автосохранение',
-    'timezone': 'Часовой пояс',
-    'select-timezone': 'Выберите часовой пояс',
   },
   en: {
     // Navigation
@@ -230,21 +133,13 @@ const translations = {
     'engagement-rate': 'Engagement Rate',
     'revenue': 'Revenue',
     'scheduled-posts': 'Scheduled Posts',
-    'upcoming-posts': 'Upcoming Posts',
+    'upcoming-posts': 'Upcoming and recent post activity',
     'partner-requests': 'Partner Requests',
     'pending-requests': 'Pending advertising requests',
     'view-all-posts': 'View All Posts',
     'view-all-requests': 'View All Requests',
     'accept': 'Accept',
     'decline': 'Decline',
-    'channels-on-platform': 'channels on platform',
-    'across-all-channels': 'across all channels',
-    'since-last-month': 'since last month',
-    'recent-activity': 'Recent Activity',
-    'latest-activities-on-channels': 'Latest activities on your channels',
-    'new-post-published': 'New post published',
-    'subscriber-joined': 'Subscriber joined',
-    'increased-engagement': 'Increased engagement',
     
     // Settings
     'system-settings': 'Manage system settings',
@@ -262,18 +157,6 @@ const translations = {
     'theme-settings': 'Theme Settings',
     'dark-theme': 'Dark Theme',
     'theme-description': 'Switch between light and dark themes',
-    'profile': 'Profile',
-    'profile-description': 'Manage personal data and profile settings',
-    'profile-settings-text': 'Configure your profile, change personal data and manage your account.',
-    'security': 'Security',
-    'security-description': 'Security and access settings',
-    'security-settings-text': 'Manage passwords, two-factor authentication and other security settings.',
-    'appearance': 'Appearance',
-    'appearance-description': 'Theme and display settings',
-    'appearance-settings-text': 'Configure theme, colors and other interface display parameters.',
-    'general-settings': 'General Settings',
-    'general-description': 'Basic application settings',
-    'general-settings-text': 'Configure language, timezone and other general application parameters.',
     
     // Channel Management
     'channel-management': 'Channel Management',
@@ -308,60 +191,6 @@ const translations = {
     'total-reactions': 'Total Reactions',
     'total-forwards': 'Total Forwards',
     'subscriber-growth': 'Subscriber Growth',
-    'total-likes': 'Total Likes',
-    'from-last-month': 'from last month',
-    'views-over-time': 'Views Over Time',
-    'views-description': 'Dynamics of your posts views',
-    
-    // Scheduler
-    'scheduler-description': 'Schedule and automatically publish posts',
-    'no-upcoming-posts': 'No upcoming posts',
-    'no-scheduled-posts': 'No scheduled posts',
-    'post-templates': 'Post Templates',
-    'no-post-templates': 'No post templates',
-    
-    // Partners
-    'partners-description': 'Manage partnership relationships',
-    'partnerships': 'Partnerships',
-    'active-partnerships': 'Active partnerships',
-    'new-requests': 'New Requests',
-    'pending-partnership-requests': 'Pending partnership requests',
-    'generated-revenue-from-partners': 'Revenue generated from partners',
-    
-    // Marketplace
-    'marketplace-description': 'Marketplace for buying and selling ads',
-    'ads': 'Ads',
-    'buy-ads': 'Buy Ads',
-    'buy-ads-description': 'Buy advertising space in channels',
-    'sales': 'Sales',
-    'sell-ads': 'Sell Ads',
-    'sell-ads-description': 'Sell advertising space in your channels',
-    'find-partners': 'Find Partners',
-    'find-partners-description': 'Find partners for mutually beneficial cooperation',
-    
-    // Notifications
-    'notifications-description': 'System notifications and alerts',
-    'system-notification': 'System Notification',
-    'important-system-message': 'Important system message',
-    'security-update-text': 'Security update: Please update the app to the latest version.',
-    'successful-action': 'Successful Action',
-    'operation-confirmation': 'Operation confirmation',
-    'channel-connected-text': 'Channel "My Channel" successfully connected to the system.',
-    'new-notification': 'New Notification',
-    'new-features-info': 'Information about new features',
-    'ai-assistant-intro': 'Introducing AI assistant for content automation.',
-    
-    // Assistant
-    'assistant-description': 'AI assistant for content management',
-    'ai-suggestions': 'AI Suggestions',
-    'content-ideas': 'Content Ideas',
-    'generate-ideas': 'Generate post ideas',
-    'analytics-insights': 'Analytics Insights',
-    'performance-analysis': 'Performance analysis',
-    'get-insights': 'Get insights about your channels',
-    'auto-responses': 'Auto Responses',
-    'smart-replies': 'Smart replies',
-    'setup-auto-replies': 'Setup automatic replies',
     
     // Statuses
     'published': 'Published',
@@ -390,30 +219,6 @@ const translations = {
     'export': 'Export',
     'import': 'Import',
     'refresh': 'Refresh',
-    
-    // Assistant
-    'assistant': 'Assistant',
-    
-    // Новые строки
-    'create-post': 'Create Post',
-    'schedule-post': 'Schedule Post',
-    'view-calendar': 'View Calendar',
-    'confirm-delete-channel': 'Are you sure you want to delete this channel?',
-    'name': 'Name',
-    'email': 'Email',
-    'phone': 'Phone',
-    'save-changes': 'Save Changes',
-    'current-password': 'Current Password',
-    'new-password': 'New Password',
-    'enable-two-factor': 'Enable Two-Factor Authentication',
-    'login-notifications': 'Login Notifications',
-    'dark-mode': 'Dark Mode',
-    'language': 'Language',
-    'enable-animations': 'Enable Animations',
-    'enable-notifications': 'Enable Notifications',
-    'auto-save': 'Auto Save',
-    'timezone': 'Timezone',
-    'select-timezone': 'Select Timezone',
   }
 };
 
