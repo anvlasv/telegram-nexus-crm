@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings as SettingsIcon, User, Shield, Palette } from 'lucide-react';
@@ -13,7 +14,7 @@ export const Settings = () => {
           {t('settings')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Настройки приложения и профиля
+          {t('system-settings')}
         </p>
       </div>
 
@@ -22,15 +23,15 @@ export const Settings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              Профиль
+              {t('profile')}
             </CardTitle>
             <CardDescription>
-              Управление личными данными и настройками профиля
+              {t('profile-description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Настройте свой профиль, изменяйте личные данные и управляйте своей учетной записью.
+              {t('profile-settings-text')}
             </p>
           </CardContent>
         </Card>
@@ -39,15 +40,15 @@ export const Settings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              Безопасность
+              {t('security')}
             </CardTitle>
             <CardDescription>
-              Настройки безопасности и доступа
+              {t('security-description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Управляйте паролями, двухфакторной аутентификацией и другими настройками безопасности.
+              {t('security-settings-text')}
             </p>
           </CardContent>
         </Card>
@@ -56,15 +57,15 @@ export const Settings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
-              Внешний вид
+              {t('appearance')}
             </CardTitle>
             <CardDescription>
-              Настройки темы и отображения
+              {t('appearance-description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Настройте тему, цвета и другие параметры отображения интерфейса.
+              {t('appearance-settings-text')}
             </p>
           </CardContent>
         </Card>
@@ -73,15 +74,15 @@ export const Settings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <SettingsIcon className="h-5 w-5" />
-              Общие настройки
+              {t('general-settings')}
             </CardTitle>
             <CardDescription>
-              Основные настройки приложения
+              {t('general-description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Настройте язык, часовой пояс и другие общие параметры приложения.
+              {t('general-settings-text')}
             </p>
           </CardContent>
         </Card>

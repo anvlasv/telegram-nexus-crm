@@ -51,7 +51,7 @@ export const ChannelManagement = () => {
             {t('channels')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Управляйте своими Telegram каналами
+            {t('manage-channels')}
           </p>
         </div>
         <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">

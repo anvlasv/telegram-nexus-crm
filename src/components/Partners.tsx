@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Handshake, DollarSign } from 'lucide-react';
@@ -13,7 +14,7 @@ export const Partners = () => {
           {t('partners')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Управление партнерскими отношениями
+          {t('partners-description')}
         </p>
       </div>
 

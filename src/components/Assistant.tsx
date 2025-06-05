@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bot, MessageSquare, Lightbulb, BarChart3 } from 'lucide-react';
@@ -13,7 +14,7 @@ export const Assistant = () => {
           {t('assistant')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          AI-помощник для управления контентом
+          {t('assistant-description')}
         </p>
       </div>
 

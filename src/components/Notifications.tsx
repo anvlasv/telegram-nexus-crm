@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bell, AlertCircle, CheckCircle } from 'lucide-react';
@@ -13,7 +14,7 @@ export const Notifications = () => {
           {t('notifications')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Уведомления и оповещения системы
+          {t('notifications-description')}
         </p>
       </div>
 
@@ -22,15 +23,15 @@ export const Notifications = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <AlertCircle className="h-4 w-4" />
-              Системное уведомление
+              {t('system-notification')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Важное сообщение от системы
+              {t('important-system-message')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Обновление безопасности: Пожалуйста, обновите приложение до последней версии.
+              {t('security-update-text')}
             </p>
           </CardContent>
         </Card>
@@ -39,15 +40,15 @@ export const Notifications = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <CheckCircle className="h-4 w-4" />
-              Успешное действие
+              {t('successful-action')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Подтверждение выполнения операции
+              {t('operation-confirmation')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Канал "Мой канал" успешно подключен к системе.
+              {t('channel-connected-text')}
             </p>
           </CardContent>
         </Card>
@@ -56,15 +57,15 @@ export const Notifications = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
               <Bell className="h-4 w-4" />
-              Новое уведомление
+              {t('new-notification')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Информация о новых возможностях
+              {t('new-features-info')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Представляем AI-ассистента для автоматизации контента.
+              {t('ai-assistant-intro')}
             </p>
           </CardContent>
         </Card>

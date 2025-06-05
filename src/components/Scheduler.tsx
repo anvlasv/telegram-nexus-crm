@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock, Send } from 'lucide-react';
@@ -13,7 +14,7 @@ export const Scheduler = () => {
           {t('scheduler')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Планирование и автоматическая публикация постов
+          {t('scheduler-description')}
         </p>
       </div>
 

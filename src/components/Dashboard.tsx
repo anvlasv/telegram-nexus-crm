@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, Users, TrendingUp, Calendar } from 'lucide-react';
@@ -13,7 +14,7 @@ export const Dashboard = () => {
           {t('dashboard')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Обзор ваших Telegram каналов и статистики
+          {t('overview')}
         </p>
       </div>
 

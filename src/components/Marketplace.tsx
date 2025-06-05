@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target, ShoppingBag, TrendingUp } from 'lucide-react';
@@ -13,7 +14,7 @@ export const Marketplace = () => {
           {t('marketplace')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Маркетплейс для покупки и продажи рекламы
+          {t('marketplace-description')}
         </p>
       </div>
 

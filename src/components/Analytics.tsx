@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, TrendingUp, Eye, Heart } from 'lucide-react';
@@ -13,7 +14,7 @@ export const Analytics = () => {
           {t('analytics')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Детальная аналитика ваших каналов
+          {t('detailed-analytics')}
         </p>
       </div>
 
