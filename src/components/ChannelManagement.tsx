@@ -24,7 +24,7 @@ export const ChannelManagement = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const confirmed = await showConfirm('Вы уверены, что хотите удалить этот канал?');
+    const confirmed = await showConfirm(t('confirm-delete-channel'));
     if (confirmed) {
       deleteChannelMutation.mutate(id);
     }
@@ -33,6 +33,11 @@ export const ChannelManagement = () => {
   const handleFormClose = () => {
     setShowForm(false);
     setEditingChannel(null);
+  };
+
+  const handleCreatePost = () => {
+    // Функция создания поста
+    console.log('Creating new post...');
   };
 
   if (isLoading) {
@@ -54,10 +59,16 @@ export const ChannelManagement = () => {
             {t('manage-channels')}
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          {t('add-channel')}
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button onClick={() => setShowForm(true)} className="flex-1 sm:flex-none">
+            <Plus className="h-4 w-4 mr-2" />
+            {t('add-channel')}
+          </Button>
+          <Button onClick={handleCreatePost} variant="outline" className="flex-1 sm:flex-none">
+            <Plus className="h-4 w-4 mr-2" />
+            {t('create-post')}
+          </Button>
+        </div>
       </div>
 
       {channels.length === 0 ? (

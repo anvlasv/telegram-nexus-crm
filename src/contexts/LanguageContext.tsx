@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'ru' | 'en';
@@ -191,6 +190,27 @@ const translations = {
     
     // Assistant
     'assistant': 'Ассистент',
+    
+    // Новые строки
+    'create-post': 'Создать пост',
+    'schedule-post': 'Запланировать пост',
+    'view-calendar': 'Посмотреть календарь',
+    'confirm-delete-channel': 'Вы уверены, что хотите удалить этот канал?',
+    'name': 'Имя',
+    'email': 'Email',
+    'phone': 'Телефон',
+    'save-changes': 'Сохранить изменения',
+    'current-password': 'Текущий пароль',
+    'new-password': 'Новый пароль',
+    'enable-two-factor': 'Включить двухфакторную аутентификацию',
+    'login-notifications': 'Уведомления о входе',
+    'dark-mode': 'Темная тема',
+    'language': 'Язык',
+    'enable-animations': 'Включить анимации',
+    'enable-notifications': 'Включить уведомления',
+    'auto-save': 'Автосохранение',
+    'timezone': 'Часовой пояс',
+    'select-timezone': 'Выберите часовой пояс',
   },
   en: {
     // Navigation
@@ -373,6 +393,27 @@ const translations = {
     
     // Assistant
     'assistant': 'Assistant',
+    
+    // Новые строки
+    'create-post': 'Create Post',
+    'schedule-post': 'Schedule Post',
+    'view-calendar': 'View Calendar',
+    'confirm-delete-channel': 'Are you sure you want to delete this channel?',
+    'name': 'Name',
+    'email': 'Email',
+    'phone': 'Phone',
+    'save-changes': 'Save Changes',
+    'current-password': 'Current Password',
+    'new-password': 'New Password',
+    'enable-two-factor': 'Enable Two-Factor Authentication',
+    'login-notifications': 'Login Notifications',
+    'dark-mode': 'Dark Mode',
+    'language': 'Language',
+    'enable-animations': 'Enable Animations',
+    'enable-notifications': 'Enable Notifications',
+    'auto-save': 'Auto Save',
+    'timezone': 'Timezone',
+    'select-timezone': 'Select Timezone',
   }
 };
 

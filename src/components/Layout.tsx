@@ -14,9 +14,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen max-h-screen flex w-full bg-background overflow-hidden">
         <AppSidebar />
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 flex flex-col overflow-hidden">
           <TopNav />
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             {children}
