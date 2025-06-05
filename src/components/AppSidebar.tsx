@@ -9,7 +9,8 @@ import {
   Settings, 
   Zap,
   Target,
-  Bell
+  Bell,
+  Bot
 } from 'lucide-react';
 import {
   Sidebar,
@@ -31,6 +32,7 @@ const navigation = [
   { name: 'channels', href: '/channels', icon: MessageSquare },
   { name: 'analytics', href: '/analytics', icon: BarChart3 },
   { name: 'scheduler', href: '/scheduler', icon: Calendar },
+  { name: 'assistant', href: '/assistant', icon: Bot },
   { name: 'partners', href: '/partners', icon: Users },
   { name: 'marketplace', href: '/marketplace', icon: Target },
   { name: 'notifications', href: '/notifications', icon: Bell },
@@ -43,11 +45,11 @@ export function AppSidebar() {
   const { user } = useTelegram();
 
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar variant="inset" collapsible="icon" className="sidebar-collapsed">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Zap className="h-4 w-4 text-primary-foreground" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
+            <Zap className="h-4 w-4 text-sidebar-primary-foreground" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">TelegramCRM</span>
@@ -64,9 +66,15 @@ export function AppSidebar() {
                 const isActive = location.pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={t(item.name)}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={isActive} 
+                      tooltip={t(item.name)}
+                      className="sidebar-menu-button"
+                      data-active={isActive}
+                    >
                       <Link to={item.href}>
-                        <item.icon />
+                        <item.icon className="text-sidebar-primary" />
                         <span>{t(item.name)}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -82,7 +90,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 {user?.first_name?.[0] || 'U'}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
