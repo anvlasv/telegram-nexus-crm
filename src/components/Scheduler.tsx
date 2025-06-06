@@ -2,16 +2,13 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarDays, Clock, Plus, Send, Edit, Trash2, List, Calendar as CalendarIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useChannels } from '@/hooks/useChannels';
-import { supabase } from '@/integrations/supabase/client';
+import { useScheduledPosts, useCreateScheduledPost, useDeleteScheduledPost } from '@/hooks/useScheduledPosts';
+import { PostForm } from './PostForm';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -30,77 +27,29 @@ const POST_TYPES = [
 
 export const Scheduler: React.FC = () => {
   const { t } = useLanguage();
-  const { data: channels = [] } = useChannels();
+  const { data: posts = [], isLoading } = useScheduledPosts();
+  const createPost = useCreateScheduledPost();
+  const deletePost = useDeleteScheduledPost();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
-  const [scheduledPosts, setScheduledPosts] = useState([
-    {
-      id: '1',
-      channel: 'Tech News',
-      content: 'Новые возможности AI в 2024',
-      scheduledFor: '2024-12-06T10:00',
-      status: 'pending',
-      type: 'text'
-    },
-    {
-      id: '2', 
-      channel: 'Marketing Tips',
-      content: 'Стратегии продвижения в Telegram',
-      scheduledFor: '2024-12-06T14:30',
-      status: 'sent',
-      type: 'photo'
-    },
-    {
-      id: '3',
-      channel: 'Tech News',
-      content: 'Опрос о новых технологиях',
-      scheduledFor: '2024-12-07T12:00',
-      status: 'pending',
-      type: 'poll'
-    }
-  ]);
 
-  const [newPost, setNewPost] = useState({
-    channelId: '',
-    content: '',
-    scheduledFor: '',
-    type: 'text'
-  });
-
-  const handleCreatePost = async () => {
-    if (!newPost.channelId || !newPost.content || !newPost.scheduledFor) {
-      toast({
-        title: t('error'),
-        description: 'Заполните все поля',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const handleCreatePost = async (formData: any) => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('User not authenticated');
-
-      const { error } = await supabase
-        .from('scheduled_posts')
-        .insert({
-          channel_id: newPost.channelId,
-          content: newPost.content,
-          scheduled_for: newPost.scheduledFor,
-          status: 'pending',
-          user_id: userData.user.id
-        });
-
-      if (error) throw error;
+      await createPost.mutateAsync({
+        channel_id: formData.channelId,
+        content: formData.content || formData.pollQuestion || '',
+        scheduled_for: formData.scheduledFor,
+        status: 'pending',
+        media_urls: formData.mediaFiles?.map((file: File) => file.name) || null,
+      });
 
       toast({
         title: t('success'),
         description: 'Пост запланирован успешно',
       });
 
-      setNewPost({ channelId: '', content: '', scheduledFor: '', type: 'text' });
       setShowForm(false);
     } catch (error) {
       console.error('Error creating scheduled post:', error);
@@ -109,6 +58,24 @@ export const Scheduler: React.FC = () => {
         description: 'Ошибка при планировании поста',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleDeletePost = async (id: string) => {
+    if (confirm('Вы уверены, что хотите удалить этот пост?')) {
+      try {
+        await deletePost.mutateAsync(id);
+        toast({
+          title: t('success'),
+          description: 'Пост удален',
+        });
+      } catch (error) {
+        toast({
+          title: t('error'),
+          description: 'Ошибка при удалении поста',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -133,8 +100,8 @@ export const Scheduler: React.FC = () => {
   };
 
   const getPostsForDate = (date: Date) => {
-    return scheduledPosts.filter(post => 
-      isSameDay(new Date(post.scheduledFor), date)
+    return posts.filter(post => 
+      isSameDay(new Date(post.scheduled_for), date)
     );
   };
 
@@ -155,7 +122,7 @@ export const Scheduler: React.FC = () => {
               <div className="space-y-1">
                 {postsForDay.map((post) => (
                   <div key={post.id} className="text-xs p-1 bg-blue-100 dark:bg-blue-900 rounded truncate">
-                    {format(new Date(post.scheduledFor), 'HH:mm')} - {post.content.substring(0, 20)}...
+                    {format(new Date(post.scheduled_for), 'HH:mm')} - {post.content.substring(0, 20)}...
                   </div>
                 ))}
               </div>
@@ -166,8 +133,12 @@ export const Scheduler: React.FC = () => {
     );
   };
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-64">Загрузка...</div>;
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 p-4 max-w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{t('scheduler')}</h1>
@@ -175,7 +146,7 @@ export const Scheduler: React.FC = () => {
             Планирование и управление отложенными постами
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             variant={viewMode === 'list' ? 'default' : 'outline'} 
             onClick={() => setViewMode('list')}
@@ -200,95 +171,31 @@ export const Scheduler: React.FC = () => {
       </div>
 
       {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Новый запланированный пост</CardTitle>
-            <CardDescription>
-              Создайте новый пост для отложенной публикации
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Канал</label>
-                <Select value={newPost.channelId} onValueChange={(value) => setNewPost({...newPost, channelId: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите канал" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {channels.map((channel) => (
-                      <SelectItem key={channel.id} value={channel.id}>
-                        {channel.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Тип поста</label>
-                <Select value={newPost.type} onValueChange={(value) => setNewPost({...newPost, type: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите тип" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {POST_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Дата и время</label>
-                <Input
-                  type="datetime-local"
-                  value={newPost.scheduledFor}
-                  onChange={(e) => setNewPost({...newPost, scheduledFor: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Содержание поста</label>
-              <Textarea
-                placeholder="Введите текст поста..."
-                value={newPost.content}
-                onChange={(e) => setNewPost({...newPost, content: e.target.value})}
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleCreatePost}>
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Запланировать
-              </Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}>
-                {t('cancel')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <PostForm
+          onSubmit={handleCreatePost}
+          isLoading={createPost.isPending}
+        />
       )}
 
       {viewMode === 'calendar' ? (
         <div className="space-y-4">
           <Tabs defaultValue="week" className="w-full">
-            <TabsList>
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="week">Неделя</TabsTrigger>
               <TabsTrigger value="month">Месяц</TabsTrigger>
             </TabsList>
             <TabsContent value="week" className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h3 className="text-lg font-medium">
                   {format(selectedDate, 'dd MMMM yyyy', { locale: ru })}
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 7)))}
                   >
-                    ← Предыдущая неделя
+                    ← Пред. неделя
                   </Button>
                   <Button 
                     variant="outline" 
@@ -302,7 +209,7 @@ export const Scheduler: React.FC = () => {
                     size="sm"
                     onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 7)))}
                   >
-                    Следующая неделя →
+                    След. неделя →
                   </Button>
                 </div>
               </div>
@@ -320,19 +227,17 @@ export const Scheduler: React.FC = () => {
                   <h3 className="text-lg font-medium">
                     Посты на {format(selectedDate, 'dd MMMM yyyy', { locale: ru })}
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
                     {getPostsForDate(selectedDate).map((post) => (
                       <Card key={post.id}>
                         <CardContent className="pt-4">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-2">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline">{post.channel}</Badge>
-                                <Badge className={getStatusColor(post.status)}>
-                                  {t(post.status)}
-                                </Badge>
-                                <Badge className={getTypeColor(post.type)}>
-                                  {POST_TYPES.find(t => t.value === post.type)?.label || post.type}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant="outline">{post.telegram_channels?.name}</Badge>
+                                <Badge className={getStatusColor(post.status || 'pending')}>
+                                  {post.status === 'sent' ? 'Отправлен' : 
+                                   post.status === 'pending' ? 'Ожидает' : 'Ошибка'}
                                 </Badge>
                               </div>
                               <p className="text-sm text-muted-foreground line-clamp-2">
@@ -340,7 +245,7 @@ export const Scheduler: React.FC = () => {
                               </p>
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3" />
-                                {format(new Date(post.scheduledFor), 'HH:mm')}
+                                {format(new Date(post.scheduled_for), 'HH:mm')}
                               </div>
                             </div>
                             <div className="flex gap-2">
@@ -350,7 +255,7 @@ export const Scheduler: React.FC = () => {
                               <Button size="sm" variant="ghost">
                                 <Send className="h-4 w-4" />
                               </Button>
-                              <Button size="sm" variant="ghost">
+                              <Button size="sm" variant="ghost" onClick={() => handleDeletePost(post.id)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -370,37 +275,37 @@ export const Scheduler: React.FC = () => {
           </Tabs>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {scheduledPosts.map((post) => (
+        <div className="grid gap-4 max-w-full">
+          {posts.map((post) => (
             <Card key={post.id}>
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1 space-y-2 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="outline">{post.channel}</Badge>
-                      <Badge className={getStatusColor(post.status)}>
-                        {t(post.status)}
+                      <Badge variant="outline" className="truncate max-w-32">
+                        {post.telegram_channels?.name}
                       </Badge>
-                      <Badge className={getTypeColor(post.type)}>
-                        {POST_TYPES.find(t => t.value === post.type)?.label || post.type}
+                      <Badge className={getStatusColor(post.status || 'pending')}>
+                        {post.status === 'sent' ? 'Отправлен' : 
+                         post.status === 'pending' ? 'Ожидает' : 'Ошибка'}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="text-sm text-muted-foreground line-clamp-2 break-words">
                       {post.content}
                     </p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      {new Date(post.scheduledFor).toLocaleString('ru-RU')}
+                      {new Date(post.scheduled_for).toLocaleString('ru-RU')}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-shrink-0">
                     <Button size="sm" variant="ghost">
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button size="sm" variant="ghost">
                       <Send className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="ghost" onClick={() => handleDeletePost(post.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
