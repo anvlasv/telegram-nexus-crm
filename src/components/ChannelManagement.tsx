@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquare, Users, Calendar, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MessageSquare, Users, Calendar, Plus, Edit2, Trash2, Bot, AlertCircle, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChannels, useCreateChannel, useUpdateChannel, useDeleteChannel } from '@/hooks/useChannels';
+import { useGetChatInfo, useGetChatMemberCount, useCheckBotAdmin } from '@/hooks/useTelegramApi';
 import { toast } from 'sonner';
 
 export const ChannelManagement: React.FC = () => {
@@ -18,47 +20,125 @@ export const ChannelManagement: React.FC = () => {
   const createChannel = useCreateChannel();
   const updateChannel = useUpdateChannel();
   const deleteChannel = useDeleteChannel();
+  const getChatInfo = useGetChatInfo();
+  const getChatMemberCount = useGetChatMemberCount();
+  const checkBotAdmin = useCheckBotAdmin();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<any>(null);
   const [formData, setFormData] = useState({
-    name: '',
     username: '',
-    channel_id: '',
     type: 'channel' as 'channel' | 'group',
     status: 'active' as 'active' | 'paused' | 'archived',
-    subscriber_count: 0,
   });
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
+  const [verificationMessage, setVerificationMessage] = useState('');
+  const [chatData, setChatData] = useState<any>(null);
 
   const resetForm = () => {
     setFormData({
-      name: '',
       username: '',
-      channel_id: '',
       type: 'channel',
       status: 'active',
-      subscriber_count: 0,
     });
     setEditingChannel(null);
+    setVerificationStatus('idle');
+    setVerificationMessage('');
+    setChatData(null);
+  };
+
+  const verifyChannel = async () => {
+    if (!formData.username) {
+      toast.error('Введите username канала');
+      return;
+    }
+
+    setVerificationStatus('checking');
+    setVerificationMessage('');
+
+    try {
+      // Get chat info
+      const chatInfoResponse = await getChatInfo.mutateAsync({ 
+        username: formData.username.startsWith('@') ? formData.username : `@${formData.username}` 
+      });
+
+      if (!chatInfoResponse.ok) {
+        setVerificationStatus('error');
+        setVerificationMessage('Канал не найден или не доступен');
+        return;
+      }
+
+      const chat = chatInfoResponse.result;
+      setChatData(chat);
+
+      // Check if bot is admin
+      const botAdminResponse = await checkBotAdmin.mutateAsync({ 
+        chatId: chat.id 
+      });
+
+      if (!botAdminResponse.ok) {
+        setVerificationStatus('error');
+        setVerificationMessage('Бот @Teleg_CRMbot не является администратором этого канала');
+        return;
+      }
+
+      const memberStatus = botAdminResponse.result.status;
+      if (memberStatus !== 'administrator' && memberStatus !== 'creator') {
+        setVerificationStatus('error');
+        setVerificationMessage('Бот @Teleg_CRMbot должен быть администратором канала');
+        return;
+      }
+
+      // Get subscriber count
+      const memberCountResponse = await getChatMemberCount.mutateAsync({ 
+        chatId: chat.id 
+      });
+
+      setVerificationStatus('success');
+      setVerificationMessage('Канал успешно верифицирован и готов к подключению');
+      
+      // Update chat data with member count
+      if (memberCountResponse.ok) {
+        setChatData({
+          ...chat,
+          member_count: memberCountResponse.result
+        });
+      }
+
+    } catch (error) {
+      console.error('Verification error:', error);
+      setVerificationStatus('error');
+      setVerificationMessage('Ошибка при проверке канала');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!chatData) {
+      toast.error('Сначала верифицируйте канал');
+      return;
+    }
+
     try {
+      const channelData = {
+        name: chatData.title || chatData.username || 'Untitled Channel',
+        username: chatData.username || formData.username,
+        channel_id: chatData.id,
+        type: formData.type,
+        status: formData.status,
+        subscriber_count: chatData.member_count || 0,
+      };
+
       if (editingChannel) {
         await updateChannel.mutateAsync({
           id: editingChannel.id,
-          ...formData,
-          channel_id: parseInt(formData.channel_id),
+          ...channelData,
         });
         toast.success('Канал успешно обновлен');
       } else {
-        await createChannel.mutateAsync({
-          ...formData,
-          channel_id: parseInt(formData.channel_id),
-        });
-        toast.success('Канал успешно создан');
+        await createChannel.mutateAsync(channelData);
+        toast.success('Канал успешно подключен');
       }
       
       setIsDialogOpen(false);
@@ -72,12 +152,9 @@ export const ChannelManagement: React.FC = () => {
   const handleEdit = (channel: any) => {
     setEditingChannel(channel);
     setFormData({
-      name: channel.name,
       username: channel.username,
-      channel_id: channel.channel_id.toString(),
       type: channel.type,
       status: channel.status,
-      subscriber_count: channel.subscriber_count || 0,
     });
     setIsDialogOpen(true);
   };
@@ -133,68 +210,78 @@ export const ChannelManagement: React.FC = () => {
               {t('add-channel')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <DialogContent className="sm:max-w-[500px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <DialogHeader>
               <DialogTitle className="text-gray-900 dark:text-gray-100">
                 {editingChannel ? 'Редактировать канал' : t('add-channel')}
               </DialogTitle>
               <DialogDescription className="text-gray-600 dark:text-gray-400">
-                {editingChannel ? 'Обновите информацию о канале' : 'Добавьте новый Telegram канал'}
+                {editingChannel ? 'Обновите информацию о канале' : 'Подключите новый Telegram канал'}
               </DialogDescription>
             </DialogHeader>
+
+            {!editingChannel && (
+              <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <Bot className="h-4 w-4" />
+                <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Как подключить канал:</strong>
+                  <ol className="list-decimal list-inside mt-2 space-y-1">
+                    <li>Добавьте бота @Teleg_CRMbot в администраторы вашего канала</li>
+                    <li>Дайте боту права администратора</li>
+                    <li>Введите username канала в поле ниже</li>
+                    <li>Нажмите "Проверить канал"</li>
+                  </ol>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name" className="text-gray-900 dark:text-gray-100">
-                  {t('channel-name')}
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                />
-              </div>
               <div>
                 <Label htmlFor="username" className="text-gray-900 dark:text-gray-100">
                   {t('channel-username')}
                 </Label>
-                <Input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  placeholder="@channel_username"
-                  required
-                  className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="username"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    placeholder="@channel_username"
+                    required
+                    disabled={editingChannel || verificationStatus === 'success'}
+                    className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                  />
+                  {!editingChannel && (
+                    <Button
+                      type="button"
+                      onClick={verifyChannel}
+                      disabled={verificationStatus === 'checking' || verificationStatus === 'success'}
+                      className="whitespace-nowrap"
+                    >
+                      {verificationStatus === 'checking' ? 'Проверяем...' : 'Проверить'}
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div>
-                <Label htmlFor="channel_id" className="text-gray-900 dark:text-gray-100">
-                  {t('channel-id')}
-                </Label>
-                <Input
-                  id="channel_id"
-                  type="number"
-                  value={formData.channel_id}
-                  onChange={(e) => setFormData({ ...formData, channel_id: e.target.value })}
-                  placeholder="-1001234567890"
-                  required
-                  className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              <div>
-                <Label htmlFor="subscriber_count" className="text-gray-900 dark:text-gray-100">
-                  Количество подписчиков
-                </Label>
-                <Input
-                  id="subscriber_count"
-                  type="number"
-                  value={formData.subscriber_count}
-                  onChange={(e) => setFormData({ ...formData, subscriber_count: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                />
-              </div>
+
+              {verificationMessage && (
+                <Alert className={verificationStatus === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}>
+                  {verificationStatus === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                  <AlertDescription className={verificationStatus === 'success' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}>
+                    {verificationMessage}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {chatData && (
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg space-y-2">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100">Информация о канале:</h4>
+                  <p><strong>Название:</strong> {chatData.title}</p>
+                  <p><strong>Username:</strong> @{chatData.username}</p>
+                  <p><strong>ID:</strong> {chatData.id}</p>
+                  <p><strong>Подписчики:</strong> {chatData.member_count?.toLocaleString() || 'Неизвестно'}</p>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-gray-900 dark:text-gray-100">Тип</Label>
@@ -242,7 +329,7 @@ export const ChannelManagement: React.FC = () => {
                 </Button>
                 <Button 
                   type="submit"
-                  disabled={createChannel.isPending || updateChannel.isPending}
+                  disabled={createChannel.isPending || updateChannel.isPending || (!editingChannel && verificationStatus !== 'success')}
                   className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                 >
                   {editingChannel ? t('save') : t('create')}
@@ -284,7 +371,7 @@ export const ChannelManagement: React.FC = () => {
                       {channel.name}
                     </CardTitle>
                     <CardDescription className="text-gray-600 dark:text-gray-400">
-                      {channel.username}
+                      @{channel.username}
                     </CardDescription>
                   </div>
                   <Badge className={getStatusColor(channel.status || 'active')}>
