@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,19 +46,19 @@ export const ChannelManagement: React.FC = () => {
     setChatData(null);
   };
 
-  const verifyChannel = async () => {
-    if (!formData.username) {
-      toast.error('Введите username канала');
-      return;
-    }
+  const verifyChannel = async (username: string) => {
+    if (!username) return;
 
     setVerificationStatus('checking');
     setVerificationMessage('');
 
     try {
+      // Clean up username
+      const cleanUsername = username.startsWith('@') ? username : `@${username}`;
+
       // Get chat info
       const chatInfoResponse = await getChatInfo.mutateAsync({ 
-        username: formData.username.startsWith('@') ? formData.username : `@${formData.username}` 
+        username: cleanUsername 
       });
 
       if (!chatInfoResponse.ok) {
@@ -112,11 +111,21 @@ export const ChannelManagement: React.FC = () => {
     }
   };
 
+  // Auto-verify when username changes (with debounce)
+  useEffect(() => {
+    if (formData.username && !editingChannel) {
+      const timer = setTimeout(() => {
+        verifyChannel(formData.username);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [formData.username]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!chatData) {
-      toast.error('Сначала верифицируйте канал');
+      toast.error('Сначала введите корректный username канала');
       return;
     }
 
@@ -229,7 +238,7 @@ export const ChannelManagement: React.FC = () => {
                     <li>Добавьте бота @Teleg_CRMbot в администраторы вашего канала</li>
                     <li>Дайте боту права администратора</li>
                     <li>Введите username канала в поле ниже</li>
-                    <li>Нажмите "Проверить канал"</li>
+                    <li>Система автоматически проверит канал</li>
                   </ol>
                 </AlertDescription>
               </Alert>
@@ -240,27 +249,18 @@ export const ChannelManagement: React.FC = () => {
                 <Label htmlFor="username" className="text-gray-900 dark:text-gray-100">
                   {t('channel-username')}
                 </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="username"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    placeholder="@channel_username"
-                    required
-                    disabled={editingChannel || verificationStatus === 'success'}
-                    className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-                  />
-                  {!editingChannel && (
-                    <Button
-                      type="button"
-                      onClick={verifyChannel}
-                      disabled={verificationStatus === 'checking' || verificationStatus === 'success'}
-                      className="whitespace-nowrap"
-                    >
-                      {verificationStatus === 'checking' ? 'Проверяем...' : 'Проверить'}
-                    </Button>
-                  )}
-                </div>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="@channel_username"
+                  required
+                  disabled={editingChannel}
+                  className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+                />
+                {verificationStatus === 'checking' && (
+                  <p className="text-sm text-blue-600 mt-1">Проверяем канал...</p>
+                )}
               </div>
 
               {verificationMessage && (

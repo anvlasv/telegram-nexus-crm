@@ -31,20 +31,15 @@ const callTelegramApi = async (request: TelegramApiRequest): Promise<TelegramApi
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch('/supabase/functions/v1/telegram-api', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify(request),
+  const response = await supabase.functions.invoke('telegram-api', {
+    body: request,
   });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  if (response.error) {
+    throw new Error(response.error.message);
   }
 
-  return await response.json();
+  return response.data;
 };
 
 export const useTelegramBotInfo = () => {
