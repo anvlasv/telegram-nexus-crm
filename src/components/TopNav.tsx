@@ -2,14 +2,16 @@
 import React, { useState } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Bell, Search, Settings, ChevronDown } from 'lucide-react';
+import { Bell, Search, Settings, ChevronDown, LogOut, User } from 'lucide-react';
 import { useTelegram } from '@/hooks/useTelegram';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { ChannelInfoModal } from './ChannelInfoModal';
 
@@ -21,10 +23,15 @@ const mockChannels = [
 ];
 
 export const TopNav: React.FC = () => {
-  const { user, isDarkTheme, toggleTheme } = useTelegram();
+  const { isDarkTheme, toggleTheme } = useTelegram();
   const { language, setLanguage } = useLanguage();
+  const { user, signOut } = useAuth();
   const [selectedChannel, setSelectedChannel] = useState(mockChannels[0]);
   const [isChannelInfoOpen, setIsChannelInfoOpen] = useState(false);
+
+  const handleSignOut = () => {
+    signOut();
+  };
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
@@ -99,6 +106,25 @@ export const TopNav: React.FC = () => {
         >
           {isDarkTheme ? '☀️' : '🌙'}
         </Button>
+
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <User className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <div className="px-2 py-1.5 text-sm text-muted-foreground">
+              {user?.email}
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Выйти
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       
       <ChannelInfoModal
