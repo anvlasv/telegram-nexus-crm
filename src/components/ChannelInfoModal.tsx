@@ -14,7 +14,7 @@ interface Channel {
   id: string;
   name: string;
   username: string;
-  subscribers: number;
+  subscriber_count: number | null;
 }
 
 interface ChannelInfoModalProps {
@@ -61,14 +61,14 @@ export const ChannelInfoModal: React.FC<ChannelInfoModalProps> = ({
               <label className="text-sm font-medium text-muted-foreground">
                 {t('channel-username')}
               </label>
-              <p className="font-mono">{channel.username}</p>
+              <p className="font-mono">@{channel.username}</p>
             </div>
             
             <div>
               <label className="text-sm font-medium text-muted-foreground">
                 {t('subscribers')}
               </label>
-              <p className="font-semibold">{channel.subscribers.toLocaleString()}</p>
+              <p className="font-semibold">{(channel.subscriber_count || 0).toLocaleString()}</p>
             </div>
             
             <div>
