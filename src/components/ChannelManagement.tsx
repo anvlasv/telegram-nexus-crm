@@ -20,6 +20,11 @@ export const ChannelManagement: React.FC = () => {
   const updateChannel = useUpdateChannel();
   const deleteChannel = useDeleteChannel();
 
+  // Initialize the mutation hooks
+  const getChatInfo = useGetChatInfo();
+  const getChatMemberCount = useGetChatMemberCount();
+  const checkBotAdmin = useCheckBotAdmin();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<any>(null);
   const [formData, setFormData] = useState({
