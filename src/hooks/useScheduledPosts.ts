@@ -89,3 +89,33 @@ export const useDeleteScheduledPost = () => {
     },
   });
 };
+
+export const usePublishPost = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ postId, channelId }: { postId: string; channelId: string }) => {
+      // Вызов Telegram API для публикации поста
+      const { data, error } = await supabase.functions.invoke('telegram-api', {
+        body: {
+          action: 'sendMessage',
+          channelId,
+          postId,
+        },
+      });
+      
+      if (error) throw error;
+      
+      // Обновляем статус поста
+      await supabase
+        .from('scheduled_posts')
+        .update({ status: 'sent', sent_at: new Date().toISOString() })
+        .eq('id', postId);
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
+    },
+  });
+};

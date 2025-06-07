@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,17 +8,18 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Mic, Image, Video, FileText, BarChart3, Camera } from 'lucide-react';
 import { FileDropZone } from './FileDropZone';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const POST_TYPES = [
-  { value: 'text', label: 'Текстовый пост', icon: FileText },
-  { value: 'photo', label: 'Фото', icon: Image },
-  { value: 'video', label: 'Видео', icon: Video },
-  { value: 'document', label: 'Документ', icon: Upload },
-  { value: 'audio', label: 'Аудио', icon: Mic },
-  { value: 'animation', label: 'GIF', icon: Camera },
-  { value: 'poll', label: 'Опрос', icon: BarChart3 },
-  { value: 'album', label: 'Альбом', icon: Image },
-  { value: 'story', label: 'История', icon: Camera },
+  { value: 'text', label: 'Text Post', labelRu: 'Текстовый пост', icon: FileText },
+  { value: 'photo', label: 'Photo', labelRu: 'Фото', icon: Image },
+  { value: 'video', label: 'Video', labelRu: 'Видео', icon: Video },
+  { value: 'document', label: 'Document', labelRu: 'Документ', icon: Upload },
+  { value: 'audio', label: 'Audio', labelRu: 'Аудио', icon: Mic },
+  { value: 'animation', label: 'GIF', labelRu: 'GIF', icon: Camera },
+  { value: 'poll', label: 'Poll', labelRu: 'Опрос', icon: BarChart3 },
+  { value: 'album', label: 'Album', labelRu: 'Альбом', icon: Image },
+  { value: 'story', label: 'Story', labelRu: 'История', icon: Camera },
 ];
 
 interface PostFormModalProps {
@@ -27,6 +28,7 @@ interface PostFormModalProps {
   onSubmit: (data: any) => void;
   selectedChannelId: string;
   isLoading?: boolean;
+  editingPost?: any;
 }
 
 export const PostFormModal: React.FC<PostFormModalProps> = ({ 
@@ -34,8 +36,10 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
   onClose, 
   onSubmit, 
   selectedChannelId,
-  isLoading 
+  isLoading,
+  editingPost
 }) => {
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({
     content: '',
     scheduledFor: '',
@@ -47,6 +51,29 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
 
   const [isRecording, setIsRecording] = useState(false);
 
+  // Reset form when modal opens/closes or when editing post changes
+  useEffect(() => {
+    if (editingPost) {
+      setFormData({
+        content: editingPost.content || '',
+        scheduledFor: editingPost.scheduled_for ? new Date(editingPost.scheduled_for).toISOString().slice(0, 16) : '',
+        type: editingPost.post_type || 'text',
+        mediaFiles: [],
+        pollOptions: ['', ''],
+        pollQuestion: editingPost.content || '',
+      });
+    } else {
+      setFormData({
+        content: '',
+        scheduledFor: '',
+        type: 'text',
+        mediaFiles: [],
+        pollOptions: ['', ''],
+        pollQuestion: '',
+      });
+    }
+  }, [editingPost, isOpen]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -54,7 +81,7 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
       channelId: selectedChannelId,
     });
     
-    // Reset form
+    // Reset form after submit
     setFormData({
       content: '',
       scheduledFor: '',
@@ -137,14 +164,14 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
               currentFiles={formData.mediaFiles}
             />
             <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-2">Или записать аудио</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('or-record-audio')}</p>
               <Button
                 type="button"
                 variant={isRecording ? "destructive" : "outline"}
                 onClick={() => setIsRecording(!isRecording)}
               >
                 <Mic className="mr-2 h-4 w-4" />
-                {isRecording ? 'Остановить запись' : 'Начать запись'}
+                {isRecording ? t('stop-recording') : t('start-recording')}
               </Button>
             </div>
           </div>
@@ -154,22 +181,22 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Вопрос опроса</Label>
+              <Label>{t('poll-question')}</Label>
               <Input
                 value={formData.pollQuestion}
                 onChange={(e) => setFormData({ ...formData, pollQuestion: e.target.value })}
-                placeholder="Введите вопрос опроса"
+                placeholder={t('enter-poll-question')}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label>Варианты ответов</Label>
+              <Label>{t('answer-options')}</Label>
               {formData.pollOptions.map((option, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
                     value={option}
                     onChange={(e) => updatePollOption(index, e.target.value)}
-                    placeholder={`Вариант ${index + 1}`}
+                    placeholder={`${t('option')} ${index + 1}`}
                     required
                   />
                   {formData.pollOptions.length > 2 && (
@@ -190,7 +217,7 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
                 onClick={addPollOption}
                 className="w-full"
               >
-                Добавить вариант
+                {t('add-option')}
               </Button>
             </div>
           </div>
@@ -217,7 +244,7 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
               currentFiles={formData.mediaFiles}
             />
             <p className="text-xs text-muted-foreground">
-              Истории автоматически исчезают через 24 часа
+              {t('story-disappears-24h')}
             </p>
           </div>
         );
@@ -235,24 +262,24 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {selectedType?.icon && <selectedType.icon className="h-5 w-5" />}
-            Создать пост
+            {editingPost ? t('edit-post') : t('create-post')}
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Тип поста</Label>
+              <Label>{t('post-type')}</Label>
               <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Выберите тип" />
+                  <SelectValue placeholder={t('select-type')} />
                 </SelectTrigger>
                 <SelectContent>
                   {POST_TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       <div className="flex items-center gap-2">
                         <type.icon className="h-4 w-4" />
-                        {type.label}
+                        {language === 'ru' ? type.labelRu : type.label}
                       </div>
                     </SelectItem>
                   ))}
@@ -261,7 +288,7 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
             </div>
             
             <div className="space-y-2">
-              <Label>Дата и время публикации</Label>
+              <Label>{t('publish-date-time')}</Label>
               <Input
                 type="datetime-local"
                 value={formData.scheduledFor}
@@ -275,11 +302,11 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
 
           {(formData.type === 'text' || formData.type === 'photo' || formData.type === 'video' || formData.type === 'album') && (
             <div className="space-y-2">
-              <Label>Текст поста</Label>
+              <Label>{t('post-text')}</Label>
               <Textarea
                 value={formData.content}
                 onChange={(e) => setFormData({...formData, content: e.target.value})}
-                placeholder="Введите текст поста..."
+                placeholder={t('enter-post-text')}
                 className="min-h-[100px]"
                 required={formData.type === 'text'}
               />
@@ -288,10 +315,10 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'Планирование...' : 'Запланировать'}
+              {isLoading ? t('scheduling') : (editingPost ? t('update') : t('schedule'))}
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>
-              Отмена
+              {t('cancel')}
             </Button>
           </div>
         </form>

@@ -15,6 +15,7 @@ interface Channel {
   name: string;
   username: string;
   subscriber_count: number | null;
+  avatar_url?: string;
 }
 
 interface ChannelInfoModalProps {
@@ -41,7 +42,7 @@ export const ChannelInfoModal: React.FC<ChannelInfoModalProps> = ({
           {/* Avatar */}
           <div className="flex justify-center">
             <Avatar className="h-20 w-20">
-              <AvatarImage src="" alt={channel.name} />
+              <AvatarImage src={channel.avatar_url} alt={channel.name} />
               <AvatarFallback className="text-lg font-semibold bg-sidebar-primary text-sidebar-primary-foreground">
                 {channel.name.charAt(0)}
               </AvatarFallback>
@@ -82,7 +83,7 @@ export const ChannelInfoModal: React.FC<ChannelInfoModalProps> = ({
               <label className="text-sm font-medium text-muted-foreground">
                 {t('country')}
               </label>
-              <p>🇷🇺 Россия</p>
+              <p>🇷🇺 {t('russia')}</p>
             </div>
             
             <div>

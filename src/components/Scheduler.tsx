@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,11 @@ import { useScheduledPosts, useCreateScheduledPost, useDeleteScheduledPost, useU
 import { PostFormModal } from './PostFormModal';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
-import { ru } from 'date-fns/locale';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ru, enUS } from 'date-fns/locale';
 import { useChannels } from '@/hooks/useChannels';
 
 export const Scheduler: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { channels } = useChannels();
   const { data: posts = [], isLoading } = useScheduledPosts();
   const createPost = useCreateScheduledPost();
@@ -25,13 +25,16 @@ export const Scheduler: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
-  const [selectedChannelId, setSelectedChannelId] = useState<string>('');
+  const [editingPost, setEditingPost] = useState<any>(null);
+
+  // Берем первый канал как выбранный (можно будет получать из контекста)
+  const selectedChannel = channels[0];
 
   const handleCreatePost = async (formData: any) => {
-    if (!selectedChannelId) {
+    if (!selectedChannel) {
       toast({
         title: t('error'),
-        description: 'Выберите канал для публикации',
+        description: t('select-channel-first'),
         variant: 'destructive',
       });
       return;
@@ -39,16 +42,17 @@ export const Scheduler: React.FC = () => {
 
     try {
       await createPost.mutateAsync({
-        channel_id: formData.channelId,
+        channel_id: selectedChannel.id,
         content: formData.content || formData.pollQuestion || '',
         scheduled_for: formData.scheduledFor,
         status: 'pending',
         media_urls: formData.mediaFiles?.map((file: File) => file.name) || null,
+        post_type: formData.type || 'text',
       });
 
       toast({
         title: t('success'),
-        description: 'Пост запланирован успешно',
+        description: t('post-scheduled-successfully'),
       });
 
       setShowForm(false);
@@ -56,7 +60,7 @@ export const Scheduler: React.FC = () => {
       console.error('Error creating scheduled post:', error);
       toast({
         title: t('error'),
-        description: 'Ошибка при планировании поста',
+        description: t('error-scheduling-post'),
         variant: 'destructive',
       });
     }
@@ -64,6 +68,7 @@ export const Scheduler: React.FC = () => {
 
   const handlePublishPost = async (postId: string) => {
     try {
+      // Здесь должна быть логика отправки поста в Telegram
       await updatePost.mutateAsync({
         id: postId,
         status: 'sent'
@@ -71,29 +76,34 @@ export const Scheduler: React.FC = () => {
 
       toast({
         title: t('success'),
-        description: 'Пост опубликован',
+        description: t('post-published'),
       });
     } catch (error) {
       toast({
         title: t('error'),
-        description: 'Ошибка при публикации поста',
+        description: t('error-publishing-post'),
         variant: 'destructive',
       });
     }
   };
 
+  const handleEditPost = (post: any) => {
+    setEditingPost(post);
+    setShowForm(true);
+  };
+
   const handleDeletePost = async (id: string) => {
-    if (confirm('Вы уверены, что хотите удалить этот пост?')) {
+    if (confirm(t('confirm-delete-post'))) {
       try {
         await deletePost.mutateAsync(id);
         toast({
           title: t('success'),
-          description: 'Пост удален',
+          description: t('post-deleted'),
         });
       } catch (error) {
         toast({
           title: t('error'),
-          description: 'Ошибка при удалении поста',
+          description: t('error-deleting-post'),
           variant: 'destructive',
         });
       }
@@ -109,15 +119,13 @@ export const Scheduler: React.FC = () => {
     }
   };
 
-  const getTypeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      text: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-      photo: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-      video: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-      poll: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      album: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    };
-    return colors[type] || colors.text;
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'sent': return t('sent');
+      case 'pending': return t('pending');
+      case 'failed': return t('failed');
+      default: return t('unknown');
+    }
   };
 
   const getPostsForDate = (date: Date) => {
@@ -138,7 +146,7 @@ export const Scheduler: React.FC = () => {
           return (
             <div key={day.toISOString()} className="border rounded-lg p-2 min-h-[120px]">
               <div className="font-medium text-sm mb-2">
-                {format(day, 'EEE dd', { locale: ru })}
+                {format(day, 'EEE dd', { locale: language === 'ru' ? ru : enUS })}
               </div>
               <div className="space-y-1">
                 {postsForDay.map((post) => (
@@ -155,95 +163,81 @@ export const Scheduler: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64">Загрузка...</div>;
+    return <div className="flex items-center justify-center h-64">{t('loading')}</div>;
   }
 
   return (
     <div className="space-y-4 p-2 md:p-4 max-w-full overflow-x-hidden">
-      {/* Mobile Header */}
+      {/* Header with Schedule Post button */}
       <div className="space-y-4">
-        <div className="flex flex-col space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-bold">{t('scheduler')}</h1>
             <p className="text-sm text-muted-foreground">
-              Планирование и управление отложенными постами
+              {t('scheduler-description')}
             </p>
           </div>
           
-          {/* Channel Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Выберите канал:</label>
-            <Select value={selectedChannelId} onValueChange={setSelectedChannelId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Выберите канал для публикации" />
-              </SelectTrigger>
-              <SelectContent>
-                {channels.map((channel) => (
-                  <SelectItem key={channel.id} value={channel.id}>
-                    {channel.name} (@{channel.username})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="flex gap-2 flex-1">
-              <Button 
-                variant={viewMode === 'list' ? 'default' : 'outline'} 
-                onClick={() => setViewMode('list')}
-                size="sm"
-                className="flex-1"
-              >
-                <List className="mr-2 h-4 w-4" />
-                Список
-              </Button>
-              <Button 
-                variant={viewMode === 'calendar' ? 'default' : 'outline'} 
-                onClick={() => setViewMode('calendar')}
-                size="sm"
-                className="flex-1"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                Календарь
-              </Button>
-            </div>
-            <Button 
-              onClick={() => selectedChannelId ? setShowForm(true) : toast({
-                title: 'Ошибка',
-                description: 'Сначала выберите канал',
-                variant: 'destructive'
-              })} 
-              className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Запланировать пост</span>
-              <span className="sm:hidden">Пост</span>
-            </Button>
-          </div>
+          <Button 
+            onClick={() => selectedChannel ? setShowForm(true) : toast({
+              title: t('error'),
+              description: t('select-channel-first'),
+              variant: 'destructive'
+            })} 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">{t('schedule-post')}</span>
+            <span className="sm:hidden">{t('post')}</span>
+          </Button>
+        </div>
+        
+        {/* View Mode Toggles */}
+        <div className="flex gap-2">
+          <Button 
+            variant={viewMode === 'list' ? 'default' : 'outline'} 
+            onClick={() => setViewMode('list')}
+            size="sm"
+            className="flex-1 sm:flex-initial"
+          >
+            <List className="mr-2 h-4 w-4" />
+            {t('list')}
+          </Button>
+          <Button 
+            variant={viewMode === 'calendar' ? 'default' : 'outline'} 
+            onClick={() => setViewMode('calendar')}
+            size="sm"
+            className="flex-1 sm:flex-initial"
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {t('calendar')}
+          </Button>
         </div>
       </div>
 
       <PostFormModal
         isOpen={showForm}
-        onClose={() => setShowForm(false)}
+        onClose={() => {
+          setShowForm(false);
+          setEditingPost(null);
+        }}
         onSubmit={handleCreatePost}
-        selectedChannelId={selectedChannelId}
+        selectedChannelId={selectedChannel?.id || ''}
         isLoading={createPost.isPending}
+        editingPost={editingPost}
       />
 
       {viewMode === 'calendar' ? (
         <div className="space-y-4">
           <Tabs defaultValue="week" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="week">Неделя</TabsTrigger>
-              <TabsTrigger value="month">Месяц</TabsTrigger>
+              <TabsTrigger value="week">{t('week')}</TabsTrigger>
+              <TabsTrigger value="month">{t('month')}</TabsTrigger>
             </TabsList>
             <TabsContent value="week" className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h3 className="text-base md:text-lg font-medium">
-                  {format(selectedDate, 'dd MMMM yyyy', { locale: ru })}
+                  {format(selectedDate, 'dd MMMM yyyy', { locale: language === 'ru' ? ru : enUS })}
                 </h3>
                 <div className="flex flex-wrap gap-1">
                   <Button 
@@ -251,21 +245,21 @@ export const Scheduler: React.FC = () => {
                     size="sm"
                     onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 7)))}
                   >
-                    ← Пред.
+                    ← {t('prev')}
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => setSelectedDate(new Date())}
                   >
-                    Сегодня
+                    {t('today')}
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 7)))}
                   >
-                    След. →
+                    {t('next')} →
                   </Button>
                 </div>
               </div>
@@ -281,7 +275,7 @@ export const Scheduler: React.FC = () => {
                 />
                 <div className="space-y-4">
                   <h3 className="text-base md:text-lg font-medium">
-                    Посты на {format(selectedDate, 'dd MMMM yyyy', { locale: ru })}
+                    {t('posts-for')} {format(selectedDate, 'dd MMMM yyyy', { locale: language === 'ru' ? ru : enUS })}
                   </h3>
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {getPostsForDate(selectedDate).map((post) => (
@@ -292,8 +286,7 @@ export const Scheduler: React.FC = () => {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <Badge variant="outline" className="text-xs">{post.telegram_channels?.name}</Badge>
                                 <Badge className={`text-xs ${getStatusColor(post.status || 'pending')}`}>
-                                  {post.status === 'sent' ? 'Отправлен' : 
-                                   post.status === 'pending' ? 'Ожидает' : 'Ошибка'}
+                                  {getStatusText(post.status || 'pending')}
                                 </Badge>
                               </div>
                               <p className="text-sm text-muted-foreground line-clamp-2 break-words">
@@ -305,7 +298,13 @@ export const Scheduler: React.FC = () => {
                               </div>
                             </div>
                             <div className="flex gap-1 flex-shrink-0">
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-8 w-8 p-0"
+                                onClick={() => handleEditPost(post)}
+                                title={t('edit')}
+                              >
                                 <Edit className="h-3 w-3" />
                               </Button>
                               <Button 
@@ -313,6 +312,8 @@ export const Scheduler: React.FC = () => {
                                 variant="ghost" 
                                 className="h-8 w-8 p-0"
                                 onClick={() => handlePublishPost(post.id)}
+                                disabled={post.status === 'sent'}
+                                title={t('publish')}
                               >
                                 <Send className="h-3 w-3" />
                               </Button>
@@ -321,6 +322,7 @@ export const Scheduler: React.FC = () => {
                                 variant="ghost" 
                                 className="h-8 w-8 p-0"
                                 onClick={() => handleDeletePost(post.id)}
+                                title={t('delete')}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -331,7 +333,7 @@ export const Scheduler: React.FC = () => {
                     ))}
                     {getPostsForDate(selectedDate).length === 0 && (
                       <p className="text-muted-foreground text-center py-8 text-sm">
-                        На эту дату постов не запланировано
+                        {t('no-posts-scheduled-for-date')}
                       </p>
                     )}
                   </div>
@@ -352,8 +354,7 @@ export const Scheduler: React.FC = () => {
                         {post.telegram_channels?.name}
                       </Badge>
                       <Badge className={`text-xs ${getStatusColor(post.status || 'pending')}`}>
-                        {post.status === 'sent' ? 'Отправлен' : 
-                         post.status === 'pending' ? 'Ожидает' : 'Ошибка'}
+                        {getStatusText(post.status || 'pending')}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2 break-words">
@@ -361,11 +362,17 @@ export const Scheduler: React.FC = () => {
                     </p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      {new Date(post.scheduled_for).toLocaleString('ru-RU')}
+                      {new Date(post.scheduled_for).toLocaleString(language === 'ru' ? 'ru-RU' : 'en-US')}
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0 self-start">
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => handleEditPost(post)}
+                      title={t('edit')}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button 
@@ -374,6 +381,7 @@ export const Scheduler: React.FC = () => {
                       className="h-8 w-8 p-0"
                       onClick={() => handlePublishPost(post.id)}
                       disabled={post.status === 'sent'}
+                      title={t('publish')}
                     >
                       <Send className="h-4 w-4" />
                     </Button>
@@ -382,6 +390,7 @@ export const Scheduler: React.FC = () => {
                       variant="ghost" 
                       className="h-8 w-8 p-0"
                       onClick={() => handleDeletePost(post.id)}
+                      title={t('delete')}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -392,17 +401,17 @@ export const Scheduler: React.FC = () => {
           ))}
           {posts.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Нет запланированных постов</p>
+              <p className="text-muted-foreground">{t('no-scheduled-posts')}</p>
               <Button 
-                onClick={() => selectedChannelId ? setShowForm(true) : toast({
-                  title: 'Ошибка',
-                  description: 'Сначала выберите канал',
+                onClick={() => selectedChannel ? setShowForm(true) : toast({
+                  title: t('error'),
+                  description: t('select-channel-first'),
                   variant: 'destructive'
                 })} 
-                className="mt-4 bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
+                className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Создать первый пост
+                {t('create-first-post')}
               </Button>
             </div>
           )}
