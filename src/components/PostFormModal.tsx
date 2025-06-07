@@ -1,324 +1,276 @@
 
 import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, Mic, Image, Video, FileText, BarChart3, Camera } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { FileDropZone } from './FileDropZone';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-const POST_TYPES = [
-  { value: 'text', label: 'Text Post', labelRu: 'Текстовый пост', icon: FileText },
-  { value: 'photo', label: 'Photo', labelRu: 'Фото', icon: Image },
-  { value: 'video', label: 'Video', labelRu: 'Видео', icon: Video },
-  { value: 'document', label: 'Document', labelRu: 'Документ', icon: Upload },
-  { value: 'audio', label: 'Audio', labelRu: 'Аудио', icon: Mic },
-  { value: 'animation', label: 'GIF', labelRu: 'GIF', icon: Camera },
-  { value: 'poll', label: 'Poll', labelRu: 'Опрос', icon: BarChart3 },
-  { value: 'album', label: 'Album', labelRu: 'Альбом', icon: Image },
-  { value: 'story', label: 'Story', labelRu: 'История', icon: Camera },
-];
+import { format } from 'date-fns';
 
 interface PostFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
   selectedChannelId: string;
-  isLoading?: boolean;
+  isLoading: boolean;
   editingPost?: any;
 }
 
-export const PostFormModal: React.FC<PostFormModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
+export const PostFormModal: React.FC<PostFormModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
   selectedChannelId,
   isLoading,
-  editingPost
+  editingPost,
 }) => {
-  const { t, language } = useLanguage();
-  const [formData, setFormData] = useState({
-    content: '',
-    scheduledFor: '',
-    type: 'text',
-    mediaFiles: [] as File[],
-    pollOptions: ['', ''],
-    pollQuestion: '',
-  });
+  const { t } = useLanguage();
+  const [postType, setPostType] = useState('text');
+  const [content, setContent] = useState('');
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
 
-  const [isRecording, setIsRecording] = useState(false);
+  // Set default date and time
+  useEffect(() => {
+    if (isOpen && !editingPost) {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 30); // Default to 30 minutes from now
+      
+      const dateStr = format(now, 'yyyy-MM-dd');
+      const timeStr = format(now, 'HH:mm');
+      
+      setScheduledDate(dateStr);
+      setScheduledTime(timeStr);
+    }
+  }, [isOpen, editingPost]);
 
-  // Reset form when modal opens/closes or when editing post changes
+  // Populate form when editing
   useEffect(() => {
     if (editingPost) {
-      setFormData({
-        content: editingPost.content || '',
-        scheduledFor: editingPost.scheduled_for ? new Date(editingPost.scheduled_for).toISOString().slice(0, 16) : '',
-        type: editingPost.post_type || 'text',
-        mediaFiles: [],
-        pollOptions: ['', ''],
-        pollQuestion: editingPost.content || '',
-      });
+      setContent(editingPost.content || '');
+      setPostType('text'); // Default to text for editing
+      
+      const scheduledFor = new Date(editingPost.scheduled_for);
+      setScheduledDate(format(scheduledFor, 'yyyy-MM-dd'));
+      setScheduledTime(format(scheduledFor, 'HH:mm'));
     } else {
-      setFormData({
-        content: '',
-        scheduledFor: '',
-        type: 'text',
-        mediaFiles: [],
-        pollOptions: ['', ''],
-        pollQuestion: '',
-      });
+      // Reset form for new post
+      setContent('');
+      setPollQuestion('');
+      setPollOptions(['', '']);
+      setMediaFiles([]);
+      setPostType('text');
     }
-  }, [editingPost, isOpen]);
+  }, [editingPost]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      channelId: selectedChannelId,
-    });
     
-    // Reset form after submit
-    setFormData({
-      content: '',
-      scheduledFor: '',
-      type: 'text',
-      mediaFiles: [],
-      pollOptions: ['', ''],
-      pollQuestion: '',
-    });
+    if (!scheduledDate || !scheduledTime) {
+      return;
+    }
+
+    const scheduledFor = new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
+    
+    const formData = {
+      type: postType,
+      content: postType === 'text' ? content : '',
+      pollQuestion: postType === 'poll' ? pollQuestion : '',
+      pollOptions: postType === 'poll' ? pollOptions.filter(option => option.trim()) : [],
+      mediaFiles: postType !== 'text' ? mediaFiles : [],
+      scheduledFor,
+    };
+
+    onSubmit(formData);
   };
 
   const addPollOption = () => {
-    setFormData({
-      ...formData,
-      pollOptions: [...formData.pollOptions, '']
-    });
-  };
-
-  const updatePollOption = (index: number, value: string) => {
-    const newOptions = [...formData.pollOptions];
-    newOptions[index] = value;
-    setFormData({ ...formData, pollOptions: newOptions });
+    setPollOptions([...pollOptions, '']);
   };
 
   const removePollOption = (index: number) => {
-    if (formData.pollOptions.length > 2) {
-      const newOptions = formData.pollOptions.filter((_, i) => i !== index);
-      setFormData({ ...formData, pollOptions: newOptions });
-    }
+    setPollOptions(pollOptions.filter((_, i) => i !== index));
   };
 
-  const renderTypeSpecificFields = () => {
-    switch (formData.type) {
-      case 'photo':
-        return (
-          <FileDropZone
-            onFilesChange={(files) => setFormData({ ...formData, mediaFiles: files })}
-            accept="image/*"
-            multiple={false}
-            currentFiles={formData.mediaFiles}
-          />
-        );
-
-      case 'video':
-        return (
-          <FileDropZone
-            onFilesChange={(files) => setFormData({ ...formData, mediaFiles: files })}
-            accept="video/*"
-            multiple={false}
-            currentFiles={formData.mediaFiles}
-          />
-        );
-
-      case 'document':
-        return (
-          <FileDropZone
-            onFilesChange={(files) => setFormData({ ...formData, mediaFiles: files })}
-            accept="*/*"
-            multiple={false}
-            currentFiles={formData.mediaFiles}
-          />
-        );
-
-      case 'animation':
-        return (
-          <FileDropZone
-            onFilesChange={(files) => setFormData({ ...formData, mediaFiles: files })}
-            accept="image/gif,video/*"
-            multiple={false}
-            currentFiles={formData.mediaFiles}
-          />
-        );
-
-      case 'audio':
-        return (
-          <div className="space-y-4">
-            <FileDropZone
-              onFilesChange={(files) => setFormData({ ...formData, mediaFiles: files })}
-              accept="audio/*"
-              multiple={false}
-              currentFiles={formData.mediaFiles}
-            />
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-2">{t('or-record-audio')}</p>
-              <Button
-                type="button"
-                variant={isRecording ? "destructive" : "outline"}
-                onClick={() => setIsRecording(!isRecording)}
-              >
-                <Mic className="mr-2 h-4 w-4" />
-                {isRecording ? t('stop-recording') : t('start-recording')}
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 'poll':
-        return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('poll-question')}</Label>
-              <Input
-                value={formData.pollQuestion}
-                onChange={(e) => setFormData({ ...formData, pollQuestion: e.target.value })}
-                placeholder={t('enter-poll-question')}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('answer-options')}</Label>
-              {formData.pollOptions.map((option, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={option}
-                    onChange={(e) => updatePollOption(index, e.target.value)}
-                    placeholder={`${t('option')} ${index + 1}`}
-                    required
-                  />
-                  {formData.pollOptions.length > 2 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removePollOption(index)}
-                    >
-                      ×
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={addPollOption}
-                className="w-full"
-              >
-                {t('add-option')}
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 'album':
-        return (
-          <FileDropZone
-            onFilesChange={(files) => setFormData({ ...formData, mediaFiles: files })}
-            accept="image/*,video/*"
-            multiple={true}
-            maxFiles={10}
-            currentFiles={formData.mediaFiles}
-          />
-        );
-
-      case 'story':
-        return (
-          <div className="space-y-2">
-            <FileDropZone
-              onFilesChange={(files) => setFormData({ ...formData, mediaFiles: files })}
-              accept="image/*,video/*"
-              multiple={false}
-              currentFiles={formData.mediaFiles}
-            />
-            <p className="text-xs text-muted-foreground">
-              {t('story-disappears-24h')}
-            </p>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  const updatePollOption = (index: number, value: string) => {
+    const newOptions = [...pollOptions];
+    newOptions[index] = value;
+    setPollOptions(newOptions);
   };
 
-  const selectedType = POST_TYPES.find(type => type.value === formData.type);
+  const getAcceptedFileTypes = () => {
+    switch (postType) {
+      case 'photo': return 'image/*';
+      case 'video': return 'video/*';
+      default: return '*/*';
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {selectedType?.icon && <selectedType.icon className="h-5 w-5" />}
+          <DialogTitle>
             {editingPost ? t('edit-post') : t('create-post')}
           </DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Post Type */}
+          {!editingPost && (
+            <div className="space-y-3">
               <Label>{t('post-type')}</Label>
-              <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('select-type')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {POST_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <div className="flex items-center gap-2">
-                        <type.icon className="h-4 w-4" />
-                        {language === 'ru' ? type.labelRu : type.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioGroup value={postType} onValueChange={setPostType}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="text" id="text" />
+                  <label htmlFor="text" className="text-sm">{t('text-post')}</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="photo" id="photo" />
+                  <label htmlFor="photo" className="text-sm">{t('photo-post')}</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="video" id="video" />
+                  <label htmlFor="video" className="text-sm">{t('video-post')}</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="poll" id="poll" />
+                  <label htmlFor="poll" className="text-sm">{t('poll-post')}</label>
+                </div>
+              </RadioGroup>
             </div>
-            
-            <div className="space-y-2">
-              <Label>{t('publish-date-time')}</Label>
-              <Input
-                type="datetime-local"
-                value={formData.scheduledFor}
-                onChange={(e) => setFormData({...formData, scheduledFor: e.target.value})}
-                required
-              />
-            </div>
-          </div>
+          )}
 
-          {renderTypeSpecificFields()}
-
-          {(formData.type === 'text' || formData.type === 'photo' || formData.type === 'video' || formData.type === 'album') && (
+          {/* Content based on post type */}
+          {postType === 'text' && (
             <div className="space-y-2">
-              <Label>{t('post-text')}</Label>
+              <Label htmlFor="content">{t('post-content')}</Label>
               <Textarea
-                value={formData.content}
-                onChange={(e) => setFormData({...formData, content: e.target.value})}
-                placeholder={t('enter-post-text')}
-                className="min-h-[100px]"
-                required={formData.type === 'text'}
+                id="content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder={t('post-content-placeholder')}
+                rows={6}
+                required
               />
             </div>
           )}
 
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? t('scheduling') : (editingPost ? t('update') : t('schedule'))}
-            </Button>
+          {postType === 'poll' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="poll-question">{t('poll-question')}</Label>
+                <Input
+                  id="poll-question"
+                  value={pollQuestion}
+                  onChange={(e) => setPollQuestion(e.target.value)}
+                  placeholder={t('poll-question')}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>{t('poll-option')}</Label>
+                {pollOptions.map((option, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={option}
+                      onChange={(e) => updatePollOption(index, e.target.value)}
+                      placeholder={`${t('poll-option')} ${index + 1}`}
+                      required={index < 2}
+                    />
+                    {index >= 2 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removePollOption(index)}
+                      >
+                        {t('remove-poll-option')}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addPollOption}
+                  disabled={pollOptions.length >= 10}
+                >
+                  {t('add-poll-option')}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {(postType === 'photo' || postType === 'video') && (
+            <div className="space-y-2">
+              <Label>{t('attach-media')}</Label>
+              <FileDropZone
+                onFilesChange={setMediaFiles}
+                accept={getAcceptedFileTypes()}
+                multiple={postType === 'photo'}
+                maxFiles={postType === 'photo' ? 10 : 1}
+                currentFiles={mediaFiles}
+              />
+              {(postType === 'photo' || postType === 'video') && (
+                <div className="space-y-2 mt-4">
+                  <Label htmlFor="caption">{t('post-content')}</Label>
+                  <Textarea
+                    id="caption"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder={t('post-content-placeholder')}
+                    rows={3}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Schedule DateTime */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="schedule-date">{t('schedule-date')}</Label>
+              <Input
+                id="schedule-date"
+                type="date"
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="schedule-time">{t('schedule-time')}</Label>
+              <Input
+                id="schedule-time"
+                type="time"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               {t('cancel')}
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? t('loading') : t('schedule')}
             </Button>
           </div>
         </form>

@@ -95,7 +95,7 @@ export const usePublishPost = () => {
   
   return useMutation({
     mutationFn: async ({ postId, channelId }: { postId: string; channelId: string }) => {
-      // Вызов Telegram API для публикации поста
+      // Call Telegram API to publish the post
       const { data, error } = await supabase.functions.invoke('telegram-api', {
         body: {
           action: 'sendMessage',
@@ -106,10 +106,10 @@ export const usePublishPost = () => {
       
       if (error) throw error;
       
-      // Обновляем статус поста
+      // Update post status
       await supabase
         .from('scheduled_posts')
-        .update({ status: 'sent', sent_at: new Date().toISOString() })
+        .update({ status: 'sent' })
         .eq('id', postId);
       
       return data;

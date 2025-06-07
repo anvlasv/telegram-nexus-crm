@@ -223,6 +223,8 @@ const translations = {
     'option': 'Вариант',
     'add-option': 'Добавить вариант',
     'story-disappears-24h': 'Истории автоматически исчезают через 24 часа',
+    'post-updated-successfully': 'Пост успешно обновлен',
+    'error-updating-post': 'Ошибка при обновлении поста',
   },
   en: {
     // Navigation
@@ -438,6 +440,8 @@ const translations = {
     'option': 'Option',
     'add-option': 'Add Option',
     'story-disappears-24h': 'Stories automatically disappear after 24 hours',
+    'post-updated-successfully': 'Post updated successfully',
+    'error-updating-post': 'Error updating post',
   }
 };
 
