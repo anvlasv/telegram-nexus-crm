@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
@@ -24,7 +23,7 @@ const pieData = [
 
 export const Analytics: React.FC = () => {
   const { t } = useLanguage();
-  const { data: channels = [], isLoading } = useChannels();
+  const { channels, isLoading } = useChannels();
 
   const stats = [
     {

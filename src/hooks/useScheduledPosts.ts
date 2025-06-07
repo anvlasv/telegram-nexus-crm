@@ -23,7 +23,7 @@ export const useScheduledPosts = () => {
         .order('scheduled_for', { ascending: true });
       
       if (error) throw error;
-      return data as (ScheduledPost & { telegram_channels: { name: string; username: string; avatar_url?: string } })[];
+      return data as (ScheduledPost & { telegram_channels: { name: string; username: string; avatar_url?: string | null } })[];
     },
   });
 };

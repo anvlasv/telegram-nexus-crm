@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +9,7 @@ import { usePartners } from '@/hooks/usePartners';
 
 export const Dashboard: React.FC = () => {
   const { t } = useLanguage();
-  const { data: channels = [], isLoading: channelsLoading } = useChannels();
+  const { channels, isLoading: channelsLoading } = useChannels();
   const { data: partners = [], isLoading: partnersLoading } = usePartners();
 
   const totalSubscribers = channels.reduce((sum, channel) => sum + (channel.subscriber_count || 0), 0);

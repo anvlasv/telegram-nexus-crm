@@ -15,13 +15,10 @@ import { toast } from 'sonner';
 
 export const ChannelManagement: React.FC = () => {
   const { t } = useLanguage();
-  const { data: channels = [], isLoading } = useChannels();
+  const { channels, isLoading } = useChannels();
   const createChannel = useCreateChannel();
   const updateChannel = useUpdateChannel();
   const deleteChannel = useDeleteChannel();
-  const getChatInfo = useGetChatInfo();
-  const getChatMemberCount = useGetChatMemberCount();
-  const checkBotAdmin = useCheckBotAdmin();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<any>(null);

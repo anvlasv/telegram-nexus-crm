@@ -162,6 +162,7 @@ export type Database = {
       }
       telegram_channels: {
         Row: {
+          avatar_url: string | null
           channel_id: number
           created_at: string
           engagement_rate: number | null
@@ -176,6 +177,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          avatar_url?: string | null
           channel_id: number
           created_at?: string
           engagement_rate?: number | null
@@ -190,6 +192,7 @@ export type Database = {
           username: string
         }
         Update: {
+          avatar_url?: string | null
           channel_id?: number
           created_at?: string
           engagement_rate?: number | null
