@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -17,13 +16,14 @@ export const useScheduledPosts = () => {
           *,
           telegram_channels (
             name,
-            username
+            username,
+            avatar_url
           )
         `)
         .order('scheduled_for', { ascending: true });
       
       if (error) throw error;
-      return data as (ScheduledPost & { telegram_channels: { name: string; username: string } })[];
+      return data as (ScheduledPost & { telegram_channels: { name: string; username: string; avatar_url?: string } })[];
     },
   });
 };
