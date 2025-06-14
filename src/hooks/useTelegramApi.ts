@@ -7,6 +7,7 @@ interface TelegramApiRequest {
   username?: string;
   // Allow file_id for getFile requests
   file_id?: string;
+  text?: string;
 }
 
 interface TelegramChat {
@@ -53,28 +54,8 @@ export const useTelegramBotInfo = () => {
 
 export const useGetChatInfo = () => {
   return useMutation({
-    mutationFn: async ({ chatId, username }: { chatId?: string | number; username?: string }) => {
-      const resp = await callTelegramApi({ action: 'getChat', chatId, username });
-      // Попробуем сохранить ссылку на фото если есть
-      if (resp.ok && resp.result && resp.result.photo && resp.result.photo.big_file_id) {
-        // Получаем URL к файлу аватара через отдельный вызов
-        try {
-          const fileResp = await callTelegramApi({
-            action: 'getFile',
-            chatId,
-            username,
-            file_id: resp.result.photo.big_file_id
-          });
-          if (fileResp.ok && fileResp.result && fileResp.result.file_path) {
-            // Возвращаем полный url картинки через Telegram CDN API (пример: https://api.telegram.org/file/bot<TOKEN>/<file_path>)
-            resp.result.tg_avatar_url = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${fileResp.result.file_path}`;
-          }
-        } catch (err) {
-          // Игнорировать, если не удалось получить file_path
-        }
-      }
-      return resp;
-    }
+    mutationFn: ({ chatId, username }: { chatId?: string | number; username?: string }) =>
+      callTelegramApi({ action: 'getChat', chatId, username }),
   });
 };
 

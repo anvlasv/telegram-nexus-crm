@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       return new Response('Unauthorized', { status: 401, headers: corsHeaders })
     }
 
-    const { action, chatId, username } = await req.json()
+    const { action, chatId, username, text } = await req.json()
     const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
 
     if (!botToken) {
@@ -95,15 +95,37 @@ Deno.serve(async (req) => {
       const response = await fetch(`${telegramApiBase}/getChat?chat_id=${chatIdentifier}`)
       const data = await response.json()
 
-      if (!data.ok) {
-        return new Response(JSON.stringify(data), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+      if (data.ok && data.result.photo?.big_file_id) {
+        const fileResponse = await fetch(`${telegramApiBase}/getFile?file_id=${data.result.photo.big_file_id}`)
+        const fileData = await fileResponse.json()
+        if (fileData.ok) {
+          data.result.avatar_url = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`
+        }
       }
 
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: data.ok ? 200 : 400
+      })
+    }
+    
+    if (action === 'sendMessage') {
+      if (!chatId || !text) {
+          return new Response('Chat ID and text required', { status: 400, headers: corsHeaders })
+      }
+
+      const response = await fetch(`${telegramApiBase}/sendMessage`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' }),
+      })
+      const data = await response.json()
+
+      return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: data.ok ? 200 : 400
       })
     }
 

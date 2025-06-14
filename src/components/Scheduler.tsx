@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, List, Calendar as CalendarIcon } from 'lucide-react';
@@ -159,7 +158,7 @@ export const Scheduler: React.FC = () => {
       <div className="h-full flex flex-col p-3 sm:p-4 space-y-4">
         {/* Header */}
         <div className="flex-shrink-0 space-y-3">
-          <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 flex-wrap gap-4">
             <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">{t('scheduler')}</h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
@@ -181,7 +180,7 @@ export const Scheduler: React.FC = () => {
           </div>
           
           {/* View Mode Toggles */}
-          <div className="flex gap-2 w-full">
+          <div className="flex flex-wrap gap-2">
             <Button 
               variant={viewMode === 'list' ? 'default' : 'outline'} 
               onClick={() => setViewMode('list')}

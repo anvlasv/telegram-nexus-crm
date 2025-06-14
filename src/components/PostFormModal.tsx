@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -113,6 +112,8 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
     switch (postType) {
       case 'photo': return 'image/*';
       case 'video': return 'video/*';
+      case 'audio': return 'audio/*';
+      case 'document': return 'application/*, text/*';
       default: return '*/*';
     }
   };
@@ -138,11 +139,19 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="photo" id="photo" />
-                  <label htmlFor="photo" className="text-sm">{t('photo-post')}</label>
+                  <label htmlFor="photo" className="text-sm">{t('photo-album-post')}</label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="video" id="video" />
                   <label htmlFor="video" className="text-sm">{t('video-post')}</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="audio" id="audio" />
+                  <label htmlFor="audio" className="text-sm">{t('audio-post')}</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="document" id="document" />
+                  <label htmlFor="document" className="text-sm">{t('document-post')}</label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="poll" id="poll" />
@@ -215,17 +224,17 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
             </div>
           )}
 
-          {(postType === 'photo' || postType === 'video') && (
+          {(postType === 'photo' || postType === 'video' || postType === 'audio' || postType === 'document') && (
             <div className="space-y-2">
               <Label>{t('attach-media')}</Label>
               <FileDropZone
                 onFilesChange={setMediaFiles}
                 accept={getAcceptedFileTypes()}
-                multiple={postType === 'photo'}
-                maxFiles={postType === 'photo' ? 10 : 1}
+                multiple={postType === 'photo' || postType === 'audio' || postType === 'document'}
+                maxFiles={postType === 'video' ? 1 : 10}
                 currentFiles={mediaFiles}
               />
-              {(postType === 'photo' || postType === 'video') && (
+              {(postType === 'photo' || postType === 'video' || postType === 'audio' || postType === 'document') && (
                 <div className="space-y-2 mt-4">
                   <Label htmlFor="caption">{t('post-content')}</Label>
                   <Textarea
