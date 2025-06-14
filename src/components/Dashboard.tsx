@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,11 +7,15 @@ import { Users, MessageSquare, TrendingUp, DollarSign, Calendar, Clock } from 'l
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChannels } from '@/hooks/useChannels';
 import { usePartners } from '@/hooks/usePartners';
+import { useRecentPosts } from '@/hooks/useRecentPosts';
+import { format } from 'date-fns';
+import { ru, enUS } from 'date-fns/locale';
 
 export const Dashboard: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { channels, isLoading: channelsLoading } = useChannels();
   const { data: partners = [], isLoading: partnersLoading } = usePartners();
+  const { data: recentPosts = [], isLoading: postsLoading } = useRecentPosts();
 
   const totalSubscribers = channels.reduce((sum, channel) => sum + (channel.subscriber_count || 0), 0);
   const activeChannels = channels.filter(channel => channel.status === 'active').length;
@@ -49,33 +54,9 @@ export const Dashboard: React.FC = () => {
     },
   ];
 
-  const recentPosts = [
-    {
-      id: 1,
-      channel: 'Tech News Daily',
-      content: 'Новый прорыв в области ИИ для обработки естественного языка...',
-      scheduledFor: '2024-06-02 14:30',
-      status: 'scheduled' as const,
-    },
-    {
-      id: 2,
-      channel: 'Crypto Updates',
-      content: 'Bitcoin достигает нового максимума на фоне...',
-      scheduledFor: '2024-06-02 16:00',
-      status: 'draft' as const,
-    },
-    {
-      id: 3,
-      channel: 'Marketing Tips',
-      content: '5 проверенных стратегий для увеличения вовлечения...',
-      scheduledFor: '2024-06-02 18:00',
-      status: 'published' as const,
-    },
-  ];
-
   const pendingPartners = partners.filter(p => p.status === 'pending').slice(0, 2);
 
-  if (channelsLoading || partnersLoading) {
+  if (channelsLoading || partnersLoading || postsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg text-gray-500 dark:text-gray-400">{t('loading')}</div>
@@ -132,24 +113,31 @@ export const Dashboard: React.FC = () => {
                 <div key={post.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">
-                      {post.channel}
+                      {post.telegram_channels?.name || 'Unknown Channel'}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                       {post.content}
                     </p>
                     <div className="flex items-center mt-1 sm:mt-2 text-xs text-gray-500 dark:text-gray-400">
                       <Clock className="h-3 w-3 mr-1" />
-                      {post.scheduledFor}
+                      {format(new Date(post.scheduled_for), 'dd.MM.yyyy HH:mm', {
+                        locale: language === 'ru' ? ru : enUS
+                      })}
                     </div>
                   </div>
                   <Badge 
-                    variant={post.status === 'published' ? 'default' : post.status === 'scheduled' ? 'secondary' : 'outline'}
+                    variant={post.status === 'sent' ? 'default' : post.status === 'pending' ? 'secondary' : 'outline'}
                     className="ml-2 flex-shrink-0"
                   >
-                    {t(post.status)}
+                    {t(post.status || 'pending')}
                   </Badge>
                 </div>
               ))}
+              {recentPosts.length === 0 && (
+                <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                  {t('no-scheduled-posts')}
+                </div>
+              )}
             </div>
             <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
               {t('view-all-posts')}

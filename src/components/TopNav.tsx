@@ -117,6 +117,17 @@ export const TopNav: React.FC = () => {
             <Moon className="h-4 w-4 text-muted-foreground" />
           </div>
 
+          {/* Mobile Language toggle - показывать на мобильных и планшетах */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
+            className="block lg:hidden"
+          >
+            <Globe className="h-4 w-4" />
+            <span className="ml-1 text-xs">{language.toUpperCase()}</span>
+          </Button>
+
           {/* Desktop notifications - только на десктопе */}
           <Button variant="ghost" size="sm" className="hidden lg:flex">
             <Bell className="h-4 w-4" />
@@ -134,7 +145,7 @@ export const TopNav: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
-            className="hidden sm:flex"
+            className="hidden lg:flex"
           >
             <Globe className="h-4 w-4" />
             <span className="ml-1 text-xs">{language.toUpperCase()}</span>
