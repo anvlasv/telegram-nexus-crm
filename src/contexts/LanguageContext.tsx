@@ -68,7 +68,31 @@ const translations = {
     // Post types
     'text-post': 'Текстовый пост',
     'media-post': 'Медиа пост',
-    'poll-post': 'Опрос'
+    'poll-post': 'Опрос',
+    
+    // Partners & Campaigns
+    'create-post': 'Создать пост',
+    'edit-post': 'Редактировать пост',
+    'schedule': 'Запланировать',
+    'select-channel-first': 'Сначала выберите канал',
+    'post-scheduled-successfully': 'Пост успешно запланирован',
+    'post-updated-successfully': 'Пост успешно обновлен',
+    'error-scheduling-post': 'Ошибка при планировании поста',
+    'error-updating-post': 'Ошибка при обновлении поста',
+    'post-published': 'Пост опубликован',
+    'error-publishing-post': 'Ошибка при публикации поста',
+    'confirm-delete-post': 'Вы уверены, что хотите удалить этот пост?',
+    'post-deleted': 'Пост удален',
+    'error-deleting-post': 'Ошибка при удалении поста',
+    
+    // Statuses
+    'active': 'Активный',
+    'pending': 'На рассмотрении',
+    'inactive': 'Неактивный',
+    'approved': 'Одобрено',
+    'rejected': 'Отклонено',
+    'draft': 'Черновик',
+    'published': 'Опубликовано'
   },
   en: {
     // Navigation
@@ -128,7 +152,31 @@ const translations = {
     // Post types
     'text-post': 'Text Post',
     'media-post': 'Media Post',
-    'poll-post': 'Poll'
+    'poll-post': 'Poll',
+    
+    // Partners & Campaigns
+    'create-post': 'Create Post',
+    'edit-post': 'Edit Post',
+    'schedule': 'Schedule',
+    'select-channel-first': 'Select channel first',
+    'post-scheduled-successfully': 'Post scheduled successfully',
+    'post-updated-successfully': 'Post updated successfully',
+    'error-scheduling-post': 'Error scheduling post',
+    'error-updating-post': 'Error updating post',
+    'post-published': 'Post published',
+    'error-publishing-post': 'Error publishing post',
+    'confirm-delete-post': 'Are you sure you want to delete this post?',
+    'post-deleted': 'Post deleted',
+    'error-deleting-post': 'Error deleting post',
+    
+    // Statuses
+    'active': 'Active',
+    'pending': 'Pending',
+    'inactive': 'Inactive',
+    'approved': 'Approved',
+    'rejected': 'Rejected',
+    'draft': 'Draft',
+    'published': 'Published'
   }
 };
 
