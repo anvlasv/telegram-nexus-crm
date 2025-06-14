@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronDown, Menu, Settings, User, LogOut, Info, Bell, Globe } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +14,8 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChannels } from '@/hooks/useChannels';
 import { ChannelInfoModal } from './ChannelInfoModal';
+import { Switch } from '@/components/ui/switch';
+import { useTelegram } from '@/hooks/useTelegram';
 
 export const TopNav: React.FC = () => {
   const { toggleSidebar } = useSidebar();
@@ -22,6 +23,7 @@ export const TopNav: React.FC = () => {
   const { channels, selectedChannelId, setSelectedChannelId } = useChannels();
   const [showChannelInfo, setShowChannelInfo] = useState(false);
   const [showChannelSelect, setShowChannelSelect] = useState(false);
+  const { isDarkTheme, toggleTheme } = useTelegram();
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId) || channels[0];
 
@@ -105,12 +107,18 @@ export const TopNav: React.FC = () => {
           )}
         </div>
 
-        {/* Right side - Notifications, Language, Profile */}
+        {/* Right side - Notifications, Language, Theme Switcher, Profile */}
         <div className="flex items-center gap-2">
           {/* Notifications */}
           <Button variant="ghost" size="sm">
             <Bell className="h-4 w-4" />
           </Button>
+
+          {/* Theme Switcher */}
+          <div className="flex items-center gap-1">
+            <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
+            <span className="ml-2 text-xs text-muted-foreground">{isDarkTheme ? t('dark') : t('light')}</span>
+          </div>
 
           {/* Language toggle */}
           <Button

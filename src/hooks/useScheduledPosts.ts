@@ -95,27 +95,41 @@ export const usePublishPost = () => {
   
   return useMutation({
     mutationFn: async ({ postId, channelId }: { postId: string; channelId: string }) => {
-      // Call Telegram API to publish the post
-      const { data, error } = await supabase.functions.invoke('telegram-api', {
-        body: {
-          action: 'sendMessage',
-          channelId,
-          postId,
-        },
-      });
-      
-      if (error) throw error;
-      
-      // Update post status
-      await supabase
-        .from('scheduled_posts')
-        .update({ status: 'sent' })
-        .eq('id', postId);
-      
-      return data;
+      // Добавляем лог запроса и подробный вывод ошибки
+      try {
+        console.log('[usePublishPost] Публикация поста в канал', { postId, channelId });
+        const { data, error } = await supabase.functions.invoke('telegram-api', {
+          body: {
+            action: 'sendMessage',
+            channelId,
+            postId,
+          },
+        });
+
+        if (error) {
+          console.error('[usePublishPost] Ошибка invoke:', error);
+          throw error;
+        }
+        // Update post status
+        const { error: updateErr } = await supabase
+          .from('scheduled_posts')
+          .update({ status: 'sent' })
+          .eq('id', postId);
+
+        if (updateErr) throw updateErr;
+        return data;
+      } catch (err) {
+        // Пробрасываем ошибку наверх для отображения в UI
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
+    },
+    onError: (error) => {
+      // Вызываем уведомление через toast, если он есть
+      // (используйте useToast внутри компонента, чтобы сделать это)
+      console.error('[usePublishPost] Ошибка:', error);
     },
   });
 };

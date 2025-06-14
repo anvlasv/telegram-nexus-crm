@@ -23,6 +23,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger
 } from '@/components/ui/sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTelegram } from '@/hooks/useTelegram';
@@ -55,9 +56,10 @@ export function AppSidebar() {
             <span className="truncate font-semibold">TelegramCRM</span>
             <span className="truncate text-xs text-muted-foreground">v2.0</span>
           </div>
+          {/* Добавляем SidebarTrigger для сворачивания/разворачивания */}
+          <SidebarTrigger className="ml-auto" />
         </div>
       </SidebarHeader>
-      
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -85,7 +87,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
