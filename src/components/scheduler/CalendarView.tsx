@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -116,9 +115,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   <PostCard
                     key={post.id}
                     post={post}
-                    onEdit={onEditPost}
-                    onPublish={onPublishPost}
-                    onDelete={onDeletePost}
+                    onEdit={() => onEditPost(post)}
+                    onPublish={async () => await onPublishPost(post.id)}
+                    onDelete={() => onDeletePost(post.id)}
                   />
                 ))}
                 {getPostsForDate(selectedDate).length === 0 && (
