@@ -167,7 +167,7 @@ export const TopNav: React.FC = () => {
 
       {/* Drawer Menu для miniapp/планшетов */}
       <Drawer open={showMenuDrawer} onOpenChange={setShowMenuDrawer}>
-        <DrawerContent side="right" className="w-72 p-0">
+        <DrawerContent className="w-72 p-0">
           <div className="pt-4 pb-8 px-3">
             <MiniAppMenu onSelect={() => setShowMenuDrawer(false)} />
           </div>
