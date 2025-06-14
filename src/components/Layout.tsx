@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { TopNav } from './TopNav';
+import { Toaster } from "@/components/ui/sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,6 +19,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="min-h-full">
               {children}
             </div>
+            <Toaster />
           </main>
         </SidebarInset>
       </div>

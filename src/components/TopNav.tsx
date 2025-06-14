@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronDown, Menu, Settings, User, LogOut, Info, Bell, Globe, Sun, Moon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +16,8 @@ import { useChannels } from '@/hooks/useChannels';
 import { ChannelInfoModal } from './ChannelInfoModal';
 import { Switch } from '@/components/ui/switch';
 import { useTelegram } from '@/hooks/useTelegram';
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { MiniAppMenu } from "./MiniAppMenu";
 
 export const TopNav: React.FC = () => {
   const { toggleSidebar } = useSidebar();
@@ -24,6 +25,7 @@ export const TopNav: React.FC = () => {
   const { channels, selectedChannelId, setSelectedChannelId } = useChannels();
   const [showChannelInfo, setShowChannelInfo] = useState(false);
   const [showChannelSelect, setShowChannelSelect] = useState(false);
+  const [showMenuDrawer, setShowMenuDrawer] = useState(false);
   const { isDarkTheme, toggleTheme } = useTelegram();
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId) || channels[0];
@@ -151,17 +153,26 @@ export const TopNav: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Mobile menu toggle - moved to the right */}
+          {/* "Бутерброд" Меню — всегда справа, открывает Drawer-меню */}
           <Button
             variant="ghost"
             size="sm"
-            className="md:hidden"
-            onClick={toggleSidebar}
+            className="ml-1"
+            onClick={() => setShowMenuDrawer(true)}
           >
             <Menu className="h-5 w-5" />
           </Button>
         </div>
       </header>
+
+      {/* Drawer Menu для miniapp/планшетов */}
+      <Drawer open={showMenuDrawer} onOpenChange={setShowMenuDrawer}>
+        <DrawerContent side="right" className="w-72 p-0">
+          <div className="pt-4 pb-8 px-3">
+            <MiniAppMenu onSelect={() => setShowMenuDrawer(false)} />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {/* Channel Info Modal */}
       {selectedChannel && (

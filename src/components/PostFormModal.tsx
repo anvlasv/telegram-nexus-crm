@@ -73,6 +73,22 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
     }
   }, [editingPost]);
 
+  // Новый useEffect: сброс формы после создания поста
+  useEffect(() => {
+    if (!isLoading && !isOpen) {
+      // Reset state после закрытия диалога (успешное планирование)
+      setPostType('text');
+      setContent('');
+      setPollQuestion('');
+      setPollOptions(['', '']);
+      setMediaFiles([]);
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 30);
+      setScheduledDate(format(now, 'yyyy-MM-dd'));
+      setScheduledTime(format(now, 'HH:mm'));
+    }
+  }, [isLoading, isOpen]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
