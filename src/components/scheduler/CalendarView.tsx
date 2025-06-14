@@ -100,14 +100,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <WeekView />
         </TabsContent>
         <TabsContent value="month" className="space-y-4 md:space-y-6">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && setSelectedDate(date)}
-              className="rounded-md border"
-            />
-            <div className="space-y-4">
+          <div className="flex flex-col xl:flex-row gap-6 md:gap-8">
+            <div className="flex-1">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                className="rounded-md border w-full"
+              />
+            </div>
+            <div className="flex-1 space-y-4">
               <h3 className="text-lg md:text-xl font-medium">
                 {t('posts-for')} {format(selectedDate, 'dd MMMM yyyy', { locale: language === 'ru' ? ru : enUS })}
               </h3>

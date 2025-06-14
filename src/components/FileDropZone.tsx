@@ -61,6 +61,12 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
     }
   };
 
+  const handleSelectFiles = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('file-upload')?.click();
+  };
+
   const removeFile = (index: number) => {
     const newFiles = currentFiles.filter((_, i) => i !== index);
     onFilesChange(newFiles);
@@ -90,7 +96,11 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
           className="hidden"
           id="file-upload"
         />
-        <Button variant="outline" onClick={() => document.getElementById('file-upload')?.click()}>
+        <Button 
+          type="button"
+          variant="outline" 
+          onClick={handleSelectFiles}
+        >
           Выбрать файлы
         </Button>
       </div>
@@ -108,6 +118,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({
                 </span>
               </div>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => removeFile(index)}
