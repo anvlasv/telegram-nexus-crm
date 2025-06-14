@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChevronDown, Menu, Settings, User, LogOut, Info, Bell, Globe, Sun, Moon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -57,7 +58,7 @@ export const TopNav: React.FC = () => {
                     </AvatarFallback>
                   </Avatar>
                   {/* Show channel name only on desktop */}
-                  <div className="hidden md:flex flex-col items-start">
+                  <div className="hidden lg:flex flex-col items-start">
                     <span className="text-sm font-medium">{selectedChannel.name}</span>
                     <span className="text-xs text-muted-foreground">
                       @{selectedChannel.username}
@@ -105,12 +106,12 @@ export const TopNav: React.FC = () => {
         {/* Right side - Controls and Mobile menu */}
         <div className="flex items-center gap-2">
           {/* Notifications */}
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="hidden sm:flex">
             <Bell className="h-4 w-4" />
           </Button>
 
           {/* Theme Switcher with icons */}
-          <div className="flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1">
             <Sun className="h-4 w-4 text-muted-foreground" />
             <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
             <Moon className="h-4 w-4 text-muted-foreground" />
@@ -121,6 +122,7 @@ export const TopNav: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
+            className="hidden sm:flex"
           >
             <Globe className="h-4 w-4" />
             <span className="ml-1 text-xs">{language.toUpperCase()}</span>
@@ -129,7 +131,7 @@ export const TopNav: React.FC = () => {
           {/* Profile menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="hidden lg:flex items-center gap-2">
                 <Avatar className="h-6 w-6">
                   <AvatarFallback className="text-xs">U</AvatarFallback>
                 </Avatar>
@@ -155,8 +157,8 @@ export const TopNav: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* "Бутерброд" Меню — только для мобильных */}
-          <div className="block md:hidden">
+          {/* "Бутерброд" Меню — для мобильных и планшетов */}
+          <div className="block lg:hidden">
             <Sheet open={showMenuSheet} onOpenChange={setShowMenuSheet}>
               <SheetTrigger asChild>
                 <Button
@@ -168,7 +170,7 @@ export const TopNav: React.FC = () => {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72 p-0">
+              <SheetContent side="right" className="w-80 p-0">
                 <div className="pt-4 pb-8 px-3">
                   <MiniAppMenu onSelect={() => setShowMenuSheet(false)} />
                 </div>

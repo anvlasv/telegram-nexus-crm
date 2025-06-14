@@ -39,18 +39,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 md:gap-4">
         {weekDays.map((day) => {
           const postsForDay = getPostsForDate(day);
           return (
-            <div key={day.toISOString()} className="border rounded-lg p-2 min-h-[120px]">
-              <div className="font-medium text-sm mb-2">
+            <div key={day.toISOString()} className="border rounded-lg p-3 md:p-4 min-h-[140px] md:min-h-[120px]">
+              <div className="font-medium text-sm md:text-base mb-2 md:mb-3">
                 {format(day, 'EEE dd', { locale: language === 'ru' ? ru : enUS })}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {postsForDay.map((post) => (
-                  <div key={post.id} className="text-xs p-1 bg-blue-100 dark:bg-blue-900 rounded truncate">
-                    {format(new Date(post.scheduled_for), 'HH:mm')} - {post.content.substring(0, 20)}...
+                  <div key={post.id} className="text-xs md:text-sm p-2 bg-blue-100 dark:bg-blue-900 rounded truncate">
+                    {format(new Date(post.scheduled_for), 'HH:mm')} - {post.content.substring(0, 30)}...
                   </div>
                 ))}
               </div>
@@ -62,35 +62,35 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 md:space-y-6">
       <Tabs defaultValue="week" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="week">{t('week')}</TabsTrigger>
           <TabsTrigger value="month">{t('month')}</TabsTrigger>
         </TabsList>
-        <TabsContent value="week" className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h3 className="text-base md:text-lg font-medium">
+        <TabsContent value="week" className="space-y-4 md:space-y-6">
+          <div className="flex flex-col space-y-3 md:space-y-0 md:flex-row md:items-center md:justify-between">
+            <h3 className="text-lg md:text-xl font-medium">
               {format(selectedDate, 'dd MMMM yyyy', { locale: language === 'ru' ? ru : enUS })}
             </h3>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-2">
               <Button 
                 variant="outline" 
-                size="sm"
+                size="default"
                 onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 7)))}
               >
                 ← {t('prev')}
               </Button>
               <Button 
                 variant="outline" 
-                size="sm"
+                size="default"
                 onClick={() => setSelectedDate(new Date())}
               >
                 {t('today')}
               </Button>
               <Button 
                 variant="outline" 
-                size="sm"
+                size="default"
                 onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 7)))}
               >
                 {t('next')} →
@@ -99,8 +99,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </div>
           <WeekView />
         </TabsContent>
-        <TabsContent value="month" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TabsContent value="month" className="space-y-4 md:space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -108,10 +108,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               className="rounded-md border"
             />
             <div className="space-y-4">
-              <h3 className="text-base md:text-lg font-medium">
+              <h3 className="text-lg md:text-xl font-medium">
                 {t('posts-for')} {format(selectedDate, 'dd MMMM yyyy', { locale: language === 'ru' ? ru : enUS })}
               </h3>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {getPostsForDate(selectedDate).map((post) => (
                   <PostCard
                     key={post.id}
@@ -123,7 +123,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   />
                 ))}
                 {getPostsForDate(selectedDate).length === 0 && (
-                  <p className="text-muted-foreground text-center py-8 text-sm">
+                  <p className="text-muted-foreground text-center py-8 text-sm md:text-base">
                     {t('no-posts-scheduled-for-date')}
                   </p>
                 )}
