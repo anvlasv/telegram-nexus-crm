@@ -6,6 +6,7 @@ export interface AdvertisingCampaign {
   id: string;
   partner_id: string;
   channel_id: string;
+  user_id: string;
   title: string;
   content: string;
   media_urls?: string[];
@@ -39,13 +40,13 @@ export const useAdvertisingCampaigns = () => {
         .from('advertising_campaigns')
         .select(`
           *,
-          partners (name, contact_info),
-          telegram_channels (name, username, subscriber_count)
+          partner:partners (name, contact_info),
+          channel:telegram_channels (name, username, subscriber_count)
         `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as AdvertisingCampaign[];
+      return data as any[];
     },
   });
 };
@@ -54,7 +55,17 @@ export const useCreateCampaign = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (campaign: Omit<AdvertisingCampaign, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+    mutationFn: async (campaign: {
+      partner_id: string;
+      channel_id: string;
+      title: string;
+      content: string;
+      post_type: 'text' | 'photo' | 'video' | 'poll';
+      price: number;
+      currency: string;
+      status: 'draft' | 'pending' | 'approved' | 'rejected' | 'published';
+      scheduled_for?: string;
+    }) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('User not authenticated');
       

@@ -9,6 +9,84 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      advertising_campaigns: {
+        Row: {
+          channel_id: string
+          clicks_count: number | null
+          content: string | null
+          created_at: string
+          currency: string
+          engagement_rate: number | null
+          id: string
+          media_urls: string[] | null
+          partner_id: string
+          post_type: string
+          price: number
+          published_at: string | null
+          scheduled_for: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          views_count: number | null
+        }
+        Insert: {
+          channel_id: string
+          clicks_count?: number | null
+          content?: string | null
+          created_at?: string
+          currency?: string
+          engagement_rate?: number | null
+          id?: string
+          media_urls?: string[] | null
+          partner_id: string
+          post_type?: string
+          price?: number
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          views_count?: number | null
+        }
+        Update: {
+          channel_id?: string
+          clicks_count?: number | null
+          content?: string | null
+          created_at?: string
+          currency?: string
+          engagement_rate?: number | null
+          id?: string
+          media_urls?: string[] | null
+          partner_id?: string
+          post_type?: string
+          price?: number
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertising_campaigns_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advertising_campaigns_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       channel_posts: {
         Row: {
           channel_id: string
