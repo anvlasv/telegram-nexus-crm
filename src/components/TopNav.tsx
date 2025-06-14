@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { useTelegram } from '@/hooks/useTelegram';
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { MiniAppMenu } from "./MiniAppMenu";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const TopNav: React.FC = () => {
   const { toggleSidebar } = useSidebar();
@@ -27,6 +28,7 @@ export const TopNav: React.FC = () => {
   const [showChannelSelect, setShowChannelSelect] = useState(false);
   const [showMenuDrawer, setShowMenuDrawer] = useState(false);
   const { isDarkTheme, toggleTheme } = useTelegram();
+  const isMobile = useIsMobile();
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId) || channels[0];
 
@@ -153,15 +155,17 @@ export const TopNav: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* "Бутерброд" Меню — всегда справа, открывает Drawer-меню */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-1"
-            onClick={() => setShowMenuDrawer(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          {/* "Бутерброд" Меню — только для мобильных */}
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-1 block md:hidden"
+              onClick={() => setShowMenuDrawer(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
         </div>
       </header>
 
