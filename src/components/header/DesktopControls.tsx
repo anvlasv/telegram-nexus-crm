@@ -16,6 +16,7 @@ import {
 import { useTelegram } from '@/hooks/useTelegram';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useNavigate } from 'react-router-dom';
 
 interface DesktopControlsProps {
   onNotificationsClick: () => void;
@@ -27,6 +28,15 @@ export const DesktopControls: React.FC<DesktopControlsProps> = ({
   const { isDarkTheme, toggleTheme } = useTelegram();
   const { language, setLanguage, t } = useLanguage();
   const { unreadCount } = useNotifications();
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -78,11 +88,11 @@ export const DesktopControls: React.FC<DesktopControlsProps> = ({
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>{t('account')}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleProfileClick}>
             <User className="mr-2 h-4 w-4" />
             {t('profile')}
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSettingsClick}>
             <Settings className="mr-2 h-4 w-4" />
             {t('settings')}
           </DropdownMenuItem>
