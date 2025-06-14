@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -101,7 +102,7 @@ export const usePublishPost = () => {
         // Получаем данные поста и канала
         const { data: postData, error: postError } = await supabase
           .from('scheduled_posts')
-          .select('content')
+          .select('content, post_type, media_urls, poll_options')
           .eq('id', postId)
           .single();
 
@@ -123,15 +124,68 @@ export const usePublishPost = () => {
 
         console.log('[usePublishPost] Данные для публикации:', { 
           content: postData.content, 
+          postType: postData.post_type,
           channelId: channelData.channel_id, 
           username: channelData.username 
         });
 
+        // Определяем действие в зависимости от типа поста
+        let action = 'sendMessage';
+        let body: any = {
+          chatId: channelData.channel_id || channelData.username,
+          text: postData.content,
+        };
+
+        switch (postData.post_type) {
+          case 'photo':
+            action = 'sendPhoto';
+            body = {
+              chatId: channelData.channel_id || channelData.username,
+              caption: postData.content,
+              // TODO: Добавить поддержку загрузки медиа файлов
+            };
+            break;
+          case 'video':
+            action = 'sendVideo';
+            body = {
+              chatId: channelData.channel_id || channelData.username,
+              caption: postData.content,
+              // TODO: Добавить поддержку загрузки медиа файлов
+            };
+            break;
+          case 'audio':
+            action = 'sendAudio';
+            body = {
+              chatId: channelData.channel_id || channelData.username,
+              caption: postData.content,
+              // TODO: Добавить поддержку загрузки медиа файлов
+            };
+            break;
+          case 'document':
+            action = 'sendDocument';
+            body = {
+              chatId: channelData.channel_id || channelData.username,
+              caption: postData.content,
+              // TODO: Добавить поддержку загрузки медиа файлов
+            };
+            break;
+          case 'poll':
+            action = 'sendPoll';
+            body = {
+              chatId: channelData.channel_id || channelData.username,
+              question: postData.content,
+              options: postData.poll_options || [],
+            };
+            break;
+          default:
+            // Текстовый пост по умолчанию
+            break;
+        }
+
         const { data, error } = await supabase.functions.invoke('telegram-api', {
           body: {
-            action: 'sendMessage',
-            chatId: channelData.channel_id || channelData.username,
-            text: postData.content,
+            action,
+            ...body,
           },
         });
 

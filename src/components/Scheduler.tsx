@@ -24,9 +24,9 @@ export const Scheduler: React.FC = () => {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [editingPost, setEditingPost] = useState<any>(null);
 
-  const selectedChannel = channels.find(c => c.id === selectedChannelId) || channels[0];
+  const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
-  // ВАЖНО: фильтруем посты только по выбранному каналу
+  // Фильтруем посты только по выбранному каналу
   const filteredPosts = selectedChannel
     ? posts.filter((post) => post.channel_id === selectedChannel.id)
     : [];
@@ -47,7 +47,9 @@ export const Scheduler: React.FC = () => {
           id: editingPost.id,
           content: formData.content || formData.pollQuestion || '',
           scheduled_for: formData.scheduledFor,
-          media_urls: formData.mediaFiles?.map((file: File) => file.name) || null,
+          media_urls: formData.mediaFiles?.length > 0 ? formData.mediaFiles.map((file: File) => file.name) : null,
+          post_type: formData.type,
+          poll_options: formData.pollOptions?.length > 0 ? formData.pollOptions : null,
         });
         
         toast({
@@ -60,7 +62,9 @@ export const Scheduler: React.FC = () => {
           content: formData.content || formData.pollQuestion || '',
           scheduled_for: formData.scheduledFor,
           status: 'pending',
-          media_urls: formData.mediaFiles?.map((file: File) => file.name) || null,
+          media_urls: formData.mediaFiles?.length > 0 ? formData.mediaFiles.map((file: File) => file.name) : null,
+          post_type: formData.type,
+          poll_options: formData.pollOptions?.length > 0 ? formData.pollOptions : null,
         });
 
         toast({
@@ -159,6 +163,21 @@ export const Scheduler: React.FC = () => {
     );
   }
 
+  if (!selectedChannel) {
+    return (
+      <div className="w-full h-full overflow-hidden">
+        <div className="h-full flex flex-col p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">{t('no-channel-selected')}</h2>
+              <p className="text-muted-foreground">{t('select-channel-to-continue')}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full overflow-hidden">
       <div className="h-full flex flex-col p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
@@ -168,7 +187,7 @@ export const Scheduler: React.FC = () => {
             <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">{t('scheduler')}</h1>
               <p className="text-sm md:text-base text-muted-foreground mt-1">
-                {t('scheduler-description')}
+                {t('scheduler-description')} - {selectedChannel.name}
               </p>
             </div>
             

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -58,7 +59,12 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
   useEffect(() => {
     if (editingPost) {
       setContent(editingPost.content || '');
-      setPostType('text'); // Default to text for editing
+      setPostType(editingPost.post_type || 'text');
+      
+      if (editingPost.post_type === 'poll') {
+        setPollQuestion(editingPost.content || '');
+        setPollOptions(editingPost.poll_options || ['', '']);
+      }
       
       const scheduledFor = new Date(editingPost.scheduled_for);
       setScheduledDate(format(scheduledFor, 'yyyy-MM-dd'));
@@ -73,10 +79,9 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
     }
   }, [editingPost]);
 
-  // Новый useEffect: сброс формы после создания поста
+  // Сброс формы после создания поста
   useEffect(() => {
     if (!isLoading && !isOpen) {
-      // Reset state после закрытия диалога (успешное планирование)
       setPostType('text');
       setContent('');
       setPollQuestion('');
@@ -100,10 +105,10 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
     
     const formData = {
       type: postType,
-      content: postType === 'text' ? content : '',
+      content: postType === 'poll' ? pollQuestion : content,
       pollQuestion: postType === 'poll' ? pollQuestion : '',
       pollOptions: postType === 'poll' ? pollOptions.filter(option => option.trim()) : [],
-      mediaFiles: postType !== 'text' ? mediaFiles : [],
+      mediaFiles: (postType === 'photo' || postType === 'video' || postType === 'audio' || postType === 'document') ? mediaFiles : [],
       scheduledFor,
     };
 
@@ -131,6 +136,16 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
       case 'audio': return 'audio/*';
       case 'document': return 'application/*, text/*';
       default: return '*/*';
+    }
+  };
+
+  const getMaxFiles = () => {
+    switch (postType) {
+      case 'photo': return 10; // Альбом фото
+      case 'video': return 1;
+      case 'audio': return 1;
+      case 'document': return 10;
+      default: return 1;
     }
   };
 
@@ -196,11 +211,12 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="poll-question">{t('poll-question')}</Label>
-                <Input
+                <Textarea
                   id="poll-question"
                   value={pollQuestion}
                   onChange={(e) => setPollQuestion(e.target.value)}
                   placeholder={t('poll-question')}
+                  rows={3}
                   required
                 />
               </div>
@@ -247,21 +263,19 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
                 onFilesChange={setMediaFiles}
                 accept={getAcceptedFileTypes()}
                 multiple={postType === 'photo' || postType === 'audio' || postType === 'document'}
-                maxFiles={postType === 'video' ? 1 : 10}
+                maxFiles={getMaxFiles()}
                 currentFiles={mediaFiles}
               />
-              {(postType === 'photo' || postType === 'video' || postType === 'audio' || postType === 'document') && (
-                <div className="space-y-2 mt-4">
-                  <Label htmlFor="caption">{t('post-content')}</Label>
-                  <Textarea
-                    id="caption"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder={t('post-content-placeholder')}
-                    rows={3}
-                  />
-                </div>
-              )}
+              <div className="space-y-2 mt-4">
+                <Label htmlFor="caption">{t('post-content')}</Label>
+                <Textarea
+                  id="caption"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder={t('post-content-placeholder')}
+                  rows={3}
+                />
+              </div>
             </div>
           )}
 
