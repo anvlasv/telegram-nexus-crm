@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,17 +23,30 @@ export const useChannels = () => {
     },
   });
 
-  // Set first channel as selected if none selected and channels exist
+  // Set first channel as selected ONLY if none selected and channels exist and no channel was previously selected
   useEffect(() => {
     if (!selectedChannelId && channels.length > 0) {
-      setSelectedChannelId(channels[0].id);
+      // Check if there's a stored channel preference
+      const storedChannelId = localStorage.getItem('selectedChannelId');
+      
+      if (storedChannelId && channels.find(c => c.id === storedChannelId)) {
+        setSelectedChannelId(storedChannelId);
+      } else if (channels.length > 0) {
+        setSelectedChannelId(channels[0].id);
+      }
     }
   }, [channels, selectedChannelId]);
+
+  // Store channel selection in localStorage
+  const handleSetSelectedChannelId = (channelId: string) => {
+    setSelectedChannelId(channelId);
+    localStorage.setItem('selectedChannelId', channelId);
+  };
 
   return {
     channels,
     selectedChannelId,
-    setSelectedChannelId,
+    setSelectedChannelId: handleSetSelectedChannelId,
     isLoading,
     error,
   };

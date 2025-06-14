@@ -68,7 +68,8 @@ Deno.serve(async (req) => {
       return new Response('Unauthorized', { status: 401, headers: corsHeaders })
     }
 
-    const { action, chatId, username, text } = await req.json()
+    const requestBody = await req.json()
+    const { action, chatId, username, text, question, options } = requestBody
     const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
 
     if (!botToken) {
@@ -111,21 +112,151 @@ Deno.serve(async (req) => {
     
     if (action === 'sendMessage') {
       if (!chatId || !text) {
-          return new Response('Chat ID and text required', { status: 400, headers: corsHeaders })
+        return new Response('Chat ID and text required', { status: 400, headers: corsHeaders })
       }
 
       const response = await fetch(`${telegramApiBase}/sendMessage`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' }),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          chat_id: chatId, 
+          text: text, 
+          parse_mode: 'Markdown' 
+        }),
       })
       const data = await response.json()
 
       return new Response(JSON.stringify(data), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: data.ok ? 200 : 400
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: data.ok ? 200 : 400
+      })
+    }
+
+    if (action === 'sendPoll') {
+      if (!chatId || !question || !options || options.length < 2) {
+        return new Response('Chat ID, question and at least 2 options required', { status: 400, headers: corsHeaders })
+      }
+
+      const response = await fetch(`${telegramApiBase}/sendPoll`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          chat_id: chatId, 
+          question: question,
+          options: options,
+          is_anonymous: true
+        }),
+      })
+      const data = await response.json()
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: data.ok ? 200 : 400
+      })
+    }
+
+    if (action === 'sendPhoto') {
+      if (!chatId) {
+        return new Response('Chat ID required', { status: 400, headers: corsHeaders })
+      }
+
+      // For now, send a message indicating photo functionality
+      const messageText = text || 'Фото будет добавлено в ближайшее время'
+      const response = await fetch(`${telegramApiBase}/sendMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          chat_id: chatId, 
+          text: `📷 ${messageText}`,
+          parse_mode: 'Markdown' 
+        }),
+      })
+      const data = await response.json()
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: data.ok ? 200 : 400
+      })
+    }
+
+    if (action === 'sendVideo') {
+      if (!chatId) {
+        return new Response('Chat ID required', { status: 400, headers: corsHeaders })
+      }
+
+      const messageText = text || 'Видео будет добавлено в ближайшее время'
+      const response = await fetch(`${telegramApiBase}/sendMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          chat_id: chatId, 
+          text: `🎥 ${messageText}`,
+          parse_mode: 'Markdown' 
+        }),
+      })
+      const data = await response.json()
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: data.ok ? 200 : 400
+      })
+    }
+
+    if (action === 'sendAudio') {
+      if (!chatId) {
+        return new Response('Chat ID required', { status: 400, headers: corsHeaders })
+      }
+
+      const messageText = text || 'Аудио будет добавлено в ближайшее время'
+      const response = await fetch(`${telegramApiBase}/sendMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          chat_id: chatId, 
+          text: `🎵 ${messageText}`,
+          parse_mode: 'Markdown' 
+        }),
+      })
+      const data = await response.json()
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: data.ok ? 200 : 400
+      })
+    }
+
+    if (action === 'sendDocument') {
+      if (!chatId) {
+        return new Response('Chat ID required', { status: 400, headers: corsHeaders })
+      }
+
+      const messageText = text || 'Документ будет добавлен в ближайшее время'
+      const response = await fetch(`${telegramApiBase}/sendMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          chat_id: chatId, 
+          text: `📄 ${messageText}`,
+          parse_mode: 'Markdown' 
+        }),
+      })
+      const data = await response.json()
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: data.ok ? 200 : 400
       })
     }
 

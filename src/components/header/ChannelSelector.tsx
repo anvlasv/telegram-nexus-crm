@@ -28,9 +28,10 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   const { t } = useLanguage();
   const { channels, selectedChannelId, setSelectedChannelId } = useChannels();
 
-  const selectedChannel = channels.find(c => c.id === selectedChannelId) || channels[0];
+  const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
   const handleChannelSelect = (channelId: string) => {
+    console.log('[ChannelSelector] Выбран канал:', channelId);
     setSelectedChannelId(channelId);
     setShowChannelSelect(false);
   };
@@ -66,7 +67,9 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
         {channels.map((channel) => (
           <DropdownMenuItem
             key={channel.id}
-            className="flex items-center gap-3 p-3"
+            className={`flex items-center gap-3 p-3 ${
+              channel.id === selectedChannelId ? 'bg-accent' : ''
+            }`}
             onClick={() => handleChannelSelect(channel.id)}
           >
             <Avatar className="h-8 w-8">
@@ -84,6 +87,9 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
                 @{channel.username}
               </span>
             </div>
+            {channel.id === selectedChannelId && (
+              <div className="ml-auto w-2 h-2 bg-primary rounded-full"></div>
+            )}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />

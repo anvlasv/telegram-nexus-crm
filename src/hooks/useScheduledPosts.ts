@@ -135,7 +135,6 @@ export const usePublishPost = () => {
 
         // Определяем тип сообщения и параметры
         let requestBody: any = {
-          action: 'sendMessage',
           chatId: channelData.channel_id || `@${channelData.username}`,
         };
 
@@ -148,14 +147,29 @@ export const usePublishPost = () => {
               throw new Error('Опрос должен содержать минимум 2 варианта ответа');
             }
             break;
+          
           case 'photo':
-          case 'video':
-          case 'audio':
-          case 'document':
-            // Для медиа-постов пока отправляем как текст с информацией о медиа
-            requestBody.text = postData.content + (postData.media_urls ? `\n\nВложения: ${postData.media_urls.join(', ')}` : '');
+            requestBody.action = 'sendPhoto';
+            requestBody.text = postData.content || '';
             break;
+            
+          case 'video':
+            requestBody.action = 'sendVideo';
+            requestBody.text = postData.content || '';
+            break;
+            
+          case 'audio':
+            requestBody.action = 'sendAudio';
+            requestBody.text = postData.content || '';
+            break;
+            
+          case 'document':
+            requestBody.action = 'sendDocument';
+            requestBody.text = postData.content || '';
+            break;
+            
           default:
+            requestBody.action = 'sendMessage';
             requestBody.text = postData.content;
             break;
         }
