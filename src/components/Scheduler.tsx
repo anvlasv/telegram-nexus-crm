@@ -25,6 +25,11 @@ export const Scheduler: React.FC = () => {
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId) || channels[0];
 
+  // ВАЖНО: фильтруем посты только по выбранному каналу
+  const filteredPosts = selectedChannel
+    ? posts.filter((post) => post.channel_id === selectedChannel.id)
+    : [];
+
   const handleCreatePost = async (formData: any) => {
     if (!selectedChannel) {
       toast({
@@ -209,14 +214,14 @@ export const Scheduler: React.FC = () => {
               <CalendarView
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
-                posts={posts}
+                posts={filteredPosts}
                 onEditPost={handleEditPost}
                 onPublishPost={handlePublishPost}
                 onDeletePost={handleDeletePost}
               />
             ) : (
               <ListView
-                posts={posts}
+                posts={filteredPosts}
                 onEditPost={handleEditPost}
                 onPublishPost={handlePublishPost}
                 onDeletePost={handleDeletePost}

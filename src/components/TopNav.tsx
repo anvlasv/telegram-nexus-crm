@@ -162,6 +162,7 @@ export const TopNav: React.FC = () => {
               size="sm"
               className="ml-1 block md:hidden"
               onClick={() => setShowMenuDrawer(true)}
+              aria-label="Меню"
             >
               <Menu className="h-5 w-5" />
             </Button>
