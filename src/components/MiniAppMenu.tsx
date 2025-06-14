@@ -30,8 +30,8 @@ export const MiniAppMenu = ({ onSelect }: { onSelect: () => void }) => {
             to={item.href}
             className={`flex items-center gap-3 px-4 py-3 rounded-md text-base transition-all ${
               isActive
-                ? "bg-blue-100 text-blue-700 font-semibold"
-                : "hover:bg-gray-100 text-gray-900"
+                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-semibold"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-gray-100"
             }`}
             onClick={onSelect}
           >

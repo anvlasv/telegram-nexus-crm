@@ -105,13 +105,25 @@ export const TopNav: React.FC = () => {
 
         {/* Right side - Controls and Mobile menu */}
         <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <Button variant="ghost" size="sm" className="hidden sm:flex">
+          {/* Mobile notifications - показывать на мобильных и планшетах */}
+          <Button variant="ghost" size="sm" className="block lg:hidden">
             <Bell className="h-4 w-4" />
           </Button>
 
-          {/* Theme Switcher with icons */}
-          <div className="hidden sm:flex items-center gap-1">
+          {/* Mobile Theme Switcher - показывать на мобильных и планшетах */}
+          <div className="flex lg:hidden items-center gap-1">
+            <Sun className="h-4 w-4 text-muted-foreground" />
+            <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
+            <Moon className="h-4 w-4 text-muted-foreground" />
+          </div>
+
+          {/* Desktop notifications - только на десктопе */}
+          <Button variant="ghost" size="sm" className="hidden lg:flex">
+            <Bell className="h-4 w-4" />
+          </Button>
+
+          {/* Desktop Theme Switcher - только на десктопе */}
+          <div className="hidden lg:flex items-center gap-1">
             <Sun className="h-4 w-4 text-muted-foreground" />
             <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
             <Moon className="h-4 w-4 text-muted-foreground" />
