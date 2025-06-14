@@ -16,7 +16,7 @@ import { useChannels } from '@/hooks/useChannels';
 import { ChannelInfoModal } from './ChannelInfoModal';
 import { Switch } from '@/components/ui/switch';
 import { useTelegram } from '@/hooks/useTelegram';
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MiniAppMenu } from "./MiniAppMenu";
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -26,7 +26,7 @@ export const TopNav: React.FC = () => {
   const { channels, selectedChannelId, setSelectedChannelId } = useChannels();
   const [showChannelInfo, setShowChannelInfo] = useState(false);
   const [showChannelSelect, setShowChannelSelect] = useState(false);
-  const [showMenuDrawer, setShowMenuDrawer] = useState(false);
+  const [showMenuSheet, setShowMenuSheet] = useState(false);
   const { isDarkTheme, toggleTheme } = useTelegram();
   const isMobile = useIsMobile();
 
@@ -156,28 +156,27 @@ export const TopNav: React.FC = () => {
           </DropdownMenu>
 
           {/* "Бутерброд" Меню — только для мобильных */}
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="ml-1 block md:hidden"
-              onClick={() => setShowMenuDrawer(true)}
-              aria-label="Меню"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          )}
+          <div className="block md:hidden">
+            <Sheet open={showMenuSheet} onOpenChange={setShowMenuSheet}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-1"
+                  aria-label="Меню"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 p-0">
+                <div className="pt-4 pb-8 px-3">
+                  <MiniAppMenu onSelect={() => setShowMenuSheet(false)} />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </header>
-
-      {/* Drawer Menu для miniapp/планшетов */}
-      <Drawer open={showMenuDrawer} onOpenChange={setShowMenuDrawer}>
-        <DrawerContent className="w-72 p-0">
-          <div className="pt-4 pb-8 px-3">
-            <MiniAppMenu onSelect={() => setShowMenuDrawer(false)} />
-          </div>
-        </DrawerContent>
-      </Drawer>
 
       {/* Channel Info Modal */}
       {selectedChannel && (

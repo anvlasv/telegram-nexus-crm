@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -38,7 +39,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
     return (
-      <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
         {weekDays.map((day) => {
           const postsForDay = getPostsForDate(day);
           return (
