@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,13 +7,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { FileDropZone } from './FileDropZone';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { format } from 'date-fns';
+import { usePostForm } from '@/hooks/usePostForm';
+import { PostTypeSelector } from './scheduler/post-form/PostTypeSelector';
+import { TextPostForm } from './scheduler/post-form/TextPostForm';
+import { MediaPostForm } from './scheduler/post-form/MediaPostForm';
+import { PollPostForm } from './scheduler/post-form/PollPostForm';
+import { ScheduleForm } from './scheduler/post-form/ScheduleForm';
 
 interface PostFormModalProps {
   isOpen: boolean;
@@ -33,66 +33,31 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
   editingPost,
 }) => {
   const { t } = useLanguage();
-  const [postType, setPostType] = useState('text');
-  const [content, setContent] = useState('');
-  const [pollQuestion, setPollQuestion] = useState('');
-  const [pollOptions, setPollOptions] = useState(['', '']);
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
-  const [scheduledDate, setScheduledDate] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('');
+  const {
+    postType,
+    content,
+    pollQuestion,
+    pollOptions,
+    mediaFiles,
+    scheduledDate,
+    scheduledTime,
+    setPostType,
+    setContent,
+    setPollQuestion,
+    setPollOptions,
+    setMediaFiles,
+    setScheduledDate,
+    setScheduledTime,
+    resetForm,
+    getFormData,
+  } = usePostForm({ isOpen, editingPost });
 
-  // Set default date and time
-  useEffect(() => {
-    if (isOpen && !editingPost) {
-      const now = new Date();
-      now.setMinutes(now.getMinutes() + 30); // Default to 30 minutes from now
-      
-      const dateStr = format(now, 'yyyy-MM-dd');
-      const timeStr = format(now, 'HH:mm');
-      
-      setScheduledDate(dateStr);
-      setScheduledTime(timeStr);
-    }
-  }, [isOpen, editingPost]);
-
-  // Populate form when editing
-  useEffect(() => {
-    if (editingPost) {
-      setContent(editingPost.content || '');
-      setPostType(editingPost.post_type || 'text');
-      
-      if (editingPost.post_type === 'poll') {
-        setPollQuestion(editingPost.content || '');
-        setPollOptions(editingPost.poll_options || ['', '']);
-      }
-      
-      const scheduledFor = new Date(editingPost.scheduled_for);
-      setScheduledDate(format(scheduledFor, 'yyyy-MM-dd'));
-      setScheduledTime(format(scheduledFor, 'HH:mm'));
-    } else {
-      // Reset form for new post
-      setContent('');
-      setPollQuestion('');
-      setPollOptions(['', '']);
-      setMediaFiles([]);
-      setPostType('text');
-    }
-  }, [editingPost]);
-
-  // Сброс формы после создания поста
+  // Reset form after creating post
   useEffect(() => {
     if (!isLoading && !isOpen) {
-      setPostType('text');
-      setContent('');
-      setPollQuestion('');
-      setPollOptions(['', '']);
-      setMediaFiles([]);
-      const now = new Date();
-      now.setMinutes(now.getMinutes() + 30);
-      setScheduledDate(format(now, 'yyyy-MM-dd'));
-      setScheduledTime(format(now, 'HH:mm'));
+      resetForm();
     }
-  }, [isLoading, isOpen]);
+  }, [isLoading, isOpen, resetForm]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,52 +66,44 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
       return;
     }
 
-    const scheduledFor = new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
-    
-    const formData = {
-      type: postType,
-      content: postType === 'poll' ? pollQuestion : content,
-      pollQuestion: postType === 'poll' ? pollQuestion : '',
-      pollOptions: postType === 'poll' ? pollOptions.filter(option => option.trim()) : [],
-      mediaFiles: (postType === 'photo' || postType === 'video' || postType === 'audio' || postType === 'document') ? mediaFiles : [],
-      scheduledFor,
-    };
-
+    const formData = getFormData();
     onSubmit(formData);
   };
 
-  const addPollOption = () => {
-    setPollOptions([...pollOptions, '']);
-  };
-
-  const removePollOption = (index: number) => {
-    setPollOptions(pollOptions.filter((_, i) => i !== index));
-  };
-
-  const updatePollOption = (index: number, value: string) => {
-    const newOptions = [...pollOptions];
-    newOptions[index] = value;
-    setPollOptions(newOptions);
-  };
-
-  const getAcceptedFileTypes = () => {
-    switch (postType) {
-      case 'photo': return 'image/*';
-      case 'video': return 'video/*';
-      case 'audio': return 'audio/*';
-      case 'document': return 'application/*, text/*';
-      default: return '*/*';
+  const renderPostContent = () => {
+    if (postType === 'text') {
+      return (
+        <TextPostForm
+          content={content}
+          onContentChange={setContent}
+        />
+      );
     }
-  };
 
-  const getMaxFiles = () => {
-    switch (postType) {
-      case 'photo': return 10; // Альбом фото
-      case 'video': return 1;
-      case 'audio': return 1;
-      case 'document': return 10;
-      default: return 1;
+    if (postType === 'poll') {
+      return (
+        <PollPostForm
+          pollQuestion={pollQuestion}
+          pollOptions={pollOptions}
+          onPollQuestionChange={setPollQuestion}
+          onPollOptionsChange={setPollOptions}
+        />
+      );
     }
+
+    if (['photo', 'video', 'audio', 'document'].includes(postType)) {
+      return (
+        <MediaPostForm
+          postType={postType}
+          content={content}
+          mediaFiles={mediaFiles}
+          onContentChange={setContent}
+          onMediaFilesChange={setMediaFiles}
+        />
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -159,151 +116,21 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Post Type */}
-          {!editingPost && (
-            <div className="space-y-3">
-              <Label>{t('post-type')}</Label>
-              <RadioGroup value={postType} onValueChange={setPostType}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="text" id="text" />
-                  <label htmlFor="text" className="text-sm">{t('text-post')}</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="photo" id="photo" />
-                  <label htmlFor="photo" className="text-sm">{t('photo-album-post')}</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="video" id="video" />
-                  <label htmlFor="video" className="text-sm">{t('video-post')}</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="audio" id="audio" />
-                  <label htmlFor="audio" className="text-sm">{t('audio-post')}</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="document" id="document" />
-                  <label htmlFor="document" className="text-sm">{t('document-post')}</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="poll" id="poll" />
-                  <label htmlFor="poll" className="text-sm">{t('poll-post')}</label>
-                </div>
-              </RadioGroup>
-            </div>
-          )}
+          <PostTypeSelector
+            postType={postType}
+            onPostTypeChange={setPostType}
+            disabled={!!editingPost}
+          />
 
-          {/* Content based on post type */}
-          {postType === 'text' && (
-            <div className="space-y-2">
-              <Label htmlFor="content">{t('post-content')}</Label>
-              <Textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder={t('post-content-placeholder')}
-                rows={6}
-                required
-              />
-            </div>
-          )}
+          {renderPostContent()}
 
-          {postType === 'poll' && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="poll-question">{t('poll-question')}</Label>
-                <Textarea
-                  id="poll-question"
-                  value={pollQuestion}
-                  onChange={(e) => setPollQuestion(e.target.value)}
-                  placeholder={t('poll-question')}
-                  rows={3}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>{t('poll-option')}</Label>
-                {pollOptions.map((option, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={option}
-                      onChange={(e) => updatePollOption(index, e.target.value)}
-                      placeholder={`${t('poll-option')} ${index + 1}`}
-                      required={index < 2}
-                    />
-                    {index >= 2 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removePollOption(index)}
-                      >
-                        {t('remove-poll-option')}
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addPollOption}
-                  disabled={pollOptions.length >= 10}
-                >
-                  {t('add-poll-option')}
-                </Button>
-              </div>
-            </div>
-          )}
+          <ScheduleForm
+            scheduledDate={scheduledDate}
+            scheduledTime={scheduledTime}
+            onScheduledDateChange={setScheduledDate}
+            onScheduledTimeChange={setScheduledTime}
+          />
 
-          {(postType === 'photo' || postType === 'video' || postType === 'audio' || postType === 'document') && (
-            <div className="space-y-2">
-              <Label>{t('attach-media')}</Label>
-              <FileDropZone
-                onFilesChange={setMediaFiles}
-                accept={getAcceptedFileTypes()}
-                multiple={postType === 'photo' || postType === 'audio' || postType === 'document'}
-                maxFiles={getMaxFiles()}
-                currentFiles={mediaFiles}
-              />
-              <div className="space-y-2 mt-4">
-                <Label htmlFor="caption">{t('post-content')}</Label>
-                <Textarea
-                  id="caption"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder={t('post-content-placeholder')}
-                  rows={3}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Schedule DateTime */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="schedule-date">{t('schedule-date')}</Label>
-              <Input
-                id="schedule-date"
-                type="date"
-                value={scheduledDate}
-                onChange={(e) => setScheduledDate(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="schedule-time">{t('schedule-time')}</Label>
-              <Input
-                id="schedule-time"
-                type="time"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          {/* Actions */}
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               {t('cancel')}

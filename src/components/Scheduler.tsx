@@ -3,116 +3,35 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, List, Calendar as CalendarIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useScheduledPosts, useCreateScheduledPost, useDeleteScheduledPost, useUpdateScheduledPost, usePublishPost } from '@/hooks/useScheduledPosts';
+import { useScheduledPosts } from '@/hooks/useScheduledPosts';
+import { useSchedulerActions } from '@/hooks/useSchedulerActions';
 import { PostFormModal } from './PostFormModal';
 import { CalendarView } from './scheduler/CalendarView';
 import { ListView } from './scheduler/ListView';
-import { useToast } from '@/hooks/use-toast';
 import { useChannels } from '@/hooks/useChannels';
 
 export const Scheduler: React.FC = () => {
   const { t } = useLanguage();
   const { channels, selectedChannelId } = useChannels();
   const { data: posts = [], isLoading } = useScheduledPosts();
-  const createPost = useCreateScheduledPost();
-  const deletePost = useDeleteScheduledPost();
-  const updatePost = useUpdateScheduledPost();
-  const publishPost = usePublishPost();
-  const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [editingPost, setEditingPost] = useState<any>(null);
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
+  const { handleCreatePost, handlePublishPost, handleDeletePost, isCreating, isUpdating } = useSchedulerActions(selectedChannel);
 
-  // Фильтруем посты только по выбранному каналу
+  // Filter posts by selected channel
   const filteredPosts = selectedChannel
     ? posts.filter((post) => post.channel_id === selectedChannel.id)
     : [];
 
-  const handleCreatePost = async (formData: any) => {
-    if (!selectedChannel) {
-      toast({
-        title: t('error'),
-        description: t('select-channel-first'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      if (editingPost) {
-        await updatePost.mutateAsync({
-          id: editingPost.id,
-          content: formData.content || formData.pollQuestion || '',
-          scheduled_for: formData.scheduledFor,
-          media_urls: formData.mediaFiles?.length > 0 ? formData.mediaFiles.map((file: File) => file.name) : null,
-          post_type: formData.type,
-          poll_options: formData.pollOptions?.length > 0 ? formData.pollOptions : null,
-        });
-        
-        toast({
-          title: t('success'),
-          description: t('post-updated-successfully'),
-        });
-      } else {
-        await createPost.mutateAsync({
-          channel_id: selectedChannel.id,
-          content: formData.content || formData.pollQuestion || '',
-          scheduled_for: formData.scheduledFor,
-          status: 'pending',
-          media_urls: formData.mediaFiles?.length > 0 ? formData.mediaFiles.map((file: File) => file.name) : null,
-          post_type: formData.type,
-          poll_options: formData.pollOptions?.length > 0 ? formData.pollOptions : null,
-        });
-
-        toast({
-          title: t('success'),
-          description: t('post-scheduled-successfully'),
-        });
-      }
-
+  const onSubmitPost = async (formData: any) => {
+    const success = await handleCreatePost(formData, editingPost);
+    if (success) {
       setShowForm(false);
       setEditingPost(null);
-    } catch (error) {
-      console.error('Error creating/updating scheduled post:', error);
-      toast({
-        title: t('error'),
-        description: editingPost ? t('error-updating-post') : t('error-scheduling-post'),
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handlePublishPost = async (postId: string) => {
-    if (!selectedChannel) {
-      toast({
-        title: t('error'),
-        description: t('select-channel-first'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      console.log('[Scheduler] Publishing post:', { postId, channelId: selectedChannel.id });
-      await publishPost.mutateAsync({
-        postId,
-        channelId: selectedChannel.id
-      });
-
-      toast({
-        title: t('success'),
-        description: t('post-published'),
-      });
-    } catch (error) {
-      console.error('[Scheduler] Error publishing post:', error);
-      toast({
-        title: t('error'),
-        description: t('error-publishing-post'),
-        variant: 'destructive',
-      });
     }
   };
 
@@ -121,32 +40,8 @@ export const Scheduler: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDeletePost = async (id: string) => {
-    if (confirm(t('confirm-delete-post'))) {
-      try {
-        await deletePost.mutateAsync(id);
-        toast({
-          title: t('success'),
-          description: t('post-deleted'),
-        });
-      } catch (error) {
-        console.error('Error deleting post:', error);
-        toast({
-          title: t('error'),
-          description: t('error-deleting-post'),
-          variant: 'destructive',
-        });
-      }
-    }
-  };
-
   const handleCreateNewPost = () => {
     if (!selectedChannel) {
-      toast({
-        title: t('error'),
-        description: t('select-channel-first'),
-        variant: 'destructive',
-      });
       return;
     }
     setShowForm(true);
@@ -259,9 +154,9 @@ export const Scheduler: React.FC = () => {
           setShowForm(false);
           setEditingPost(null);
         }}
-        onSubmit={handleCreatePost}
+        onSubmit={onSubmitPost}
         selectedChannelId={selectedChannel?.id || ''}
-        isLoading={createPost.isPending || updatePost.isPending}
+        isLoading={isCreating || isUpdating}
         editingPost={editingPost}
       />
     </div>
