@@ -12,7 +12,7 @@ export const TopNav: React.FC = () => {
   const [showChannelSelect, setShowChannelSelect] = useState(false);
   const [showMenuSheet, setShowMenuSheet] = useState(false);
 
-  const selectedChannel = channels.find(c => c.id === selectedChannelId) || channels[0];
+  const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
   return (
     <>

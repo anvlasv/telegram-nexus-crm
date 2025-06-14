@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
@@ -25,9 +25,11 @@ export const useChannels = () => {
   });
 
   // Set first channel as selected if none selected and channels exist
-  if (!selectedChannelId && channels.length > 0) {
-    setSelectedChannelId(channels[0].id);
-  }
+  useEffect(() => {
+    if (!selectedChannelId && channels.length > 0) {
+      setSelectedChannelId(channels[0].id);
+    }
+  }, [channels, selectedChannelId]);
 
   return {
     channels,
