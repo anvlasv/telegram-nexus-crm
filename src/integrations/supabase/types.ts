@@ -123,6 +123,8 @@ export type Database = {
           created_at: string
           id: string
           media_urls: string[] | null
+          poll_options: string[] | null
+          post_type: string
           scheduled_for: string
           status: string | null
           updated_at: string
@@ -134,6 +136,8 @@ export type Database = {
           created_at?: string
           id?: string
           media_urls?: string[] | null
+          poll_options?: string[] | null
+          post_type?: string
           scheduled_for: string
           status?: string | null
           updated_at?: string
@@ -145,6 +149,8 @@ export type Database = {
           created_at?: string
           id?: string
           media_urls?: string[] | null
+          poll_options?: string[] | null
+          post_type?: string
           scheduled_for?: string
           status?: string | null
           updated_at?: string
