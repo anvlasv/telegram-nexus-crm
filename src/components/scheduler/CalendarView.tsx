@@ -115,6 +115,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   <PostCard
                     key={post.id}
                     post={post}
+                    channel={post.telegram_channels}
                     onEdit={() => onEditPost(post)}
                     onPublish={async () => await onPublishPost(post.id)}
                     onDelete={() => onDeletePost(post.id)}

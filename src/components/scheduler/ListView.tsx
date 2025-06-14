@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -29,6 +30,7 @@ export const ListView: React.FC<ListViewProps> = ({
         <PostCard
           key={post.id}
           post={post}
+          channel={post.telegram_channels}
           onEdit={() => onEditPost(post)}
           onPublish={async () => await onPublishPost(post.id)}
           onDelete={() => onDeletePost(post.id)}
