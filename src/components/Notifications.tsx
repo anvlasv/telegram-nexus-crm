@@ -6,45 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, CheckCircle, AlertCircle, Info, Trash2, Check } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-const notifications = [
-  {
-    id: '1',
-    type: 'success',
-    title: 'Пост опубликован',
-    message: 'Ваш пост в канале "Tech News" успешно опубликован',
-    time: '2 минуты назад',
-    read: false
-  },
-  {
-    id: '2',
-    type: 'warning',
-    title: 'Низкая активность',
-    message: 'Канал "Marketing Tips" показывает снижение активности',
-    time: '1 час назад',
-    read: false
-  },
-  {
-    id: '3',
-    type: 'info',
-    title: 'Новый партнер',
-    message: 'Заявка на сотрудничество от "Digital Agency"',
-    time: '3 часа назад',
-    read: true
-  },
-  {
-    id: '4',
-    type: 'error',
-    title: 'Ошибка публикации',
-    message: 'Не удалось опубликовать пост в канале "Crypto News"',
-    time: '5 часов назад',
-    read: false
-  }
-];
+import { useNotifications } from '@/hooks/useNotifications';
 
 export const Notifications: React.FC = () => {
   const { t } = useLanguage();
-  const [notificationList, setNotificationList] = useState(notifications);
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification 
+  } = useNotifications();
   const [filter, setFilter] = useState('all');
 
   const getIcon = (type: string) => {
@@ -65,25 +37,11 @@ export const Notifications: React.FC = () => {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotificationList(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
-
-  const deleteNotification = (id: string) => {
-    setNotificationList(prev => prev.filter(notif => notif.id !== id));
-  };
-
-  const filteredNotifications = notificationList.filter(notif => {
+  const filteredNotifications = notifications.filter(notif => {
     if (filter === 'unread') return !notif.read;
     if (filter === 'read') return notif.read;
     return true;
   });
-
-  const unreadCount = notificationList.filter(n => !n.read).length;
 
   return (
     <div className="space-y-6">
@@ -102,7 +60,7 @@ export const Notifications: React.FC = () => {
             Управление уведомлениями и оповещениями
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={markAllAsRead}>
           <Check className="mr-2 h-4 w-4" />
           Отметить все как прочитанные
         </Button>
@@ -110,9 +68,9 @@ export const Notifications: React.FC = () => {
 
       <Tabs value={filter} onValueChange={setFilter} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">Все ({notificationList.length})</TabsTrigger>
+          <TabsTrigger value="all">Все ({notifications.length})</TabsTrigger>
           <TabsTrigger value="unread">Непрочитанные ({unreadCount})</TabsTrigger>
-          <TabsTrigger value="read">Прочитанные ({notificationList.length - unreadCount})</TabsTrigger>
+          <TabsTrigger value="read">Прочитанные ({notifications.length - unreadCount})</TabsTrigger>
         </TabsList>
 
         <TabsContent value={filter} className="space-y-4">

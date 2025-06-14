@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useChannels } from '@/hooks/useChannels';
 import { ChannelInfoModal } from './ChannelInfoModal';
+import { NotificationsModal } from './NotificationsModal';
 import { ChannelSelector } from './header/ChannelSelector';
 import { MobileControls } from './header/MobileControls';
 import { DesktopControls } from './header/DesktopControls';
@@ -11,8 +12,13 @@ export const TopNav: React.FC = () => {
   const [showChannelInfo, setShowChannelInfo] = useState(false);
   const [showChannelSelect, setShowChannelSelect] = useState(false);
   const [showMenuSheet, setShowMenuSheet] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
+
+  const handleNotificationsClick = () => {
+    setShowNotifications(true);
+  };
 
   return (
     <>
@@ -31,8 +37,9 @@ export const TopNav: React.FC = () => {
           <MobileControls 
             showMenuSheet={showMenuSheet}
             setShowMenuSheet={setShowMenuSheet}
+            onNotificationsClick={handleNotificationsClick}
           />
-          <DesktopControls />
+          <DesktopControls onNotificationsClick={handleNotificationsClick} />
         </div>
       </header>
 
@@ -44,6 +51,12 @@ export const TopNav: React.FC = () => {
           onClose={() => setShowChannelInfo(false)}
         />
       )}
+
+      {/* Notifications Modal */}
+      <NotificationsModal
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </>
   );
 };

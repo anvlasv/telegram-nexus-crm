@@ -4,6 +4,7 @@ import { ChevronDown, Bell, Sun, Moon, Globe, User, Settings, LogOut } from 'luc
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,16 +15,36 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTelegram } from '@/hooks/useTelegram';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNotifications } from '@/hooks/useNotifications';
 
-export const DesktopControls: React.FC = () => {
+interface DesktopControlsProps {
+  onNotificationsClick: () => void;
+}
+
+export const DesktopControls: React.FC<DesktopControlsProps> = ({
+  onNotificationsClick
+}) => {
   const { isDarkTheme, toggleTheme } = useTelegram();
   const { language, setLanguage, t } = useLanguage();
+  const { unreadCount } = useNotifications();
 
   return (
     <div className="flex items-center gap-2">
       {/* Desktop notifications */}
-      <Button variant="ghost" size="sm" className="hidden lg:flex">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="hidden lg:flex relative"
+        onClick={onNotificationsClick}
+      >
         <Bell className="h-4 w-4" />
+        {unreadCount > 0 && (
+          <Badge 
+            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white p-0"
+          >
+            {unreadCount}
+          </Badge>
+        )}
       </Button>
 
       {/* Desktop Theme Switcher */}
