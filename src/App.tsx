@@ -12,6 +12,7 @@ import { Dashboard } from "./components/Dashboard";
 import { ChannelManagement } from "./components/ChannelManagement";
 import { Analytics } from "./components/Analytics";
 import { Settings } from "./components/Settings";
+import { Profile } from "./components/Profile";
 import { Scheduler } from "./components/Scheduler";
 import { Assistant } from "./components/Assistant";
 import { Partners } from "./components/Partners";
@@ -44,6 +45,7 @@ const App = () => (
                       <Route path="/partners" element={<Partners />} />
                       <Route path="/marketplace" element={<Marketplace />} />
                       <Route path="/notifications" element={<Notifications />} />
+                      <Route path="/profile" element={<Profile />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>

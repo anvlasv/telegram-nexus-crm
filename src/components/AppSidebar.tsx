@@ -10,7 +10,8 @@ import {
   Zap,
   Target,
   Bell,
-  Bot
+  Bot,
+  User
 } from 'lucide-react';
 import {
   Sidebar,
@@ -38,6 +39,7 @@ const navigation = [
   { name: 'partners', href: '/partners', icon: Users },
   { name: 'marketplace', href: '/marketplace', icon: Target },
   { name: 'notifications', href: '/notifications', icon: Bell },
+  { name: 'profile', href: '/profile', icon: User },
   { name: 'settings', href: '/settings', icon: Settings },
 ];
 

@@ -1,461 +1,163 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'ru' | 'en';
 
 interface LanguageContextType {
   language: Language;
-  setLanguage: (language: Language) => void;
+  setLanguage: (lang: Language) => void;
   t: (key: string) => string;
 }
 
 const translations = {
   ru: {
-    // Навигация
-    'dashboard': 'Панель управления',
-    'channels': 'Каналы',
-    'analytics': 'Аналитика',
-    'scheduler': 'Планировщик',
-    'partners': 'Партнеры',
-    'marketplace': 'Маркетплейс',
-    'notifications': 'Уведомления',
-    'settings': 'Настройки',
+    // Navigation
+    dashboard: 'Дашборд',
+    channels: 'Каналы',
+    analytics: 'Аналитика',
+    scheduler: 'Планировщик',
+    assistant: 'Ассистент',
+    partners: 'Партнеры',
+    marketplace: 'Маркетплейс',
+    notifications: 'Уведомления',
+    profile: 'Профиль',
+    settings: 'Настройки',
+    
+    // Common
+    loading: 'Загрузка...',
+    error: 'Ошибка',
+    success: 'Успешно',
+    cancel: 'Отмена',
+    save: 'Сохранить',
+    delete: 'Удалить',
+    edit: 'Редактировать',
+    close: 'Закрыть',
+    
+    // Auth
+    login: 'Войти',
+    logout: 'Выйти',
+    register: 'Регистрация',
+    email: 'Email',
+    password: 'Пароль',
+    'confirm-password': 'Подтвердите пароль',
     
     // Dashboard
-    'overview': 'Обзор ваших Telegram каналов и производительности',
+    'total-channels': 'Всего каналов',
+    'total-posts': 'Всего постов',
+    'total-views': 'Всего просмотров',
     'total-subscribers': 'Всего подписчиков',
-    'active-channels': 'Активные каналы',
-    'engagement-rate': 'Уровень вовлечения',
-    'revenue': 'Доход',
-    'scheduled-posts': 'Запланированные посты',
-    'upcoming-posts': 'Предстоящие и недавние посты',
-    'partner-requests': 'Запросы партнеров',
-    'pending-requests': 'Ожидающие запросы на рекламу',
-    'view-all-posts': 'Посмотреть все посты',
-    'view-all-requests': 'Посмотреть все запросы',
-    'accept': 'Принять',
-    'decline': 'Отклонить',
+    
+    // Channel Management
+    'add-channel': 'Добавить канал',
+    'channel-name': 'Название канала',
+    'channel-description': 'Описание канала',
+    'channel-url': 'URL канала',
     
     // Settings
-    'system-settings': 'Управление настройками системы',
-    'language-settings': 'Настройки языка',
+    'system-settings': 'Системные настройки',
     'interface-language': 'Язык интерфейса',
     'select-language': 'Выберите язык',
     'russian': 'Русский',
     'english': 'English',
-    'supabase-integration': 'Интеграция Supabase',
-    'supabase-description': 'Подключение к базе данных и backend сервисам',
+    'supabase-description': 'Подключение к базе данных Supabase активно и работает корректно.',
     'connected-to-supabase': 'Подключено к Supabase',
-    'telegram-integration': 'Интеграция Telegram',
-    'telegram-description': 'Настройки для работы с Telegram API',
-    'telegram-status': 'Статус подключения',
-    'theme-settings': 'Настройки темы',
-    'dark-theme': 'Темная тема',
-    'theme-description': 'Переключение между светлой и темной темой',
     
-    // Channel Management
-    'channel-management': 'Управление каналами',
-    'manage-channels': 'Управляйте своими Telegram каналами',
-    'add-channel': 'Добавить канал',
-    'channel-name': 'Название канала',
-    'channel-username': 'Username канала',
-    'channel-id': 'ID канала',
-    'subscribers': 'подписчиков',
-    'posts': 'постов',
-    'last-post': 'Последний пост',
-    'active': 'Активный',
-    'paused': 'Приостановлен',
-    'archived': 'Архивирован',
-    'edit': 'Редактировать',
-    'delete': 'Удалить',
-    'no-channels': 'У вас пока нет каналов',
-    'add-first-channel': 'Добавьте свой первый канал для начала работы',
-    'cancel': 'Отмена',
-    'save': 'Сохранить',
-    'create': 'Создать',
+    // Profile
+    account: 'Аккаунт',
     
-    // Analytics
-    'channel-analytics': 'Аналитика каналов',
-    'detailed-analytics': 'Подробная аналитика производительности каналов',
-    'views': 'Просмотры',
-    'reactions': 'Реакции',
-    'forwards': 'Пересылки',
-    'growth': 'Рост',
-    'this-month': 'За этот месяц',
-    'total-views': 'Всего просмотров',
-    'total-reactions': 'Всего реакций',
-    'total-forwards': 'Всего пересылок',
-    'subscriber-growth': 'Рост подписчиков',
-    
-    // Статусы
-    'published': 'Опубликован',
-    'scheduled': 'Запланирован',
-    'draft': 'Черновик',
-    'pending': 'В ожидании',
-    'sent': 'Отправлен',
-    'failed': 'Ошибка',
-    'cancelled': 'Отменен',
-    
-    // Общие
-    'loading': 'Загрузка...',
-    'error': 'Ошибка',
-    'success': 'Успешно',
-    'warning': 'Предупреждение',
-    'close': 'Закрыть',
-    'open': 'Открыть',
-    'back': 'Назад',
-    'next': 'Далее',
-    'previous': 'Предыдущий',
-    'submit': 'Отправить',
-    'reset': 'Сбросить',
-    'search': 'Поиск',
-    'filter': 'Фильтр',
-    'sort': 'Сортировка',
-    'export': 'Экспорт',
-    'import': 'Импорт',
-    'refresh': 'Обновить',
-    
-    // Assistant module
-    'assistant': 'Ассистент',
-    'assistant-description': 'AI-помощник для управления контентом и аналитики',
-    'ai-features': 'Возможности ИИ',
-    'content-generation': 'Генерация контента',
-    'content-generation-desc': 'Создание постов, описаний и контента для каналов',
-    'generate-post': 'Создать пост',
-    'image-generation': 'Генерация изображений',
-    'image-generation-desc': 'Создание уникальных изображений для постов',
-    'create-image': 'Создать изображение',
-    'analytics-insights': 'Аналитические инсайты',
-    'analytics-insights-desc': 'Анализ данных и рекомендации по улучшению',
-    'analyze-data': 'Анализировать данные',
-    'schedule-optimization': 'Оптимизация расписания',
-    'schedule-optimization-desc': 'Подбор лучшего времени для публикации',
-    'optimize-schedule': 'Оптимизировать',
-    'ai-chat': 'AI Чат',
-    'ai-chat-description': 'Общайтесь с ИИ-помощником',
-    'start-conversation': 'Начните разговор с ассистентом',
-    'type-message': 'Введите сообщение...',
-    'ai-response-placeholder': 'Привет! Я ваш AI-ассистент. Чем могу помочь?',
-    'quick-actions': 'Быстрые действия',
-    'quick-actions-description': 'Популярные запросы к ассистенту',
-    'generate-post-idea': 'Идея для поста',
-    'improve-engagement': 'Улучшить вовлечение',
-    'analyze-competitors': 'Анализ конкурентов',
-    'optimize-hashtags': 'Оптимизация хештегов',
-    'create-content-plan': 'План контента',
-    
-    // Channel info
-    'channel-info': 'Информация о канале',
-    'owner': 'Владелец',
-    'country': 'Страна',
-    'russia': 'Россия',
-    
-    // Scheduler
-    'scheduler-description': 'Планирование и управление отложенными постами',
-    'schedule-post': 'Запланировать пост',
-    'select-channel-first': 'Сначала выберите канал',
-    'post-scheduled-successfully': 'Пост запланирован успешно',
-    'error-scheduling-post': 'Ошибка при планировании поста',
-    'post-published': 'Пост опубликован',
-    'error-publishing-post': 'Ошибка при публикации поста',
-    'confirm-delete-post': 'Вы уверены, что хотите удалить этот пост?',
-    'post-deleted': 'Пост удален',
-    'error-deleting-post': 'Ошибка при удалении поста',
-    'unknown': 'Неизвестно',
-    'list': 'Список',
-    'calendar': 'Календарь',
-    'week': 'Неделя',
-    'month': 'Месяц',
-    'prev': 'Пред.',
-    'today': 'Сегодня',
-    'posts-for': 'Посты на',
-    'no-posts-scheduled-for-date': 'На эту дату постов не запланировано',
-    'no-scheduled-posts': 'Нет запланированных постов',
-    'create-first-post': 'Создать первый пост',
-    'publish': 'Опубликовать',
-    'post': 'Пост',
-    'new-subscriber': 'Новый подписчик',
-    'subscriber': 'подписчик',
-    'min-ago': 'мин назад',
-    'post-in-channel': 'Пост в канале',
-    'hour-ago': 'час назад',
-    'goal-reached': 'Достигнута цель',
-    'hours-ago': 'часа назад',
-    'search-placeholder': 'Поиск по постам, каналам...',
-    'search-results': 'Результаты поиска',
-    'found-in-channel': 'Найдено в канале',
-    'post-from': 'Пост от',
-    'show-all': 'Показать все',
-    'language': 'Язык',
-    'theme': 'Тема',
-    'light': 'Светлая',
-    'dark': 'Темная',
-    'logout': 'Выйти',
-    'select-channel': 'Выберите канал',
-    'no-channels-connected': 'Каналы не подключены',
-    'create-post': 'Создать пост',
-    'edit-post': 'Редактировать пост',
-    'post-type': 'Тип поста',
-    'select-type': 'Выберите тип',
-    'publish-date-time': 'Дата и время публикации',
-    'post-text': 'Текст поста',
-    'enter-post-text': 'Введите текст поста...',
-    'scheduling': 'Планирование...',
-    'schedule': 'Запланировать',
-    'update': 'Обновить',
-    'or-record-audio': 'Или записать аудио',
-    'stop-recording': 'Остановить запись',
-    'start-recording': 'Начать запись',
-    'poll-question': 'Вопрос опроса',
-    'enter-poll-question': 'Введите вопрос опроса',
-    'answer-options': 'Варианты ответов',
-    'option': 'Вариант',
-    'add-option': 'Добавить вариант',
-    'story-disappears-24h': 'Истории автоматически исчезают через 24 часа',
-    'post-updated-successfully': 'Пост успешно обновлен',
-    'error-updating-post': 'Ошибка при обновлении поста',
+    // Post types
     'text-post': 'Текстовый пост',
-    'photo-post': 'Фото пост',
-    'video-post': 'Видео пост',
-    'poll-post': 'Опрос',
-    'post-content': 'Содержание поста',
-    'post-content-placeholder': 'Введите содержание поста...',
-    'poll-option': 'Вариант опроса',
-    'remove-poll-option': 'Удалить вариант',
-    'add-poll-option': 'Добавить вариант',
-    'attach-media': 'Прикрепить медиа',
-    'schedule-date': 'Дата планирования',
-    'schedule-time': 'Время планирования',
-    'account': 'Аккаунт',
-    'profile': 'Профиль',
+    'media-post': 'Медиа пост',
+    'poll-post': 'Опрос'
   },
   en: {
     // Navigation
-    'dashboard': 'Dashboard',
-    'channels': 'Channels',
-    'analytics': 'Analytics',
-    'scheduler': 'Scheduler',
-    'partners': 'Partners',
-    'marketplace': 'Marketplace',
-    'notifications': 'Notifications',
-    'settings': 'Settings',
+    dashboard: 'Dashboard',
+    channels: 'Channels',
+    analytics: 'Analytics',
+    scheduler: 'Scheduler',
+    assistant: 'Assistant',
+    partners: 'Partners',
+    marketplace: 'Marketplace',
+    notifications: 'Notifications',
+    profile: 'Profile',
+    settings: 'Settings',
+    
+    // Common
+    loading: 'Loading...',
+    error: 'Error',
+    success: 'Success',
+    cancel: 'Cancel',
+    save: 'Save',
+    delete: 'Delete',
+    edit: 'Edit',
+    close: 'Close',
+    
+    // Auth
+    login: 'Login',
+    logout: 'Logout',
+    register: 'Register',
+    email: 'Email',
+    password: 'Password',
+    'confirm-password': 'Confirm Password',
     
     // Dashboard
-    'overview': 'Overview of your Telegram channels and performance',
+    'total-channels': 'Total Channels',
+    'total-posts': 'Total Posts',
+    'total-views': 'Total Views',
     'total-subscribers': 'Total Subscribers',
-    'active-channels': 'Active Channels',
-    'engagement-rate': 'Engagement Rate',
-    'revenue': 'Revenue',
-    'scheduled-posts': 'Scheduled Posts',
-    'upcoming-posts': 'Upcoming and recent post activity',
-    'partner-requests': 'Partner Requests',
-    'pending-requests': 'Pending advertising requests',
-    'view-all-posts': 'View All Posts',
-    'view-all-requests': 'View All Requests',
-    'accept': 'Accept',
-    'decline': 'Decline',
+    
+    // Channel Management
+    'add-channel': 'Add Channel',
+    'channel-name': 'Channel Name',
+    'channel-description': 'Channel Description',
+    'channel-url': 'Channel URL',
     
     // Settings
-    'system-settings': 'Manage system settings',
-    'language-settings': 'Language Settings',
+    'system-settings': 'System Settings',
     'interface-language': 'Interface Language',
     'select-language': 'Select Language',
     'russian': 'Русский',
     'english': 'English',
-    'supabase-integration': 'Supabase Integration',
-    'supabase-description': 'Database and backend services connection',
+    'supabase-description': 'Supabase database connection is active and working correctly.',
     'connected-to-supabase': 'Connected to Supabase',
-    'telegram-integration': 'Telegram Integration',
-    'telegram-description': 'Settings for Telegram API integration',
-    'telegram-status': 'Connection Status',
-    'theme-settings': 'Theme Settings',
-    'dark-theme': 'Dark Theme',
-    'theme-description': 'Switch between light and dark themes',
     
-    // Channel Management
-    'channel-management': 'Channel Management',
-    'manage-channels': 'Manage your Telegram channels',
-    'add-channel': 'Add Channel',
-    'channel-name': 'Channel Name',
-    'channel-username': 'Channel Username',
-    'channel-id': 'Channel ID',
-    'subscribers': 'subscribers',
-    'posts': 'posts',
-    'last-post': 'Last Post',
-    'active': 'Active',
-    'paused': 'Paused',
-    'archived': 'Archived',
-    'edit': 'Edit',
-    'delete': 'Delete',
-    'no-channels': 'You have no channels yet',
-    'add-first-channel': 'Add your first channel to get started',
-    'cancel': 'Cancel',
-    'save': 'Save',
-    'create': 'Create',
+    // Profile
+    account: 'Account',
     
-    // Analytics
-    'channel-analytics': 'Channel Analytics',
-    'detailed-analytics': 'Detailed analytics of channel performance',
-    'views': 'Views',
-    'reactions': 'Reactions',
-    'forwards': 'Forwards',
-    'growth': 'Growth',
-    'this-month': 'This Month',
-    'total-views': 'Total Views',
-    'total-reactions': 'Total Reactions',
-    'total-forwards': 'Total Forwards',
-    'subscriber-growth': 'Subscriber Growth',
-    
-    // Statuses
-    'published': 'Published',
-    'scheduled': 'Scheduled',
-    'draft': 'Draft',
-    'pending': 'Pending',
-    'sent': 'Sent',
-    'failed': 'Failed',
-    'cancelled': 'Cancelled',
-    
-    // General
-    'loading': 'Loading...',
-    'error': 'Error',
-    'success': 'Success',
-    'warning': 'Warning',
-    'close': 'Close',
-    'open': 'Open',
-    'back': 'Back',
-    'next': 'Next',
-    'previous': 'Previous',
-    'submit': 'Submit',
-    'reset': 'Reset',
-    'search': 'Search',
-    'filter': 'Filter',
-    'sort': 'Sort',
-    'export': 'Export',
-    'import': 'Import',
-    'refresh': 'Refresh',
-    
-    // Assistant module
-    'assistant': 'Assistant',
-    'assistant-description': 'AI assistant for content management and analytics',
-    'ai-features': 'AI Features',
-    'content-generation': 'Content Generation',
-    'content-generation-desc': 'Create posts, descriptions and content for channels',
-    'generate-post': 'Generate Post',
-    'image-generation': 'Image Generation',
-    'image-generation-desc': 'Create unique images for posts',
-    'create-image': 'Create Image',
-    'analytics-insights': 'Analytics Insights',
-    'analytics-insights-desc': 'Data analysis and improvement recommendations',
-    'analyze-data': 'Analyze Data',
-    'schedule-optimization': 'Schedule Optimization',
-    'schedule-optimization-desc': 'Find the best time to publish',
-    'optimize-schedule': 'Optimize',
-    'ai-chat': 'AI Chat',
-    'ai-chat-description': 'Chat with AI assistant',
-    'start-conversation': 'Start conversation with assistant',
-    'type-message': 'Type message...',
-    'ai-response-placeholder': 'Hello! I am your AI assistant. How can I help?',
-    'quick-actions': 'Quick Actions',
-    'quick-actions-description': 'Popular assistant requests',
-    'generate-post-idea': 'Post Idea',
-    'improve-engagement': 'Improve Engagement',
-    'analyze-competitors': 'Analyze Competitors',
-    'optimize-hashtags': 'Optimize Hashtags',
-    'create-content-plan': 'Content Plan',
-    
-    // Channel info
-    'channel-info': 'Channel Info',
-    'owner': 'Owner',
-    'country': 'Country',
-    'russia': 'Russia',
-    
-    // Scheduler
-    'scheduler-description': 'Schedule and manage delayed posts',
-    'schedule-post': 'Schedule Post',
-    'select-channel-first': 'Select a channel first',
-    'post-scheduled-successfully': 'Post scheduled successfully',
-    'error-scheduling-post': 'Error scheduling post',
-    'post-published': 'Post published',
-    'error-publishing-post': 'Error publishing post',
-    'confirm-delete-post': 'Are you sure you want to delete this post?',
-    'post-deleted': 'Post deleted',
-    'error-deleting-post': 'Error deleting post',
-    'unknown': 'Unknown',
-    'list': 'List',
-    'calendar': 'Calendar',
-    'week': 'Week',
-    'month': 'Month',
-    'prev': 'Prev',
-    'today': 'Today',
-    'posts-for': 'Posts for',
-    'no-posts-scheduled-for-date': 'No posts scheduled for this date',
-    'no-scheduled-posts': 'No scheduled posts',
-    'create-first-post': 'Create first post',
-    'publish': 'Publish',
-    'post': 'Post',
-    'new-subscriber': 'New subscriber',
-    'subscriber': 'subscriber',
-    'min-ago': 'min ago',
-    'post-in-channel': 'Post in channel',
-    'hour-ago': 'hour ago',
-    'goal-reached': 'Goal reached',
-    'hours-ago': 'hours ago',
-    'search-placeholder': 'Search posts, channels...',
-    'search-results': 'Search results',
-    'found-in-channel': 'Found in channel',
-    'post-from': 'Post from',
-    'show-all': 'Show all',
-    'language': 'Language',
-    'theme': 'Theme',
-    'light': 'Light',
-    'dark': 'Dark',
-    'logout': 'Logout',
-    'select-channel': 'Select channel',
-    'no-channels-connected': 'No channels connected',
-    'create-post': 'Create Post',
-    'edit-post': 'Edit Post',
-    'post-type': 'Post Type',
-    'select-type': 'Select type',
-    'publish-date-time': 'Publish Date & Time',
-    'post-text': 'Post Text',
-    'enter-post-text': 'Enter post text...',
-    'scheduling': 'Scheduling...',
-    'schedule': 'Schedule',
-    'update': 'Update',
-    'or-record-audio': 'Or record audio',
-    'stop-recording': 'Stop Recording',
-    'start-recording': 'Start Recording',
-    'poll-question': 'Poll Question',
-    'enter-poll-question': 'Enter poll question',
-    'answer-options': 'Answer Options',
-    'option': 'Option',
-    'add-option': 'Add Option',
-    'story-disappears-24h': 'Stories automatically disappear after 24 hours',
-    'post-updated-successfully': 'Post updated successfully',
-    'error-updating-post': 'Error updating post',
+    // Post types
     'text-post': 'Text Post',
-    'photo-post': 'Photo Post',
-    'video-post': 'Video Post',
-    'poll-post': 'Poll',
-    'post-content': 'Post Content',
-    'post-content-placeholder': 'Enter post content...',
-    'poll-option': 'Poll Option',
-    'remove-poll-option': 'Remove Option',
-    'add-poll-option': 'Add Option',
-    'attach-media': 'Attach Media',
-    'schedule-date': 'Schedule Date',
-    'schedule-time': 'Schedule Time',
-    'account': 'Account',
-    'profile': 'Profile',
+    'media-post': 'Media Post',
+    'poll-post': 'Poll'
   }
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('ru');
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
+
+interface LanguageProviderProps {
+  children: ReactNode;
+}
+
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('language');
+    return (saved as Language) || 'ru';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations['ru']] || key;
+    return translations[language][key as keyof typeof translations[typeof language]] || key;
   };
 
   const value = {
@@ -469,12 +171,4 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       {children}
     </LanguageContext.Provider>
   );
-}
-
-export function useLanguage(): LanguageContextType {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
-}
+};
