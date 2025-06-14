@@ -45,7 +45,7 @@ export const TopNav: React.FC = () => {
                 <Button variant="ghost" className="flex items-center gap-2 h-auto p-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage 
-                      src={selectedChannel.tg_avatar_url || selectedChannel.avatar_url || undefined} 
+                      src={selectedChannel.avatar_url || undefined} 
                       alt={selectedChannel.name} 
                     />
                     <AvatarFallback className="text-xs bg-sidebar-primary text-sidebar-primary-foreground">
@@ -73,7 +73,7 @@ export const TopNav: React.FC = () => {
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage 
-                        src={channel.tg_avatar_url || channel.avatar_url || undefined} 
+                        src={channel.avatar_url || undefined} 
                         alt={channel.name} 
                       />
                       <AvatarFallback className="text-xs bg-sidebar-primary text-sidebar-primary-foreground">

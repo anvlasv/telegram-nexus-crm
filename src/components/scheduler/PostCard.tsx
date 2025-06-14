@@ -16,7 +16,6 @@ interface PostCardProps {
     name: string;
     username: string;
     avatar_url?: string | null;
-    tg_avatar_url?: string | null;
   };
 }
 
@@ -48,7 +47,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
       <div className="flex items-center space-x-3 mb-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
           <AvatarImage
-            src={channel.tg_avatar_url || channel.avatar_url || undefined}
+            src={channel.avatar_url || undefined}
             alt={channel.name}
           />
           <AvatarFallback className="text-xs">

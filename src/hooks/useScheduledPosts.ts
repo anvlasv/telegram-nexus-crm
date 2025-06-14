@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -18,14 +17,13 @@ export const useScheduledPosts = () => {
           telegram_channels (
             name,
             username,
-            avatar_url,
-            tg_avatar_url
+            avatar_url
           )
         `)
         .order('scheduled_for', { ascending: true });
       
       if (error) throw error;
-      return data as (ScheduledPost & { telegram_channels: { name: string; username: string; avatar_url?: string | null; tg_avatar_url?: string | null } })[];
+      return data as (ScheduledPost & { telegram_channels: { name: string; username: string; avatar_url?: string | null } })[];
     },
   });
 };
@@ -114,7 +112,7 @@ export const usePublishPost = () => {
 
         const { data: channelData, error: channelError } = await supabase
           .from('telegram_channels')
-          .select('chat_id, username')
+          .select('channel_id, username')
           .eq('id', channelId)
           .single();
 
@@ -125,14 +123,14 @@ export const usePublishPost = () => {
 
         console.log('[usePublishPost] Данные для публикации:', { 
           content: postData.content, 
-          chatId: channelData.chat_id, 
+          channelId: channelData.channel_id, 
           username: channelData.username 
         });
 
         const { data, error } = await supabase.functions.invoke('telegram-api', {
           body: {
             action: 'sendMessage',
-            chatId: channelData.chat_id || channelData.username,
+            chatId: channelData.channel_id || channelData.username,
             text: postData.content,
           },
         });
