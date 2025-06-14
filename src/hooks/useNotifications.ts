@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 const mockNotifications = [
   {
@@ -36,8 +36,39 @@ const mockNotifications = [
   }
 ];
 
+const STORAGE_KEY = 'notifications_state';
+
+const loadNotificationsFromStorage = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsedNotifications = JSON.parse(stored);
+      // Проверяем, что структура данных корректна
+      if (Array.isArray(parsedNotifications) && parsedNotifications.length > 0) {
+        return parsedNotifications;
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка загрузки уведомлений из localStorage:', error);
+  }
+  return mockNotifications;
+};
+
+const saveNotificationsToStorage = (notifications: any[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+  } catch (error) {
+    console.error('Ошибка сохранения уведомлений в localStorage:', error);
+  }
+};
+
 export const useNotifications = () => {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState(() => loadNotificationsFromStorage());
+
+  // Сохраняем состояние в localStorage при изменении уведомлений
+  useEffect(() => {
+    saveNotificationsToStorage(notifications);
+  }, [notifications]);
 
   const unreadCount = useMemo(() => {
     return notifications.filter(n => !n.read).length;
