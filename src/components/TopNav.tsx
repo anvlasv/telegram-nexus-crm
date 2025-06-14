@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { ChevronDown, Menu, Settings, User, LogOut, Info, Bell, Globe } from 'lucide-react';
+import { ChevronDown, Menu, Settings, User, LogOut, Info, Bell, Globe, Sun, Moon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,18 +36,8 @@ export const TopNav: React.FC = () => {
   return (
     <>
       <header className="flex h-14 items-center justify-between border-b bg-background px-3 lg:px-6">
-        {/* Left side - Mobile menu and Channel */}
+        {/* Left side - Channel info */}
         <div className="flex items-center gap-3">
-          {/* Mobile menu toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={toggleSidebar}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-
           {/* Channel info - Avatar only on mobile, name + avatar on desktop */}
           {selectedChannel && (
             <DropdownMenu open={showChannelSelect} onOpenChange={setShowChannelSelect}>
@@ -54,7 +45,7 @@ export const TopNav: React.FC = () => {
                 <Button variant="ghost" className="flex items-center gap-2 h-auto p-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage 
-                      src={selectedChannel.avatar_url || undefined} 
+                      src={selectedChannel.tg_avatar_url || selectedChannel.avatar_url || undefined} 
                       alt={selectedChannel.name} 
                     />
                     <AvatarFallback className="text-xs bg-sidebar-primary text-sidebar-primary-foreground">
@@ -82,7 +73,7 @@ export const TopNav: React.FC = () => {
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage 
-                        src={channel.avatar_url || undefined} 
+                        src={channel.tg_avatar_url || channel.avatar_url || undefined} 
                         alt={channel.name} 
                       />
                       <AvatarFallback className="text-xs bg-sidebar-primary text-sidebar-primary-foreground">
@@ -107,17 +98,18 @@ export const TopNav: React.FC = () => {
           )}
         </div>
 
-        {/* Right side - Notifications, Language, Theme Switcher, Profile */}
+        {/* Right side - Controls and Mobile menu */}
         <div className="flex items-center gap-2">
           {/* Notifications */}
           <Button variant="ghost" size="sm">
             <Bell className="h-4 w-4" />
           </Button>
 
-          {/* Theme Switcher */}
+          {/* Theme Switcher with icons */}
           <div className="flex items-center gap-1">
+            <Sun className="h-4 w-4 text-muted-foreground" />
             <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
-            <span className="ml-2 text-xs text-muted-foreground">{isDarkTheme ? t('dark') : t('light')}</span>
+            <Moon className="h-4 w-4 text-muted-foreground" />
           </div>
 
           {/* Language toggle */}
@@ -158,6 +150,16 @@ export const TopNav: React.FC = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Mobile menu toggle - moved to the right */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={toggleSidebar}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
         </div>
       </header>
 

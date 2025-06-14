@@ -23,7 +23,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarTrigger
+  SidebarTrigger,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTelegram } from '@/hooks/useTelegram';
@@ -44,6 +45,13 @@ export function AppSidebar() {
   const location = useLocation();
   const { t } = useLanguage();
   const { user } = useTelegram();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar variant="inset" collapsible="icon" className="sidebar-collapsed">
@@ -75,7 +83,7 @@ export function AppSidebar() {
                       className="sidebar-menu-button"
                       data-active={isActive}
                     >
-                      <Link to={item.href}>
+                      <Link to={item.href} onClick={handleLinkClick}>
                         <item.icon className="text-sidebar-primary" />
                         <span>{t(item.name)}</span>
                       </Link>

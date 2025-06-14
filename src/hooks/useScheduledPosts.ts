@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -17,13 +18,14 @@ export const useScheduledPosts = () => {
           telegram_channels (
             name,
             username,
-            avatar_url
+            avatar_url,
+            tg_avatar_url
           )
         `)
         .order('scheduled_for', { ascending: true });
       
       if (error) throw error;
-      return data as (ScheduledPost & { telegram_channels: { name: string; username: string; avatar_url?: string | null } })[];
+      return data as (ScheduledPost & { telegram_channels: { name: string; username: string; avatar_url?: string | null; tg_avatar_url?: string | null } })[];
     },
   });
 };
@@ -95,41 +97,80 @@ export const usePublishPost = () => {
   
   return useMutation({
     mutationFn: async ({ postId, channelId }: { postId: string; channelId: string }) => {
-      // Добавляем лог запроса и подробный вывод ошибки
       try {
-        console.log('[usePublishPost] Публикация поста в канал', { postId, channelId });
+        console.log('[usePublishPost] Отправка запроса на публикацию:', { postId, channelId });
+        
+        // Получаем данные поста и канала
+        const { data: postData, error: postError } = await supabase
+          .from('scheduled_posts')
+          .select('content')
+          .eq('id', postId)
+          .single();
+
+        if (postError) {
+          console.error('[usePublishPost] Ошибка получения поста:', postError);
+          throw new Error(`Ошибка получения поста: ${postError.message}`);
+        }
+
+        const { data: channelData, error: channelError } = await supabase
+          .from('telegram_channels')
+          .select('chat_id, username')
+          .eq('id', channelId)
+          .single();
+
+        if (channelError) {
+          console.error('[usePublishPost] Ошибка получения канала:', channelError);
+          throw new Error(`Ошибка получения канала: ${channelError.message}`);
+        }
+
+        console.log('[usePublishPost] Данные для публикации:', { 
+          content: postData.content, 
+          chatId: channelData.chat_id, 
+          username: channelData.username 
+        });
+
         const { data, error } = await supabase.functions.invoke('telegram-api', {
           body: {
             action: 'sendMessage',
-            channelId,
-            postId,
+            chatId: channelData.chat_id || channelData.username,
+            text: postData.content,
           },
         });
 
         if (error) {
-          console.error('[usePublishPost] Ошибка invoke:', error);
-          throw error;
+          console.error('[usePublishPost] Ошибка edge function:', error);
+          throw new Error(`Ошибка API: ${error.message}`);
         }
-        // Update post status
-        const { error: updateErr } = await supabase
+
+        if (!data.ok) {
+          console.error('[usePublishPost] Telegram API error:', data);
+          throw new Error(`Telegram API: ${data.description || 'Неизвестная ошибка'}`);
+        }
+
+        console.log('[usePublishPost] Пост успешно опубликован:', data);
+
+        // Обновляем статус поста
+        const { error: updateError } = await supabase
           .from('scheduled_posts')
           .update({ status: 'sent' })
           .eq('id', postId);
 
-        if (updateErr) throw updateErr;
+        if (updateError) {
+          console.error('[usePublishPost] Ошибка обновления статуса:', updateError);
+          // Не бросаем ошибку, т.к. пост уже опубликован
+        }
+
         return data;
-      } catch (err) {
-        // Пробрасываем ошибку наверх для отображения в UI
-        throw err;
+      } catch (err: any) {
+        console.error('[usePublishPost] Общая ошибка:', err);
+        throw new Error(err.message || 'Произошла ошибка при публикации поста');
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
     },
     onError: (error) => {
-      // Вызываем уведомление через toast, если он есть
-      // (используйте useToast внутри компонента, чтобы сделать это)
-      console.error('[usePublishPost] Ошибка:', error);
+      console.error('[usePublishPost] Mutation error:', error);
     },
   });
 };

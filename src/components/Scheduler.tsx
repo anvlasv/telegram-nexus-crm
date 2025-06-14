@@ -87,6 +87,7 @@ export const Scheduler: React.FC = () => {
     }
 
     try {
+      console.log('[Scheduler] Publishing post:', { postId, channelId: selectedChannel.id });
       await publishPost.mutateAsync({
         postId,
         channelId: selectedChannel.id
@@ -97,7 +98,7 @@ export const Scheduler: React.FC = () => {
         description: t('post-published'),
       });
     } catch (error) {
-      console.error('Error publishing post:', error);
+      console.error('[Scheduler] Error publishing post:', error);
       toast({
         title: t('error'),
         description: t('error-publishing-post'),
@@ -143,51 +144,88 @@ export const Scheduler: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64">{t('loading')}</div>;
+    return (
+      <div className="flex items-center justify-center h-64 p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          {t('loading')}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-4 p-2 md:p-4 max-w-full overflow-x-hidden">
-      {/* Header */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex-1">
-            <h1 className="text-xl md:text-2xl font-bold">{t('scheduler')}</h1>
-            <p className="text-sm text-muted-foreground">
-              {t('scheduler-description')}
-            </p>
+    <div className="w-full h-full overflow-hidden">
+      <div className="h-full flex flex-col p-3 sm:p-4 space-y-4">
+        {/* Header */}
+        <div className="flex-shrink-0 space-y-3">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">{t('scheduler')}</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                {t('scheduler-description')}
+              </p>
+            </div>
+            
+            <div className="flex-shrink-0">
+              <Button 
+                onClick={handleCreateNewPost}
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">{t('schedule-post')}</span>
+                <span className="sm:hidden">{t('post')}</span>
+              </Button>
+            </div>
           </div>
           
-          <Button 
-            onClick={handleCreateNewPost}
-            className="bg-blue-600 hover:bg-blue-700 text-white self-start"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">{t('schedule-post')}</span>
-            <span className="sm:hidden">{t('post')}</span>
-          </Button>
+          {/* View Mode Toggles */}
+          <div className="flex gap-2 w-full">
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'outline'} 
+              onClick={() => setViewMode('list')}
+              size="sm"
+              className="flex-1 sm:flex-initial min-w-0"
+            >
+              <List className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{t('list')}</span>
+            </Button>
+            <Button 
+              variant={viewMode === 'calendar' ? 'default' : 'outline'} 
+              onClick={() => setViewMode('calendar')}
+              size="sm"
+              className="flex-1 sm:flex-initial min-w-0"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{t('calendar')}</span>
+            </Button>
+          </div>
         </div>
-        
-        {/* View Mode Toggles */}
-        <div className="flex gap-2">
-          <Button 
-            variant={viewMode === 'list' ? 'default' : 'outline'} 
-            onClick={() => setViewMode('list')}
-            size="sm"
-            className="flex-1 sm:flex-initial"
-          >
-            <List className="mr-2 h-4 w-4" />
-            {t('list')}
-          </Button>
-          <Button 
-            variant={viewMode === 'calendar' ? 'default' : 'outline'} 
-            onClick={() => setViewMode('calendar')}
-            size="sm"
-            className="flex-1 sm:flex-initial"
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {t('calendar')}
-          </Button>
+
+        {/* Content */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="h-full overflow-auto">
+            {viewMode === 'calendar' ? (
+              <CalendarView
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                posts={posts}
+                onEditPost={handleEditPost}
+                onPublishPost={handlePublishPost}
+                onDeletePost={handleDeletePost}
+              />
+            ) : (
+              <ListView
+                posts={posts}
+                onEditPost={handleEditPost}
+                onPublishPost={handlePublishPost}
+                onDeletePost={handleDeletePost}
+                onCreatePost={handleCreateNewPost}
+                hasSelectedChannel={!!selectedChannel}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -202,26 +240,6 @@ export const Scheduler: React.FC = () => {
         isLoading={createPost.isPending || updatePost.isPending}
         editingPost={editingPost}
       />
-
-      {viewMode === 'calendar' ? (
-        <CalendarView
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          posts={posts}
-          onEditPost={handleEditPost}
-          onPublishPost={handlePublishPost}
-          onDeletePost={handleDeletePost}
-        />
-      ) : (
-        <ListView
-          posts={posts}
-          onEditPost={handleEditPost}
-          onPublishPost={handlePublishPost}
-          onDeletePost={handleDeletePost}
-          onCreatePost={handleCreateNewPost}
-          hasSelectedChannel={!!selectedChannel}
-        />
-      )}
     </div>
   );
 };
