@@ -99,6 +99,7 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
           mediaFiles={mediaFiles}
           onContentChange={setContent}
           onMediaFilesChange={setMediaFiles}
+          existingMediaUrls={editingPost?.media_urls || []}
         />
       );
     }

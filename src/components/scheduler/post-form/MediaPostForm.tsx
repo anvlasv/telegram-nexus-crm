@@ -11,6 +11,7 @@ interface MediaPostFormProps {
   mediaFiles: File[];
   onContentChange: (content: string) => void;
   onMediaFilesChange: (files: File[]) => void;
+  existingMediaUrls?: string[];
 }
 
 export const MediaPostForm: React.FC<MediaPostFormProps> = ({
@@ -19,6 +20,7 @@ export const MediaPostForm: React.FC<MediaPostFormProps> = ({
   mediaFiles,
   onContentChange,
   onMediaFilesChange,
+  existingMediaUrls = [],
 }) => {
   const { t } = useLanguage();
 
@@ -43,16 +45,34 @@ export const MediaPostForm: React.FC<MediaPostFormProps> = ({
   };
 
   return (
-    <div className="space-y-2">
-      <Label>{t('attach-media')}</Label>
-      <FileDropZone
-        onFilesChange={onMediaFilesChange}
-        accept={getAcceptedFileTypes()}
-        multiple={postType === 'photo' || postType === 'audio' || postType === 'document'}
-        maxFiles={getMaxFiles()}
-        currentFiles={mediaFiles}
-      />
-      <div className="space-y-2 mt-4">
+    <div className="space-y-4">
+      <div>
+        <Label>{t('attach-media')}</Label>
+        
+        {/* Show existing media URLs if editing */}
+        {existingMediaUrls && existingMediaUrls.length > 0 && (
+          <div className="mb-3 p-3 bg-muted rounded-lg">
+            <p className="text-sm font-medium mb-2">{t('existing-media')}:</p>
+            <ul className="space-y-1">
+              {existingMediaUrls.map((url, index) => (
+                <li key={index} className="text-sm text-muted-foreground truncate">
+                  {url}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        <FileDropZone
+          onFilesChange={onMediaFilesChange}
+          accept={getAcceptedFileTypes()}
+          multiple={postType === 'photo' || postType === 'audio' || postType === 'document'}
+          maxFiles={getMaxFiles()}
+          currentFiles={mediaFiles}
+        />
+      </div>
+      
+      <div className="space-y-2">
         <Label htmlFor="caption">{t('post-content')}</Label>
         <Textarea
           id="caption"

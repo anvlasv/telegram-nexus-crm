@@ -41,6 +41,9 @@ export const usePostForm = ({ isOpen, editingPost }: UsePostFormProps) => {
         setPollOptions(editingPost.poll_options || ['', '']);
       }
       
+      // Clear media files when editing - we'll show media URLs instead
+      setMediaFiles([]);
+      
       const scheduledFor = new Date(editingPost.scheduled_for);
       setScheduledDate(format(scheduledFor, 'yyyy-MM-dd'));
       setScheduledTime(format(scheduledFor, 'HH:mm'));
