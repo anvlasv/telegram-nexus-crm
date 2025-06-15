@@ -1,70 +1,33 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, TrendingUp, DollarSign, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Users, MessageSquare, TrendingUp, DollarSign, Calendar, Clock, Eye, Hash } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChannels } from '@/hooks/useChannels';
 import { usePartners } from '@/hooks/usePartners';
 import { useRecentPosts } from '@/hooks/useRecentPosts';
+import { useAggregatedData } from '@/hooks/useAggregatedData';
 import { ChannelSwitchLoader } from './ChannelSwitchLoader';
 import { format } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
-  const { channels, selectedChannelId, isLoading: channelsLoading } = useChannels();
+  const { channels, selectedChannelId, isLoading: channelsLoading, isChannelSwitching } = useChannels();
   const { data: partners = [], isLoading: partnersLoading } = usePartners();
   const { data: recentPosts = [], isLoading: postsLoading } = useRecentPosts();
+  const { data: aggregatedData, isLoading: aggregatedLoading } = useAggregatedData();
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
-  // Фильтруем данные по выбранному каналу
-  const channelPosts = recentPosts.filter(post => post.channel_id === selectedChannelId);
-  
-  // Статистика для выбранного канала
-  const channelStats = selectedChannel ? {
-    subscribers: selectedChannel.subscriber_count || 0,
-    engagementRate: selectedChannel.engagement_rate || 0,
-    postsCount: channelPosts.length,
-    lastPostDate: selectedChannel.last_post_at
-  } : null;
+  // Показываем лоадер переключения канала
+  if (isChannelSwitching) {
+    return <ChannelSwitchLoader channelName={selectedChannel?.name} />;
+  }
 
-  const stats = channelStats ? [
-    {
-      title: t('subscribers'),
-      value: channelStats.subscribers.toLocaleString(),
-      change: '+12.5%',
-      trend: 'up',
-      icon: Users,
-    },
-    {
-      title: t('posts-this-month'),
-      value: channelStats.postsCount.toString(),
-      change: '+2',
-      trend: 'up',
-      icon: MessageSquare,
-    },
-    {
-      title: t('engagement-rate'),
-      value: `${channelStats.engagementRate.toFixed(1)}%`,
-      change: '+0.8%',
-      trend: 'up',
-      icon: TrendingUp,
-    },
-    {
-      title: t('revenue'),
-      value: '$1,250',
-      change: '+18.2%',
-      trend: 'up',
-      icon: DollarSign,
-    },
-  ] : [];
-
-  const pendingPartners = partners.filter(p => p.status === 'pending').slice(0, 2);
-
-  if (channelsLoading || partnersLoading || postsLoading) {
+  if (channelsLoading || partnersLoading || postsLoading || aggregatedLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg text-gray-500 dark:text-gray-400">{t('loading')}</div>
@@ -72,8 +35,39 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  // Если нет выбранного канала
-  if (!selectedChannel) {
+  // Дашборд для всех каналов (когда ничего не выбрано)
+  if (!selectedChannel && aggregatedData) {
+    const aggregatedStats = [
+      {
+        title: t('total-channels'),
+        value: aggregatedData.totalChannels.toString(),
+        change: '+2',
+        trend: 'up',
+        icon: Hash,
+      },
+      {
+        title: t('total-subscribers'),
+        value: aggregatedData.totalSubscribers.toLocaleString(),
+        change: '+12.5%',
+        trend: 'up',
+        icon: Users,
+      },
+      {
+        title: t('total-posts'),
+        value: aggregatedData.totalPosts.toString(),
+        change: '+8',
+        trend: 'up',
+        icon: MessageSquare,
+      },
+      {
+        title: t('average-engagement'),
+        value: `${aggregatedData.averageEngagement}%`,
+        change: '+0.8%',
+        trend: 'up',
+        icon: TrendingUp,
+      },
+    ];
+
     return (
       <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
         <div>
@@ -81,165 +75,323 @@ export const Dashboard: React.FC = () => {
           <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">{t('overview')}</p>
         </div>
 
-        <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-              <div>
-                <h3 className="font-medium text-yellow-800 dark:text-yellow-200">
-                  {t('no-channel-selected')}
-                </h3>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  {t('select-channel-to-view-dashboard')}
-                </p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          {aggregatedStats.map((stat) => (
+            <Card key={stat.title} className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
+                      {stat.title}
+                    </p>
+                    <p className="text-lg sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                      {stat.value}
+                    </p>
+                    <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">
+                      {stat.change}
+                    </p>
+                  </div>
+                  <stat.icon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 dark:text-blue-400 flex-shrink-0" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {/* Recent Posts from All Channels */}
+          <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                {t('recent-posts')}
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                {t('recent-posts')} ({aggregatedData.recentPosts.length})
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 sm:space-y-4">
+                {aggregatedData.recentPosts.map((post) => (
+                  <div key={post.id} className="flex items-start gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                    <Avatar className="h-8 w-8 mt-1">
+                      <AvatarImage src={post.channel_avatar || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {post.channel_name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                          {post.channel_name}
+                        </span>
+                        <Badge 
+                          variant={post.status === 'sent' ? 'default' : post.status === 'pending' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {t(post.status || 'pending')}
+                        </Badge>
+                      </div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100 text-sm line-clamp-2">
+                        {post.content}
+                      </p>
+                      <div className="flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {format(new Date(post.scheduled_for), 'dd.MM.yyyy HH:mm', {
+                          locale: language === 'ru' ? ru : enUS
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {aggregatedData.recentPosts.length === 0 && (
+                  <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                    {t('no-recent-posts')}
+                  </div>
+                )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
+                {t('view-all-posts')}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Revenue Summary */}
+          <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                {t('revenue-by-partner')}
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                {t('pending-requests')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 sm:space-y-4">
+                {partners.slice(0, 3).map((partner) => (
+                  <div key={partner.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                        {partner.name}
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        {partner.partnership_type}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className="font-bold text-green-600 dark:text-green-400 text-sm">
+                        {partner.commission_rate ? `${partner.commission_rate}%` : '$0'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {partners.length === 0 && (
+                  <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                    {t('no-pending-requests')}
+                  </div>
+                )}
+              </div>
+              <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
+                {t('view-all-requests')}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {t('dashboard')}
-          </h1>
-          <Badge variant="outline" className="text-xs">
-            {selectedChannel.name}
-          </Badge>
+  // Дашборд для конкретного канала
+  if (selectedChannel) {
+    // Фильтруем данные по выбранному каналу
+    const channelPosts = recentPosts.filter(post => post.channel_id === selectedChannelId);
+    
+    // Статистика для выбранного канала
+    const channelStats = [
+      {
+        title: t('subscribers'),
+        value: (selectedChannel.subscriber_count || 0).toLocaleString(),
+        change: '+12.5%',
+        trend: 'up',
+        icon: Users,
+      },
+      {
+        title: t('posts-this-month'),
+        value: channelPosts.length.toString(),
+        change: '+2',
+        trend: 'up',
+        icon: MessageSquare,
+      },
+      {
+        title: t('engagement-rate'),
+        value: `${(selectedChannel.engagement_rate || 0).toFixed(1)}%`,
+        change: '+0.8%',
+        trend: 'up',
+        icon: TrendingUp,
+      },
+      {
+        title: t('revenue'),
+        value: '$1,250',
+        change: '+18.2%',
+        trend: 'up',
+        icon: DollarSign,
+      },
+    ];
+
+    const pendingPartners = partners.filter(p => p.status === 'pending').slice(0, 2);
+
+    return (
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {t('dashboard')}
+            </h1>
+            <Badge variant="outline" className="text-xs">
+              {selectedChannel.name}
+            </Badge>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+            {t('overview-for-channel')} @{selectedChannel.username}
+          </p>
         </div>
-        <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-          {t('overview-for-channel')} @{selectedChannel.username}
-        </p>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
-                    {stat.title}
-                  </p>
-                  <p className="text-lg sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">
-                    {stat.change}
-                  </p>
-                </div>
-                <stat.icon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 dark:text-blue-400 flex-shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Recent Posts for Selected Channel */}
-        <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
-              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              {t('scheduled-posts')}
-            </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
-              {t('upcoming-posts-for')} {selectedChannel.name}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 sm:space-y-4">
-              {channelPosts.map((post) => (
-                <div key={post.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">
-                      {post.content}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          {channelStats.map((stat) => (
+            <Card key={stat.title} className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
+                      {stat.title}
                     </p>
-                    <div className="flex items-center mt-1 sm:mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {format(new Date(post.scheduled_for), 'dd.MM.yyyy HH:mm', {
-                        locale: language === 'ru' ? ru : enUS
-                      })}
-                    </div>
+                    <p className="text-lg sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                      {stat.value}
+                    </p>
+                    <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">
+                      {stat.change}
+                    </p>
                   </div>
-                  <Badge 
-                    variant={post.status === 'sent' ? 'default' : post.status === 'pending' ? 'secondary' : 'outline'}
-                    className="ml-2 flex-shrink-0"
-                  >
-                    {t(post.status || 'pending')}
-                  </Badge>
+                  <stat.icon className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 dark:text-blue-400 flex-shrink-0" />
                 </div>
-              ))}
-              {channelPosts.length === 0 && (
-                <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                  {t('no-scheduled-posts-for-channel')}
-                </div>
-              )}
-            </div>
-            <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
-              {t('view-all-posts')}
-            </Button>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        {/* Pending Partners */}
-        <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              {t('partner-requests')}
-            </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
-              {t('pending-requests')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 sm:space-y-4">
-              {pendingPartners.length > 0 ? (
-                pendingPartners.map((partner) => (
-                  <div key={partner.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                    <div className="min-w-0 flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {/* Recent Posts for Selected Channel */}
+          <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                {t('scheduled-posts')}
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                {t('upcoming-posts-for')} {selectedChannel.name}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 sm:space-y-4">
+                {channelPosts.map((post) => (
+                  <div key={post.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                    <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">
-                        {partner.name}
+                        {post.content}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {partner.partnership_type}
-                      </p>
-                      <Badge variant="outline" className="mt-1">
-                        {t(partner.status || 'pending')}
-                      </Badge>
-                    </div>
-                    <div className="text-right flex-shrink-0 ml-2">
-                      <p className="font-bold text-green-600 dark:text-green-400 text-sm sm:text-base">
-                        {partner.commission_rate ? `${partner.commission_rate}%` : 'TBD'}
-                      </p>
-                      <div className="flex space-x-1 sm:space-x-2 mt-2">
-                        <Button size="sm" variant="outline" className="text-xs">
-                          {t('decline')}
-                        </Button>
-                        <Button size="sm" className="text-xs">
-                          {t('accept')}
-                        </Button>
+                      <div className="flex items-center mt-1 sm:mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {format(new Date(post.scheduled_for), 'dd.MM.yyyy HH:mm', {
+                          locale: language === 'ru' ? ru : enUS
+                        })}
                       </div>
                     </div>
+                    <Badge 
+                      variant={post.status === 'sent' ? 'default' : post.status === 'pending' ? 'secondary' : 'outline'}
+                      className="ml-2 flex-shrink-0"
+                    >
+                      {t(post.status || 'pending')}
+                    </Badge>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                  {t('no-pending-requests')}
-                </div>
-              )}
-            </div>
-            <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
-              {t('view-all-requests')}
-            </Button>
-          </CardContent>
-        </Card>
+                ))}
+                {channelPosts.length === 0 && (
+                  <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                    {t('no-scheduled-posts-for-channel')}
+                  </div>
+                )}
+              </div>
+              <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
+                {t('view-all-posts')}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Pending Partners */}
+          <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                {t('partner-requests')}
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                {t('pending-requests')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 sm:space-y-4">
+                {pendingPartners.length > 0 ? (
+                  pendingPartners.map((partner) => (
+                    <div key={partner.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">
+                          {partner.name}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {partner.partnership_type}
+                        </p>
+                        <Badge variant="outline" className="mt-1">
+                          {t(partner.status || 'pending')}
+                        </Badge>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <p className="font-bold text-green-600 dark:text-green-400 text-sm sm:text-base">
+                          {partner.commission_rate ? `${partner.commission_rate}%` : 'TBD'}
+                        </p>
+                        <div className="flex space-x-1 sm:space-x-2 mt-2">
+                          <Button size="sm" variant="outline" className="text-xs">
+                            {t('decline')}
+                          </Button>
+                          <Button size="sm" className="text-xs">
+                            {t('accept')}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                    {t('no-pending-requests')}
+                  </div>
+                )}
+              </div>
+              <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
+                {t('view-all-requests')}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback
+  return (
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
+      <div className="text-center py-8">
+        <p className="text-gray-500 dark:text-gray-400">{t('loading')}</p>
       </div>
     </div>
   );

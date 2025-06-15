@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronDown, Info, Check, Loader2 } from 'lucide-react';
+import { ChevronDown, Check, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,13 +18,11 @@ import { Badge } from '@/components/ui/badge';
 interface ChannelSelectorProps {
   showChannelSelect: boolean;
   setShowChannelSelect: (show: boolean) => void;
-  setShowChannelInfo: (show: boolean) => void;
 }
 
 export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
   showChannelSelect,
-  setShowChannelSelect,
-  setShowChannelInfo
+  setShowChannelSelect
 }) => {
   const { t } = useLanguage();
   const { channels, selectedChannelId, setSelectedChannelId, isLoading } = useChannels();
@@ -156,18 +154,6 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
             </DropdownMenuItem>
           ))}
         </div>
-        
-        <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onClick={() => {
-            setShowChannelInfo(true);
-            setShowChannelSelect(false);
-          }}
-          className="flex items-center gap-2 p-3"
-        >
-          <Info className="h-4 w-4" />
-          {t('channel-info')}
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

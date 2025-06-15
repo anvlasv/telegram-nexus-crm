@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
+import { Info } from 'lucide-react';
 import { useChannels } from '@/hooks/useChannels';
 import { ChannelInfoModal } from './ChannelInfoModal';
 import { NotificationsModal } from './NotificationsModal';
 import { ChannelSelector } from './header/ChannelSelector';
 import { MobileControls } from './header/MobileControls';
 import { DesktopControls } from './header/DesktopControls';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export const TopNav: React.FC = () => {
@@ -23,27 +24,33 @@ export const TopNav: React.FC = () => {
     setShowNotifications(true);
   };
 
+  const handleChannelInfoClick = () => {
+    if (selectedChannel) {
+      setShowChannelInfo(true);
+    }
+  };
+
   return (
     <>
       <header className="flex h-14 items-center justify-between border-b bg-background px-3 lg:px-6">
-        {/* Left side - Channel info with enhanced display */}
-        <div className="flex items-center gap-3">
+        {/* Left side - Channel selector with info button */}
+        <div className="flex items-center gap-2">
           <ChannelSelector 
             showChannelSelect={showChannelSelect}
             setShowChannelSelect={setShowChannelSelect}
-            setShowChannelInfo={setShowChannelInfo}
           />
           
-          {/* Active channel indicator */}
+          {/* Channel info button */}
           {selectedChannel && (
-            <div className="hidden md:flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
-                {t('active-channel')}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                {selectedChannel.subscriber_count?.toLocaleString() || '0'} {t('subscribers')}
-              </span>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleChannelInfoClick}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              title={t('channel-info')}
+            >
+              <Info className="h-4 w-4" />
+            </Button>
           )}
         </div>
 
