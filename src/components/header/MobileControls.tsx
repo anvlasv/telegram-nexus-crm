@@ -85,16 +85,6 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
         <span className="text-xs">{language.toUpperCase()}</span>
       </Button>
 
-      {/* Mobile Theme toggle */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={toggleTheme}
-        className="block lg:hidden"
-      >
-        {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </Button>
-
       {/* Mobile Avatar with dropdown (only for md and above) */}
       <div className="hidden md:block lg:hidden">
         <DropdownMenu>
@@ -119,6 +109,11 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
             <DropdownMenuItem onClick={handleSettingsClick}>
               <Settings className="mr-2 h-4 w-4" />
               {t('settings')}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={toggleTheme}>
+              {isDarkTheme ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+              {isDarkTheme ? t('light-theme') : t('dark-theme')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
@@ -153,6 +148,11 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
             <DropdownMenuItem onClick={handleSettingsClick}>
               <Settings className="mr-2 h-4 w-4" />
               {t('settings')}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={toggleTheme}>
+              {isDarkTheme ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+              {isDarkTheme ? t('light-theme') : t('dark-theme')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
