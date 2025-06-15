@@ -6,13 +6,16 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface UserProfile {
   id: string;
-  full_name: string;
-  email: string;
-  bio: string;
-  position: string;
-  location: string;
+  full_name: string | null;
   avatar_url: string | null;
-  updated_at: string;
+  username: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  // Virtual fields for display
+  email?: string;
+  bio?: string;
+  position?: string;
+  location?: string;
 }
 
 export const useProfile = () => {
@@ -46,29 +49,40 @@ export const useProfile = () => {
       }
 
       if (data) {
-        setProfile(data);
-      } else {
-        // Create initial profile
-        const newProfile: Partial<UserProfile> = {
-          id: user.id,
-          full_name: user.user_metadata?.full_name || '',
+        const profileWithVirtualFields: UserProfile = {
+          ...data,
           email: user.email || '',
           bio: '',
           position: 'Администратор канала',
           location: 'Москва, Россия',
+        };
+        setProfile(profileWithVirtualFields);
+      } else {
+        // Create initial profile
+        const newProfile = {
+          id: user.id,
+          full_name: user.user_metadata?.full_name || '',
           avatar_url: null,
+          username: null,
         };
 
         const { data: created, error: createError } = await supabase
           .from('profiles')
-          .insert([newProfile])
+          .insert(newProfile)
           .select()
           .single();
 
         if (createError) {
           console.error('Error creating profile:', createError);
         } else {
-          setProfile(created);
+          const profileWithVirtualFields: UserProfile = {
+            ...created,
+            email: user.email || '',
+            bio: '',
+            position: 'Администратор канала',
+            location: 'Москва, Россия',
+          };
+          setProfile(profileWithVirtualFields);
         }
       }
     } catch (error) {
@@ -83,9 +97,16 @@ export const useProfile = () => {
 
     setSaving(true);
     try {
+      // Filter out virtual fields that don't exist in the database
+      const dbUpdates = {
+        ...(updates.full_name !== undefined && { full_name: updates.full_name }),
+        ...(updates.avatar_url !== undefined && { avatar_url: updates.avatar_url }),
+        ...(updates.username !== undefined && { username: updates.username }),
+      };
+
       const { data, error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', user.id)
         .select()
         .single();
@@ -100,7 +121,15 @@ export const useProfile = () => {
         return false;
       }
 
-      setProfile(data);
+      const updatedProfile: UserProfile = {
+        ...data,
+        email: profile.email,
+        bio: updates.bio !== undefined ? updates.bio : profile.bio,
+        position: updates.position !== undefined ? updates.position : profile.position,
+        location: updates.location !== undefined ? updates.location : profile.location,
+      };
+
+      setProfile(updatedProfile);
       toast({
         title: 'Успешно',
         description: 'Профиль сохранен',
