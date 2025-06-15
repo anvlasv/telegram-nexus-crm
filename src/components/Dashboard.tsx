@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,9 +10,11 @@ import { useAdvertisingCampaigns } from '@/hooks/useAdvertisingCampaigns';
 import { format } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const { data: partners = [], isLoading: partnersLoading } = usePartners();
   const { data: campaigns = [] } = useAdvertisingCampaigns();
   const { data: aggregatedData, isLoading: aggregatedLoading } = useAggregatedData();
@@ -33,6 +34,14 @@ export const Dashboard: React.FC = () => {
       </div>
     );
   }
+
+  const handleViewAllPosts = () => {
+    navigate('/scheduler');
+  };
+
+  const handleViewAllPartners = () => {
+    navigate('/partners');
+  };
 
   // Calculate partner revenues from campaigns
   const getPartnerRevenue = (partnerId: string) => {
@@ -160,7 +169,11 @@ export const Dashboard: React.FC = () => {
                 </div>
               )}
             </div>
-            <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
+            <Button 
+              variant="outline" 
+              className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+              onClick={handleViewAllPosts}
+            >
               {t('view-all-posts')}
             </Button>
           </CardContent>
@@ -223,7 +236,11 @@ export const Dashboard: React.FC = () => {
                 </div>
               )}
             </div>
-            <Button variant="outline" className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600">
+            <Button 
+              variant="outline" 
+              className="w-full mt-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+              onClick={handleViewAllPartners}
+            >
               {t('view-all-partners')}
             </Button>
           </CardContent>
