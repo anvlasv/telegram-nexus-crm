@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
@@ -32,22 +31,20 @@ export const ChannelManagement: React.FC = () => {
     });
 
     try {
-      const channelData = {
-        name: chatData?.title || chatData?.username || formData.username || 'Untitled Channel',
-        username: chatData?.username || formData.username,
-        // Исправлено: используем правильный channel_id для каждого случая
-        channel_id: editingChannel ? editingChannel.channel_id : (chatData?.id || chatData?.channel_id),
-        type: formData.type,
-        status: formData.status,
-        timezone: formData.timezone || 'Europe/Moscow',
-        subscriber_count: chatData?.member_count || editingChannel?.subscriber_count || 0,
-        avatar_url: chatData?.avatar_url || (editingChannel ? editingChannel.avatar_url : null),
-      };
-
-      console.log('[ChannelManagement] Prepared channel data:', channelData);
-
       if (editingChannel) {
-        console.log('[ChannelManagement] Updating channel with ID:', editingChannel.id);
+        // При редактировании используем данные из формы, но сохраняем существующее название если не изменилось
+        const channelData = {
+          name: formData.name || editingChannel.name, // Используем название из формы или существующее
+          username: formData.username,
+          channel_id: editingChannel.channel_id,
+          type: formData.type,
+          status: formData.status,
+          timezone: formData.timezone || 'Europe/Moscow',
+          subscriber_count: editingChannel.subscriber_count || 0,
+          avatar_url: editingChannel.avatar_url,
+        };
+
+        console.log('[ChannelManagement] Updating channel with data:', channelData);
         await updateChannel.mutateAsync({
           id: editingChannel.id,
           ...channelData,
@@ -55,7 +52,19 @@ export const ChannelManagement: React.FC = () => {
         console.log('[ChannelManagement] Channel update successful');
         toast.success('Канал успешно обновлен');
       } else {
-        console.log('[ChannelManagement] Creating new channel');
+        // При создании нового канала используем данные из Telegram API
+        const channelData = {
+          name: chatData?.title || chatData?.username || formData.username || 'Untitled Channel',
+          username: chatData?.username || formData.username,
+          channel_id: chatData?.id || chatData?.channel_id,
+          type: formData.type,
+          status: formData.status,
+          timezone: formData.timezone || 'Europe/Moscow',
+          subscriber_count: chatData?.member_count || 0,
+          avatar_url: chatData?.avatar_url || null,
+        };
+
+        console.log('[ChannelManagement] Creating new channel with data:', channelData);
         await createChannel.mutateAsync(channelData);
         console.log('[ChannelManagement] Channel creation successful');
         toast.success('Канал успешно подключен');
@@ -66,7 +75,6 @@ export const ChannelManagement: React.FC = () => {
     } catch (error) {
       console.error('[ChannelManagement] Error in handleFormSubmit:', error);
       
-      // More detailed error information
       if (error instanceof Error) {
         console.error('[ChannelManagement] Error details:', {
           message: error.message,
@@ -76,7 +84,6 @@ export const ChannelManagement: React.FC = () => {
       }
       
       toast.error('Ошибка при сохранении канала: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
-      console.error('Error saving channel:', error);
     }
   };
 
