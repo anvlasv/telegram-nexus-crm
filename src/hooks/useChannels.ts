@@ -16,69 +16,99 @@ export const useChannels = () => {
   const { data: channels = [], isLoading, error } = useQuery({
     queryKey: ['telegram-channels'],
     queryFn: async () => {
+      console.log('[useChannels] Загружаем каналы...');
       const { data, error } = await supabase
         .from('telegram_channels')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('[useChannels] Ошибка загрузки каналов:', error);
+        throw error;
+      }
+      
+      console.log('[useChannels] Каналы загружены:', data?.length || 0);
       return data;
     },
   });
 
-  // Set first channel as selected ONLY if none selected and channels exist
+  // Инициализация выбранного канала
   useEffect(() => {
+    console.log('[useChannels] Инициализация каналов:', { 
+      selectedChannelId, 
+      channelsCount: channels.length 
+    });
+
     if (!selectedChannelId && channels.length > 0) {
-      // Check if there's a stored channel preference
       const storedChannelId = localStorage.getItem('selectedChannelId');
       
       if (storedChannelId && channels.find(c => c.id === storedChannelId)) {
         console.log('[useChannels] Восстанавливаем сохраненный канал:', storedChannelId);
         setSelectedChannelId(storedChannelId);
-      } else if (channels.length > 0) {
-        console.log('[useChannels] Выбираем первый доступный канал:', channels[0].id);
+      } else {
+        console.log('[useChannels] Выбираем первый канал:', channels[0].id);
         setSelectedChannelId(channels[0].id);
         localStorage.setItem('selectedChannelId', channels[0].id);
       }
     }
 
-    // Проверяем, существует ли выбранный канал в списке каналов
+    // Проверяем существование выбранного канала
     if (selectedChannelId && channels.length > 0) {
       const channelExists = channels.find(c => c.id === selectedChannelId);
       if (!channelExists) {
-        console.log('[useChannels] Выбранный канал не найден, сбрасываем выбор');
+        console.log('[useChannels] Выбранный канал не найден, сбрасываем');
         setSelectedChannelId('');
         localStorage.removeItem('selectedChannelId');
       }
     }
   }, [channels, selectedChannelId]);
 
-  // Store channel selection in localStorage with transition handling
+  // Обработка смены канала с принудительным обновлением
   const handleSetSelectedChannelId = (channelId: string) => {
-    if (channelId === selectedChannelId) return;
+    if (channelId === selectedChannelId) {
+      console.log('[useChannels] Канал уже выбран:', channelId);
+      return;
+    }
     
-    console.log('[useChannels] Переключение канала:', { from: selectedChannelId, to: channelId });
+    console.log('[useChannels] Переключение канала:', { 
+      from: selectedChannelId, 
+      to: channelId 
+    });
+    
     setIsChannelSwitching(true);
     
-    // Immediately update selected channel
+    // Немедленное обновление состояния
     setSelectedChannelId(channelId);
     localStorage.setItem('selectedChannelId', channelId);
     
-    // Полная очистка всех кешей для принудительного обновления
+    // Принудительная очистка всех кешей
+    console.log('[useChannels] Очищаем кеши...');
     queryClient.clear();
     
-    // Также инвалидируем конкретные запросы
-    queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
-    queryClient.invalidateQueries({ queryKey: ['recent-posts'] });
-    queryClient.invalidateQueries({ queryKey: ['aggregated-data'] });
-    queryClient.invalidateQueries({ queryKey: ['channel-posts'] });
-    queryClient.invalidateQueries({ queryKey: ['channel-analytics'] });
+    // Дополнительная инвалидация конкретных запросов
+    const queriesToInvalidate = [
+      'scheduled-posts',
+      'recent-posts', 
+      'aggregated-data',
+      'channel-posts',
+      'channel-analytics'
+    ];
     
-    // Short delay for smooth transition
+    queriesToInvalidate.forEach(queryKey => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.removeQueries({ queryKey: [queryKey] });
+    });
+    
+    // Принудительное обновление после короткой задержки
     setTimeout(() => {
-      setIsChannelSwitching(false);
-      console.log('[useChannels] Канал переключен успешно:', channelId);
-    }, 200);
+      console.log('[useChannels] Форсируем рефетч всех запросов...');
+      queryClient.refetchQueries();
+      
+      setTimeout(() => {
+        setIsChannelSwitching(false);
+        console.log('[useChannels] Переключение завершено:', channelId);
+      }, 100);
+    }, 150);
   };
 
   return {

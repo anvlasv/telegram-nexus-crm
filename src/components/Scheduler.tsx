@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, List, Calendar as CalendarIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -14,7 +14,7 @@ import { ChannelSwitchLoader } from './ChannelSwitchLoader';
 export const Scheduler: React.FC = () => {
   const { t } = useLanguage();
   const { channels, selectedChannelId, isChannelSwitching } = useChannels();
-  const { data: posts = [], isLoading } = useScheduledPosts();
+  const { data: posts = [], isLoading, refetch } = useScheduledPosts();
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
@@ -23,15 +23,29 @@ export const Scheduler: React.FC = () => {
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
   const { handleCreatePost, handlePublishPost, handleDeletePost, isCreating, isUpdating } = useSchedulerActions(selectedChannel);
 
+  // Принудительное обновление постов при смене канала
+  useEffect(() => {
+    if (selectedChannelId) {
+      console.log('[Scheduler] Канал изменился, обновляем посты:', selectedChannelId);
+      refetch();
+    }
+  }, [selectedChannelId, refetch]);
+
   // Показываем лоадер переключения канала
   if (isChannelSwitching) {
     return <ChannelSwitchLoader channelName={selectedChannel?.name} />;
   }
 
-  // Filter posts by selected channel
+  // Фильтруем посты по выбранному каналу
   const filteredPosts = selectedChannel
     ? posts.filter((post) => post.channel_id === selectedChannel.id)
     : [];
+
+  console.log('[Scheduler] Отфильтрованные посты:', {
+    selectedChannelId,
+    totalPosts: posts.length,
+    filteredPosts: filteredPosts.length
+  });
 
   const onSubmitPost = async (formData: any) => {
     const success = await handleCreatePost(formData, editingPost);
