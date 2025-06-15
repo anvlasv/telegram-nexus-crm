@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -49,19 +48,22 @@ interface ChatMemberCount {
   result: number;
 }
 
-// Функция для загрузки файла через Blob URL в FormData
-async function uploadBlobToTelegram(botToken: string, blobUrl: string, type: string): Promise<string | null> {
+// Функция для получения файла из Supabase Storage и загрузки в Telegram
+async function uploadStorageFileToTelegram(botToken: string, supabaseClient: any, mediaUrl: string, type: string): Promise<string | null> {
   try {
-    console.log(`[uploadBlobToTelegram] Загружаем файл: ${blobUrl}`)
+    console.log(`[uploadStorageFileToTelegram] Загружаем файл из storage: ${mediaUrl}`)
     
-    // Скачиваем файл из blob URL
-    const response = await fetch(blobUrl)
-    if (!response.ok) {
-      console.error('[uploadBlobToTelegram] Ошибка скачивания файла:', response.statusText)
+    // Получаем файл из Supabase Storage
+    const { data: fileData, error } = await supabaseClient.storage
+      .from('media')
+      .download(mediaUrl)
+    
+    if (error || !fileData) {
+      console.error('[uploadStorageFileToTelegram] Ошибка получения файла из storage:', error)
       return null
     }
     
-    const blob = await response.blob()
+    // Создаем FormData для загрузки в Telegram
     const formData = new FormData()
     
     // Определяем имя файла и поле в зависимости от типа
@@ -87,31 +89,31 @@ async function uploadBlobToTelegram(botToken: string, blobUrl: string, type: str
         break
     }
     
-    formData.append(fieldName, blob, fileName)
+    formData.append(fieldName, fileData, fileName)
     
-    // Загружаем файл в Telegram
-    const uploadResponse = await fetch(`https://api.telegram.org/bot${botToken}/send${type === 'photo' ? 'Photo' : type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : 'Document'}`, {
+    // Загружаем файл в Telegram (без chat_id для получения file_id)
+    const uploadResponse = await fetch(`https://api.telegram.org/bot${botToken}/send${type === 'photo' ? 'Photo' : type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : 'Document'}?chat_id=@testchannel`, {
       method: 'POST',
       body: formData
     })
     
     const uploadData = await uploadResponse.json()
-    console.log(`[uploadBlobToTelegram] Ответ Telegram:`, uploadData)
+    console.log(`[uploadStorageFileToTelegram] Ответ Telegram:`, uploadData)
     
     if (uploadData.ok) {
       return uploadData.result.file_id || uploadData.result[fieldName]?.file_id
     } else {
-      console.error('[uploadBlobToTelegram] Ошибка загрузки в Telegram:', uploadData)
+      console.error('[uploadStorageFileToTelegram] Ошибка загрузки в Telegram:', uploadData)
       return null
     }
   } catch (error) {
-    console.error('[uploadBlobToTelegram] Общая ошибка загрузки файла:', error)
+    console.error('[uploadStorageFileToTelegram] Общая ошибка загрузки файла:', error)
     return null
   }
 }
 
 // Функция для отправки медиафайлов
-async function sendMediaMessage(botToken: string, chatId: string, action: string, text: string, mediaUrls?: string[]) {
+async function sendMediaMessage(botToken: string, chatId: string, action: string, text: string, mediaUrls?: string[], supabaseClient?: any) {
   const telegramApiBase = `https://api.telegram.org/bot${botToken}`
   
   console.log(`[sendMediaMessage] Отправляем медиа: ${action}, URLs:`, mediaUrls)
@@ -154,15 +156,18 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
       let mediaField = ''
       let mediaValue = mediaUrl
       
-      // Если это blob URL, сначала загружаем файл
-      if (mediaUrl.startsWith('blob:')) {
+      // Если это файл из storage, загружаем его в Telegram
+      if (mediaUrl && !mediaUrl.startsWith('blob:') && !mediaUrl.startsWith('http')) {
         const fileType = action.replace('send', '').toLowerCase()
-        const fileId = await uploadBlobToTelegram(botToken, mediaUrl, fileType)
+        const fileId = await uploadStorageFileToTelegram(botToken, supabaseClient, mediaUrl, fileType)
         if (fileId) {
           mediaValue = fileId
         } else {
-          throw new Error('Не удалось загрузить файл в Telegram')
+          throw new Error('Не удалось загрузить файл из storage в Telegram')
         }
+      } else if (mediaUrl.startsWith('blob:')) {
+        // Blob URLs не поддерживаются в edge functions
+        throw new Error('Blob URLs не поддерживаются на сервере')
       }
       
       switch (action) {
@@ -209,7 +214,7 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
       return result
       
     } else {
-      // Отправляем альбом медиафайлов (для фото и документов)
+      // Отправляем альбом медиафайлов (для фото)
       console.log(`[sendMediaMessage] Отправляем альбом из ${mediaUrls.length} файлов`)
       
       if (action === 'sendPhoto') {
@@ -218,9 +223,9 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
         for (const [index, mediaUrl] of mediaUrls.entries()) {
           let mediaValue = mediaUrl
           
-          // Если это blob URL, загружаем файл
-          if (mediaUrl.startsWith('blob:')) {
-            const fileId = await uploadBlobToTelegram(botToken, mediaUrl, 'photo')
+          // Если это файл из storage, загружаем его в Telegram
+          if (mediaUrl && !mediaUrl.startsWith('blob:') && !mediaUrl.startsWith('http')) {
+            const fileId = await uploadStorageFileToTelegram(botToken, supabaseClient, mediaUrl, 'photo')
             if (fileId) {
               mediaValue = fileId
             }
@@ -251,9 +256,9 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
         for (const [index, mediaUrl] of mediaUrls.entries()) {
           let mediaValue = mediaUrl
           
-          if (mediaUrl.startsWith('blob:')) {
+          if (mediaUrl && !mediaUrl.startsWith('blob:') && !mediaUrl.startsWith('http')) {
             const fileType = action.replace('send', '').toLowerCase()
-            const fileId = await uploadBlobToTelegram(botToken, mediaUrl, fileType)
+            const fileId = await uploadStorageFileToTelegram(botToken, supabaseClient, mediaUrl, fileType)
             if (fileId) {
               mediaValue = fileId
             }
@@ -420,7 +425,7 @@ Deno.serve(async (req) => {
         return new Response('Chat ID required', { status: 400, headers: corsHeaders })
       }
 
-      const data = await sendMediaMessage(botToken, chatId, action, text || '', mediaUrls)
+      const data = await sendMediaMessage(botToken, chatId, action, text || '', mediaUrls, supabaseClient)
 
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
