@@ -1,7 +1,8 @@
 import React from 'react';
-import { X, FileImage, FileVideo, Music, FileText, Play } from 'lucide-react';
+import { X, FileImage, FileVideo, Music, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { MediaPreviewGrid } from './media/MediaPreviewGrid';
 
 interface MediaPreviewProps {
   files: File[];
@@ -38,13 +39,6 @@ export const MediaPreview: React.FC<MediaPreviewProps> = ({
       case 'audio': return <Music className="h-6 w-6" />;
       default: return <FileText className="h-6 w-6" />;
     }
-  };
-
-  const createPreview = (file: File) => {
-    if (file.type.startsWith('image/')) {
-      return URL.createObjectURL(file);
-    }
-    return null;
   };
 
   const formatFileSize = (bytes: number) => {
@@ -91,91 +85,20 @@ export const MediaPreview: React.FC<MediaPreviewProps> = ({
         </div>
       )}
 
-      {/* Image previews - Telegram-like grid */}
-      {imageFiles.length > 0 && (
+      {/* Image and video previews */}
+      {(imageFiles.length > 0 || videoFiles.length > 0) && (
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
             {t('image-preview')}:
           </p>
-          <div className={`grid gap-2 ${
-            imageFiles.length === 1 ? 'grid-cols-1' :
-            imageFiles.length === 2 ? 'grid-cols-2' :
-            imageFiles.length === 3 ? 'grid-cols-3' :
-            'grid-cols-2'
-          }`}>
-            {imageFiles.map((file, index) => {
-              const preview = createPreview(file);
-              return (
-                <div key={index} className="relative group">
-                  <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 aspect-square">
-                    {preview && (
-                      <img
-                        src={preview}
-                        alt={file.name}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => onRemove(files.indexOf(file))}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-                    {file.name} ({formatFileSize(file.size)})
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          <MediaPreviewGrid
+            files={[...imageFiles, ...videoFiles]}
+            onRemove={onRemove}
+          />
         </div>
       )}
 
-      {/* Video previews */}
-      {videoFiles.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {t('video-preview')}:
-          </p>
-          <div className="space-y-2">
-            {videoFiles.map((file, index) => (
-              <div key={index} className="relative group">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                    <div className="relative">
-                      <FileVideo className="h-6 w-6 text-gray-500" />
-                      <Play className="h-3 w-3 text-gray-700 absolute -bottom-1 -right-1" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {formatFileSize(file.size)}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onRemove(files.indexOf(file))}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Other files (audio, documents) */}
+      {/* Other files */}
       {otherFiles.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
