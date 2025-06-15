@@ -162,10 +162,18 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="text">Текст</SelectItem>
-                  <SelectItem value="photo">Фото</SelectItem>
-                  <SelectItem value="video">Видео</SelectItem>
-                  <SelectItem value="poll">Опрос</SelectItem>
+                  <SelectItem value="text">📝 Текст</SelectItem>
+                  <SelectItem value="photo">📷 Фото</SelectItem>
+                  <SelectItem value="video">🎥 Видео</SelectItem>
+                  <SelectItem value="audio">🎵 Аудио</SelectItem>
+                  <SelectItem value="document">📄 Документ</SelectItem>
+                  <SelectItem value="poll">📊 Опрос</SelectItem>
+                  <SelectItem value="location">📍 Локация</SelectItem>
+                  <SelectItem value="contact">👤 Контакт</SelectItem>
+                  <SelectItem value="sticker">😀 Стикер</SelectItem>
+                  <SelectItem value="animation">🎬 GIF/Анимация</SelectItem>
+                  <SelectItem value="voice">🎤 Голосовое сообщение</SelectItem>
+                  <SelectItem value="video_note">📹 Видеосообщение</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -188,9 +196,12 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="RUB">RUB</SelectItem>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="RUB">₽ RUB</SelectItem>
+                  <SelectItem value="USD">$ USD</SelectItem>
+                  <SelectItem value="EUR">€ EUR</SelectItem>
+                  <SelectItem value="KZT">₸ KZT</SelectItem>
+                  <SelectItem value="BYN">Br BYN</SelectItem>
+                  <SelectItem value="UAH">₴ UAH</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -17,7 +17,9 @@ import {
   Plus,
   Target,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePartners, useCreatePartner } from '@/hooks/usePartners';
@@ -25,6 +27,7 @@ import { useAdvertisingCampaigns } from '@/hooks/useAdvertisingCampaigns';
 import { useToast } from '@/hooks/use-toast';
 import { CreateCampaignModal } from './partners/CreateCampaignModal';
 import { CampaignCard } from './partners/CampaignCard';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ContactInfo {
   email?: string;
@@ -48,6 +51,38 @@ export const Partners: React.FC = () => {
   
   const [isCreateCampaignOpen, setIsCreateCampaignOpen] = useState(false);
   const [isAddPartnerOpen, setIsAddPartnerOpen] = useState(false);
+  const [expandedPartners, setExpandedPartners] = useState<Set<string>>(new Set());
+
+  const togglePartnerExpansion = (partnerId: string) => {
+    const newExpanded = new Set(expandedPartners);
+    if (newExpanded.has(partnerId)) {
+      newExpanded.delete(partnerId);
+    } else {
+      newExpanded.add(partnerId);
+    }
+    setExpandedPartners(newExpanded);
+  };
+
+  // Group campaigns by partner
+  const campaignsByPartner = React.useMemo(() => {
+    const grouped: Record<string, any[]> = {};
+    campaigns.forEach(campaign => {
+      const partnerId = campaign.partner_id;
+      if (!grouped[partnerId]) {
+        grouped[partnerId] = [];
+      }
+      grouped[partnerId].push(campaign);
+    });
+    return grouped;
+  }, [campaigns]);
+
+  // Calculate revenue by partner
+  const getPartnerRevenue = (partnerId: string) => {
+    const partnerCampaigns = campaignsByPartner[partnerId] || [];
+    return partnerCampaigns
+      .filter(c => c.status === 'published')
+      .reduce((sum, c) => sum + c.price, 0);
+  };
 
   const handleAcceptPartner = async (partnerId: string) => {
     try {
@@ -276,11 +311,60 @@ export const Partners: React.FC = () => {
         </TabsList>
 
         <TabsContent value="campaigns" className="space-y-4">
-          {campaigns.length > 0 ? (
-            <div className="grid gap-4">
-              {campaigns.map((campaign) => (
-                <CampaignCard key={campaign.id} campaign={campaign} />
-              ))}
+          {partners.length > 0 ? (
+            <div className="space-y-4">
+              {partners.map((partner) => {
+                const partnerCampaigns = campaignsByPartner[partner.id] || [];
+                const partnerRevenue = getPartnerRevenue(partner.id);
+                const isExpanded = expandedPartners.has(partner.id);
+                
+                return (
+                  <Card key={partner.id}>
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                              <div>
+                                <CardTitle className="text-lg">{partner.name}</CardTitle>
+                                <CardDescription>
+                                  {partnerCampaigns.length} кампаний • Доход: {partnerRevenue} ₽
+                                </CardDescription>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className={getStatusColor(partner.status || 'pending')}>
+                                {t(partner.status || 'pending')}
+                              </Badge>
+                              <div className="text-right">
+                                <div className="text-lg font-bold text-green-600">{partnerRevenue} ₽</div>
+                                <div className="text-sm text-muted-foreground">доход</div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <CardContent className="pt-0">
+                          {partnerCampaigns.length > 0 ? (
+                            <div className="space-y-3">
+                              {partnerCampaigns.map((campaign) => (
+                                <CampaignCard key={campaign.id} campaign={campaign} />
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <Target className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                              <p>Нет кампаний для этого партнера</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </Card>
+                );
+              })}
             </div>
           ) : (
             <Card>
@@ -302,6 +386,7 @@ export const Partners: React.FC = () => {
         <TabsContent value="partners" className="space-y-4">
           {partners.map((partner) => {
             const contactInfo = getContactInfo(partner.contact_info);
+            const partnerRevenue = getPartnerRevenue(partner.id);
             
             return (
               <Card key={partner.id}>
@@ -328,11 +413,14 @@ export const Partners: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      {partner.commission_rate && (
-                        <p className="text-sm">
-                          Комиссия: {partner.commission_rate}%
-                        </p>
-                      )}
+                      <div className="flex items-center gap-4 text-sm">
+                        {partner.commission_rate && (
+                          <span>Комиссия: {partner.commission_rate}%</span>
+                        )}
+                        <span className="font-medium text-green-600">
+                          Доход: {partnerRevenue} ₽
+                        </span>
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       {partner.status === 'pending' && (

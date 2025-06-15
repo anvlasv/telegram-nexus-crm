@@ -10,7 +10,7 @@ export interface AdvertisingCampaign {
   title: string;
   content: string;
   media_urls?: string[];
-  post_type: 'text' | 'photo' | 'video' | 'poll';
+  post_type: 'text' | 'photo' | 'video' | 'audio' | 'document' | 'poll' | 'location' | 'contact' | 'sticker' | 'animation' | 'voice' | 'video_note';
   price: number;
   currency: string;
   status: 'draft' | 'pending' | 'approved' | 'rejected' | 'published';
@@ -60,7 +60,7 @@ export const useCreateCampaign = () => {
       channel_id: string;
       title: string;
       content: string;
-      post_type: 'text' | 'photo' | 'video' | 'poll';
+      post_type: 'text' | 'photo' | 'video' | 'audio' | 'document' | 'poll' | 'location' | 'contact' | 'sticker' | 'animation' | 'voice' | 'video_note';
       price: number;
       currency: string;
       status: 'draft' | 'pending' | 'approved' | 'rejected' | 'published';
