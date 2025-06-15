@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,7 +21,8 @@ import {
   Settings,
   Activity,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  Camera
 } from 'lucide-react';
 
 export const Profile: React.FC = () => {
@@ -29,6 +30,7 @@ export const Profile: React.FC = () => {
   const { t } = useLanguage();
   const { user: telegramUser } = useTelegram();
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [formData, setFormData] = useState({
     fullName: user?.user_metadata?.full_name || '',
     email: user?.email || '',
@@ -52,6 +54,27 @@ export const Profile: React.FC = () => {
       position: t('channel-administrator'),
       location: t('moscow-russia')
     });
+  };
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const getAvatarFallback = () => {
+    if (formData.fullName) {
+      return formData.fullName[0].toUpperCase();
+    }
+    if (telegramUser?.first_name) {
+      return telegramUser.first_name[0].toUpperCase();
+    }
+    return 'U';
   };
 
   const stats = [
@@ -116,11 +139,14 @@ export const Profile: React.FC = () => {
               {!isEditing ? (
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarFallback className="text-lg">
-                        {formData.fullName?.[0] || telegramUser?.first_name?.[0] || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <Avatar className="h-16 w-16">
+                        {avatarUrl && <AvatarImage src={avatarUrl} />}
+                        <AvatarFallback className="text-lg">
+                          {getAvatarFallback()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                         {formData.fullName || `${telegramUser?.first_name || ''} ${telegramUser?.last_name || ''}`.trim() || t('user')}
@@ -158,6 +184,26 @@ export const Profile: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="relative">
+                      <Avatar className="h-16 w-16">
+                        {avatarUrl && <AvatarImage src={avatarUrl} />}
+                        <AvatarFallback className="text-lg">
+                          {getAvatarFallback()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <label htmlFor="avatar-upload" className="absolute -bottom-1 -right-1 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-1 cursor-pointer">
+                        <Camera className="h-3 w-3" />
+                        <input
+                          id="avatar-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleAvatarChange}
+                        />
+                      </label>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="fullName" className="text-gray-700 dark:text-gray-300">

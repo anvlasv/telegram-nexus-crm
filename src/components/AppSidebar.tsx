@@ -26,7 +26,6 @@ import {
   useSidebar
 } from '@/components/ui/sidebar';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useTelegram } from '@/hooks/useTelegram';
 
 const navigation = [
   { name: 'dashboard', href: '/', icon: BarChart3 },
@@ -42,7 +41,6 @@ const navigation = [
 export function AppSidebar() {
   const location = useLocation();
   const { t } = useLanguage();
-  const { user } = useTelegram();
   const { setOpenMobile, isMobile } = useSidebar();
 
   const handleLinkClick = () => {
@@ -60,10 +58,7 @@ export function AppSidebar() {
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">TelegramCRM</span>
-            <span className="truncate text-xs text-muted-foreground">v2.0</span>
           </div>
-          {/* Добавляем SidebarTrigger для сворачивания/разворачивания */}
-          <SidebarTrigger className="ml-auto" />
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -94,21 +89,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                {user?.first_name?.[0] || 'U'}
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {user?.first_name || 'User'} {user?.last_name || ''}
-                </span>
-                <span className="truncate text-xs text-muted-foreground">Admin</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex items-center justify-between px-4 py-2">
+          <span className="truncate text-xs text-muted-foreground">v2.0</span>
+          <SidebarTrigger />
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
