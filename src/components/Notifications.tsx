@@ -70,7 +70,7 @@ export const Notifications: React.FC = () => {
           </p>
         </div>
         {unreadCount > 0 && (
-          <Button variant="outline" onClick={markAllAsRead}>
+          <Button variant="outline" onClick={() => markAllAsRead()}>
             <Check className="mr-2 h-4 w-4" />
             Отметить все как прочитанные
           </Button>
