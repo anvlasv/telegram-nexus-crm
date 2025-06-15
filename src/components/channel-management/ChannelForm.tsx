@@ -2,12 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useGetChatInfo, useGetChatMemberCount, useCheckBotAdmin } from '@/hooks/useTelegramApi';
 import { ChannelVerification } from './ChannelVerification';
+import { ChannelFormFields } from './ChannelFormFields';
 import { toast } from 'sonner';
 
 interface ChannelFormProps {
@@ -17,25 +15,6 @@ interface ChannelFormProps {
   onSubmit: (data: any, chatData: any) => Promise<void>;
   isSubmitting: boolean;
 }
-
-// Популярные часовые пояса
-const TIMEZONES = [
-  { value: 'Europe/Moscow', label: 'Москва (UTC+3)' },
-  { value: 'Europe/Kiev', label: 'Киев (UTC+2)' },
-  { value: 'Europe/Minsk', label: 'Минск (UTC+3)' },
-  { value: 'Asia/Almaty', label: 'Алматы (UTC+6)' },
-  { value: 'Asia/Tashkent', label: 'Ташкент (UTC+5)' },
-  { value: 'Asia/Yerevan', label: 'Ереван (UTC+4)' },
-  { value: 'Asia/Baku', label: 'Баку (UTC+4)' },
-  { value: 'Europe/London', label: 'Лондон (UTC+0)' },
-  { value: 'Europe/Berlin', label: 'Берлин (UTC+1)' },
-  { value: 'America/New_York', label: 'Нью-Йорк (UTC-5)' },
-  { value: 'America/Los_Angeles', label: 'Лос-Анджелес (UTC-8)' },
-  { value: 'Asia/Tokyo', label: 'Токио (UTC+9)' },
-  { value: 'Asia/Shanghai', label: 'Шанхай (UTC+8)' },
-  { value: 'Asia/Dubai', label: 'Дубай (UTC+4)' },
-  { value: 'Australia/Sydney', label: 'Сидней (UTC+10)' },
-];
 
 export const ChannelForm: React.FC<ChannelFormProps> = ({
   isOpen,
@@ -180,73 +159,12 @@ export const ChannelForm: React.FC<ChannelFormProps> = ({
         />
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="username" className="text-gray-900 dark:text-gray-100">
-              {t('channel-username')}
-            </Label>
-            <Input
-              id="username"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              placeholder="@channel_username"
-              required
-              disabled={!!editingChannel}
-              className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-            />
-          </div>
-
-          <div>
-            <Label className="text-gray-900 dark:text-gray-100">Часовой пояс</Label>
-            <Select
-              value={formData.timezone}
-              onValueChange={(value) => setFormData({ ...formData, timezone: value })}
-            >
-              <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 max-h-60">
-                {TIMEZONES.map((tz) => (
-                  <SelectItem key={tz.value} value={tz.value} className="text-gray-900 dark:text-gray-100">
-                    {tz.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-gray-900 dark:text-gray-100">Тип</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value: 'channel' | 'group') => setFormData({ ...formData, type: value })}
-              >
-                <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                  <SelectItem value="channel" className="text-gray-900 dark:text-gray-100">Канал</SelectItem>
-                  <SelectItem value="group" className="text-gray-900 dark:text-gray-100">Группа</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-gray-900 dark:text-gray-100">Статус</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: 'active' | 'paused' | 'archived') => setFormData({ ...formData, status: value })}
-              >
-                <SelectTrigger className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                  <SelectItem value="active" className="text-gray-900 dark:text-gray-100">{t('active')}</SelectItem>
-                  <SelectItem value="paused" className="text-gray-900 dark:text-gray-100">{t('paused')}</SelectItem>
-                  <SelectItem value="archived" className="text-gray-900 dark:text-gray-100">{t('archived')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <ChannelFormFields
+            formData={formData}
+            setFormData={setFormData}
+            editingChannel={editingChannel}
+          />
+          
           <DialogFooter>
             <Button
               type="button"
