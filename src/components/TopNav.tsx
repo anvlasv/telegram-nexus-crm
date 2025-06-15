@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { useChannels } from '@/hooks/useChannels';
 import { ChannelInfoModal } from './ChannelInfoModal';
@@ -20,12 +20,22 @@ export const TopNav: React.FC = () => {
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
+  // Автоматически обновляем информацию о канале при смене канала
+  useEffect(() => {
+    // Если панель информации открыта и канал изменился, обновляем данные
+    if (showChannelInfo && selectedChannel) {
+      console.log('[TopNav] Канал изменился, обновляем панель информации:', selectedChannel.name);
+      // Панель автоматически обновится благодаря новому selectedChannel
+    }
+  }, [selectedChannelId, selectedChannel, showChannelInfo]);
+
   const handleNotificationsClick = () => {
     setShowNotifications(true);
   };
 
   const handleChannelInfoClick = () => {
     if (selectedChannel) {
+      console.log('[TopNav] Открываем информацию о канале:', selectedChannel.name);
       setShowChannelInfo(true);
     }
   };
@@ -65,9 +75,10 @@ export const TopNav: React.FC = () => {
         </div>
       </header>
 
-      {/* Channel Info Modal */}
+      {/* Channel Info Modal - обновляется автоматически при смене канала */}
       {selectedChannel && (
         <ChannelInfoModal
+          key={selectedChannelId} // Принудительное обновление при смене канала
           channel={selectedChannel}
           isOpen={showChannelInfo}
           onClose={() => setShowChannelInfo(false)}

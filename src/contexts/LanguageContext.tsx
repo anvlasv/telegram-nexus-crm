@@ -666,6 +666,10 @@ const translations = {
     'invitation-confirmation-desc': 'New members must confirm invitation',
     'module-settings': 'Settings for this module are already implemented',
     'appearance': 'Appearance',
+  },
+  'page-reloading': {
+    en: 'Page is reloading...',
+    ru: 'Страница перезагружается...'
   }
 };
 

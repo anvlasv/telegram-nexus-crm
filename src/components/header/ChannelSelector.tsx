@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Check, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,17 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
+  // Проверяем, происходит ли перезагрузка после смены канала
+  useEffect(() => {
+    const isReloading = localStorage.getItem('channelSwitchReload');
+    if (isReloading) {
+      setSwitching(true);
+      localStorage.removeItem('channelSwitchReload');
+      // Показываем индикатор загрузки короткое время после перезагрузки
+      setTimeout(() => setSwitching(false), 1000);
+    }
+  }, []);
+
   const handleChannelSelect = async (channelId: string) => {
     if (channelId === selectedChannelId) {
       setShowChannelSelect(false);
@@ -37,14 +48,11 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     }
 
     setSwitching(true);
-    console.log('[ChannelSelector] Переключение на канал:', channelId);
+    setShowChannelSelect(false);
+    console.log('[ChannelSelector] Переключение на канал с перезагрузкой:', channelId);
     
-    // Добавляем небольшую задержку для плавности переключения
-    setTimeout(() => {
-      setSelectedChannelId(channelId);
-      setShowChannelSelect(false);
-      setSwitching(false);
-    }, 300);
+    // Вызываем функцию, которая сохранит канал и перезагрузит страницу
+    setSelectedChannelId(channelId);
   };
 
   if (isLoading) {
@@ -60,6 +68,16 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
     return (
       <div className="flex items-center gap-2 h-auto p-2">
         <span className="text-sm text-muted-foreground">{t('no-channels')}</span>
+      </div>
+    );
+  }
+
+  // Показываем экран загрузки при переключении
+  if (switching) {
+    return (
+      <div className="flex items-center gap-2 h-auto p-2">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="text-sm text-muted-foreground">{t('switching-channel')}</span>
       </div>
     );
   }
@@ -97,11 +115,7 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
             </span>
           </div>
           
-          {switching ? (
-            <Loader2 className="h-4 w-4 animate-spin ml-1" />
-          ) : (
-            <ChevronDown className="h-4 w-4 ml-1" />
-          )}
+          <ChevronDown className="h-4 w-4 ml-1" />
         </Button>
       </DropdownMenuTrigger>
       

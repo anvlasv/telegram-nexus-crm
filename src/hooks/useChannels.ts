@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,52 +62,28 @@ export const useChannels = () => {
     }
   }, [channels, selectedChannelId]);
 
-  // Обработка смены канала с принудительным обновлением
+  // Обработка смены канала с полной перезагрузкой страницы
   const handleSetSelectedChannelId = (channelId: string) => {
     if (channelId === selectedChannelId) {
       console.log('[useChannels] Канал уже выбран:', channelId);
       return;
     }
     
-    console.log('[useChannels] Переключение канала:', { 
+    console.log('[useChannels] Переключение канала с перезагрузкой:', { 
       from: selectedChannelId, 
       to: channelId 
     });
     
     setIsChannelSwitching(true);
     
-    // Немедленное обновление состояния
-    setSelectedChannelId(channelId);
+    // Сохраняем новый канал
     localStorage.setItem('selectedChannelId', channelId);
     
-    // Принудительная очистка всех кешей
-    console.log('[useChannels] Очищаем кеши...');
-    queryClient.clear();
+    // Добавляем флаг для отслеживания перезагрузки
+    localStorage.setItem('channelSwitchReload', 'true');
     
-    // Дополнительная инвалидация конкретных запросов
-    const queriesToInvalidate = [
-      'scheduled-posts',
-      'recent-posts', 
-      'aggregated-data',
-      'channel-posts',
-      'channel-analytics'
-    ];
-    
-    queriesToInvalidate.forEach(queryKey => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
-      queryClient.removeQueries({ queryKey: [queryKey] });
-    });
-    
-    // Принудительное обновление после короткой задержки
-    setTimeout(() => {
-      console.log('[useChannels] Форсируем рефетч всех запросов...');
-      queryClient.refetchQueries();
-      
-      setTimeout(() => {
-        setIsChannelSwitching(false);
-        console.log('[useChannels] Переключение завершено:', channelId);
-      }, 100);
-    }, 150);
+    // Перезагружаем страницу
+    window.location.reload();
   };
 
   return {
