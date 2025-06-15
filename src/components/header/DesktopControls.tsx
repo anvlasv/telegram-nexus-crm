@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChevronDown, Bell, Globe, User, Settings, LogOut } from 'lucide-react';
+import { ChevronDown, Bell, Globe, User, Settings, LogOut, Moon, Sun } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,7 @@ interface DesktopControlsProps {
 export const DesktopControls: React.FC<DesktopControlsProps> = ({
   onNotificationsClick
 }) => {
-  const { user: telegramUser } = useTelegram();
+  const { user: telegramUser, isDarkTheme, toggleTheme } = useTelegram();
   const { language, setLanguage, t } = useLanguage();
   const { unreadCount } = useNotifications();
   const { profile } = useProfile();
@@ -86,6 +86,17 @@ export const DesktopControls: React.FC<DesktopControlsProps> = ({
       >
         <Globe className="h-4 w-4" />
         <span className="ml-1 text-xs">{language.toUpperCase()}</span>
+      </Button>
+
+      {/* Desktop Theme toggle */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={toggleTheme}
+        className="hidden lg:flex"
+        title={isDarkTheme ? t('light-theme') : t('dark-theme')}
+      >
+        {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>
 
       {/* Profile menu - only on desktop */}

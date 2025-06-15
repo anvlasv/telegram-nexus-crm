@@ -9,9 +9,7 @@ import {
   Zap,
   Target,
   Bell,
-  Bot,
-  Moon,
-  Sun
+  Bot
 } from 'lucide-react';
 import {
   Sidebar,
@@ -27,10 +25,7 @@ import {
   SidebarTrigger,
   useSidebar
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useTelegram } from '@/hooks/useTelegram';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const navigation = [
   { name: 'dashboard', href: '/', icon: BarChart3 },
@@ -47,8 +42,6 @@ export function AppSidebar() {
   const location = useLocation();
   const { t } = useLanguage();
   const { setOpenMobile, isMobile: sidebarIsMobile, state } = useSidebar();
-  const { isDarkTheme, toggleTheme } = useTelegram();
-  const isMobile = useIsMobile();
 
   const handleLinkClick = () => {
     if (sidebarIsMobile) {
@@ -94,57 +87,15 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        
-        {/* Mobile theme toggle - at bottom of menu */}
-        {isMobile && (
-          <SidebarGroup className="mt-auto">
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    asChild
-                    tooltip={isDarkTheme ? t('light-theme') : t('dark-theme')}
-                  >
-                    <Button
-                      variant="ghost"
-                      onClick={toggleTheme}
-                      className="w-full justify-start"
-                    >
-                      {isDarkTheme ? <Sun className="text-sky-400" /> : <Moon className="text-sky-400" />}
-                      <span>{isDarkTheme ? t('light-theme') : t('dark-theme')}</span>
-                    </Button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex flex-col gap-2">
-          {/* Desktop/Tablet theme toggle - above version */}
-          {!isMobile && (
-            <div className="flex items-center justify-center px-4 py-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleTheme}
-                className="h-8 w-8 p-0"
-                title={isDarkTheme ? t('light-theme') : t('dark-theme')}
-              >
-                {isDarkTheme ? <Sun className="h-4 w-4 text-sky-400" /> : <Moon className="h-4 w-4 text-sky-400" />}
-              </Button>
-            </div>
+        <div className="flex items-center justify-between px-4 py-2">
+          <span className="truncate text-xs text-muted-foreground">v2.0</span>
+          {state === 'collapsed' ? (
+            <SidebarTrigger />
+          ) : (
+            <SidebarTrigger />
           )}
-          
-          <div className="flex items-center justify-between px-4 py-2">
-            <span className="truncate text-xs text-muted-foreground">v2.0</span>
-            {state === 'collapsed' ? (
-              <SidebarTrigger />
-            ) : (
-              <SidebarTrigger />
-            )}
-          </div>
         </div>
       </SidebarFooter>
       <SidebarRail />
