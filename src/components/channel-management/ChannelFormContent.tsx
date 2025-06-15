@@ -45,26 +45,64 @@ export const ChannelFormContent: React.FC<ChannelFormContentProps> = ({
   // Initialize verification data for editing
   useEffect(() => {
     if (isOpen && editingChannel) {
+      console.log('[ChannelFormContent] Setting up editing mode for:', editingChannel.name);
       setVerificationStatus('success');
       setChatData(editingChannel);
     } else if (isOpen && !editingChannel) {
+      console.log('[ChannelFormContent] Setting up creation mode');
       resetVerification();
     }
   }, [editingChannel, isOpen, setVerificationStatus, setChatData, resetVerification]);
 
-  // Auto-verify for new channels
+  // Auto-verify for new channels with debouncing
   useEffect(() => {
     if (formData.username && !editingChannel && verificationStatus === 'idle') {
+      console.log('[ChannelFormContent] Starting auto-verification for:', formData.username);
+      
+      // Дебаунсинг: ждем 1.5 секунды после последнего ввода
       const timer = setTimeout(() => {
         verifyChannel(formData.username);
-      }, 1000);
-      return () => clearTimeout(timer);
+      }, 1500);
+      
+      return () => {
+        console.log('[ChannelFormContent] Clearing verification timer');
+        clearTimeout(timer);
+      };
     }
   }, [formData.username, editingChannel, verificationStatus, verifyChannel]);
 
+  const handleUsernameChange = (newFormData: any) => {
+    console.log('[ChannelFormContent] Username changed to:', newFormData.username);
+    setFormData(newFormData);
+    
+    // Сбрасываем верификацию при изменении username
+    if (!editingChannel && newFormData.username !== formData.username) {
+      resetVerification();
+    }
+  };
+
   const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('[ChannelFormContent] Form submitted', {
+      formData,
+      chatData,
+      verificationStatus,
+      editingChannel: !!editingChannel
+    });
+    
     handleSubmit(e, formData, chatData, editingChannel, verificationStatus);
   };
+
+  const canSubmit = editingChannel || verificationStatus === 'success';
+  const isLoading = verificationStatus === 'checking' || isSubmitting;
+
+  console.log('[ChannelFormContent] Render state:', {
+    canSubmit,
+    isLoading,
+    verificationStatus,
+    hasUsername: !!formData.username,
+    editingChannel: !!editingChannel
+  });
 
   return (
     <>
@@ -78,7 +116,7 @@ export const ChannelFormContent: React.FC<ChannelFormContentProps> = ({
       <form onSubmit={onFormSubmit} className="space-y-4">
         <ChannelFormFields
           formData={formData}
-          setFormData={setFormData}
+          setFormData={handleUsernameChange}
           editingChannel={editingChannel}
         />
         
@@ -87,16 +125,17 @@ export const ChannelFormContent: React.FC<ChannelFormContentProps> = ({
             type="button"
             variant="outline"
             onClick={onClose}
+            disabled={isLoading}
             className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
           >
             {t('cancel')}
           </Button>
           <Button 
             type="submit"
-            disabled={isSubmitting || (!editingChannel && verificationStatus !== 'success')}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+            disabled={!canSubmit || isLoading}
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50"
           >
-            {editingChannel ? t('save') : t('create')}
+            {isLoading ? 'Обработка...' : (editingChannel ? t('save') : t('create'))}
           </Button>
         </DialogFooter>
       </form>
