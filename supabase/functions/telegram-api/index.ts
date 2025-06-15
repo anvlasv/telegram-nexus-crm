@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -48,35 +49,63 @@ interface ChatMemberCount {
   result: number;
 }
 
-// Функция для загрузки файла через URL
-async function uploadFileFromUrl(botToken: string, fileUrl: string): Promise<string | null> {
+// Функция для загрузки файла через Blob URL в FormData
+async function uploadBlobToTelegram(botToken: string, blobUrl: string, type: string): Promise<string | null> {
   try {
-    // Скачиваем файл
-    const fileResponse = await fetch(fileUrl)
-    if (!fileResponse.ok) {
-      console.error('[uploadFileFromUrl] Ошибка скачивания файла:', fileResponse.statusText)
+    console.log(`[uploadBlobToTelegram] Загружаем файл: ${blobUrl}`)
+    
+    // Скачиваем файл из blob URL
+    const response = await fetch(blobUrl)
+    if (!response.ok) {
+      console.error('[uploadBlobToTelegram] Ошибка скачивания файла:', response.statusText)
       return null
     }
     
-    const fileBlob = await fileResponse.blob()
+    const blob = await response.blob()
     const formData = new FormData()
-    formData.append('document', fileBlob)
+    
+    // Определяем имя файла и поле в зависимости от типа
+    let fieldName = 'document'
+    let fileName = 'file'
+    
+    switch (type) {
+      case 'photo':
+        fieldName = 'photo'
+        fileName = 'image.jpg'
+        break
+      case 'video':
+        fieldName = 'video'
+        fileName = 'video.mp4'
+        break
+      case 'audio':
+        fieldName = 'audio'
+        fileName = 'audio.mp3'
+        break
+      case 'document':
+        fieldName = 'document'
+        fileName = 'document'
+        break
+    }
+    
+    formData.append(fieldName, blob, fileName)
     
     // Загружаем файл в Telegram
-    const uploadResponse = await fetch(`https://api.telegram.org/bot${botToken}/uploadStickerFile`, {
+    const uploadResponse = await fetch(`https://api.telegram.org/bot${botToken}/send${type === 'photo' ? 'Photo' : type === 'video' ? 'Video' : type === 'audio' ? 'Audio' : 'Document'}`, {
       method: 'POST',
       body: formData
     })
     
     const uploadData = await uploadResponse.json()
+    console.log(`[uploadBlobToTelegram] Ответ Telegram:`, uploadData)
+    
     if (uploadData.ok) {
-      return uploadData.result.file_id
+      return uploadData.result.file_id || uploadData.result[fieldName]?.file_id
     } else {
-      console.error('[uploadFileFromUrl] Ошибка загрузки в Telegram:', uploadData)
+      console.error('[uploadBlobToTelegram] Ошибка загрузки в Telegram:', uploadData)
       return null
     }
   } catch (error) {
-    console.error('[uploadFileFromUrl] Общая ошибка загрузки файла:', error)
+    console.error('[uploadBlobToTelegram] Общая ошибка загрузки файла:', error)
     return null
   }
 }
@@ -85,7 +114,10 @@ async function uploadFileFromUrl(botToken: string, fileUrl: string): Promise<str
 async function sendMediaMessage(botToken: string, chatId: string, action: string, text: string, mediaUrls?: string[]) {
   const telegramApiBase = `https://api.telegram.org/bot${botToken}`
   
+  console.log(`[sendMediaMessage] Отправляем медиа: ${action}, URLs:`, mediaUrls)
+  
   if (!mediaUrls || mediaUrls.length === 0) {
+    console.log('[sendMediaMessage] Нет медиафайлов, отправляем текстовое сообщение с иконкой')
     // Если нет медиафайлов, отправляем как обычное сообщение с иконкой
     const iconMap: Record<string, string> = {
       'sendPhoto': '📷',
@@ -111,12 +143,27 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
 
   // Если есть медиафайлы, пытаемся их отправить
   try {
+    console.log(`[sendMediaMessage] Обрабатываем ${mediaUrls.length} медиафайлов`)
+    
     if (mediaUrls.length === 1) {
       // Отправляем один файл
       const mediaUrl = mediaUrls[0]
+      console.log(`[sendMediaMessage] Отправляем одиночный файл: ${mediaUrl}`)
       
       let endpoint = ''
       let mediaField = ''
+      let mediaValue = mediaUrl
+      
+      // Если это blob URL, сначала загружаем файл
+      if (mediaUrl.startsWith('blob:')) {
+        const fileType = action.replace('send', '').toLowerCase()
+        const fileId = await uploadBlobToTelegram(botToken, mediaUrl, fileType)
+        if (fileId) {
+          mediaValue = fileId
+        } else {
+          throw new Error('Не удалось загрузить файл в Telegram')
+        }
+      }
       
       switch (action) {
         case 'sendPhoto':
@@ -142,12 +189,14 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
       
       const requestBody: any = {
         chat_id: chatId,
-        [mediaField]: mediaUrl
+        [mediaField]: mediaValue
       }
       
       if (text) {
         requestBody.caption = text
       }
+      
+      console.log(`[sendMediaMessage] Отправляем запрос в ${endpoint}:`, requestBody)
       
       const response = await fetch(`${telegramApiBase}/${endpoint}`, {
         method: 'POST',
@@ -155,16 +204,34 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
         body: JSON.stringify(requestBody),
       })
       
-      return await response.json()
+      const result = await response.json()
+      console.log(`[sendMediaMessage] Ответ Telegram:`, result)
+      return result
       
     } else {
       // Отправляем альбом медиафайлов (для фото и документов)
+      console.log(`[sendMediaMessage] Отправляем альбом из ${mediaUrls.length} файлов`)
+      
       if (action === 'sendPhoto') {
-        const media = mediaUrls.map((url, index) => ({
-          type: 'photo',
-          media: url,
-          caption: index === 0 && text ? text : undefined
-        }))
+        const media = []
+        
+        for (const [index, mediaUrl] of mediaUrls.entries()) {
+          let mediaValue = mediaUrl
+          
+          // Если это blob URL, загружаем файл
+          if (mediaUrl.startsWith('blob:')) {
+            const fileId = await uploadBlobToTelegram(botToken, mediaUrl, 'photo')
+            if (fileId) {
+              mediaValue = fileId
+            }
+          }
+          
+          media.push({
+            type: 'photo',
+            media: mediaValue,
+            caption: index === 0 && text ? text : undefined
+          })
+        }
         
         const response = await fetch(`${telegramApiBase}/sendMediaGroup`, {
           method: 'POST',
@@ -175,14 +242,26 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
           }),
         })
         
-        return await response.json()
+        const result = await response.json()
+        console.log(`[sendMediaMessage] Ответ альбома:`, result)
+        return result
       } else {
         // Для других типов отправляем по одному
         const results = []
         for (const [index, mediaUrl] of mediaUrls.entries()) {
+          let mediaValue = mediaUrl
+          
+          if (mediaUrl.startsWith('blob:')) {
+            const fileType = action.replace('send', '').toLowerCase()
+            const fileId = await uploadBlobToTelegram(botToken, mediaUrl, fileType)
+            if (fileId) {
+              mediaValue = fileId
+            }
+          }
+          
           const requestBody: any = {
             chat_id: chatId,
-            document: mediaUrl
+            document: mediaValue
           }
           
           if (index === 0 && text) {
@@ -218,7 +297,7 @@ async function sendMediaMessage(botToken: string, chatId: string, action: string
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         chat_id: chatId, 
-        text: `${icon} ${messageText}\n\n[Ошибка загрузки медиафайла]`,
+        text: `${icon} ${messageText}\n\n[Ошибка загрузки медиафайла: ${error.message}]`,
         parse_mode: 'Markdown' 
       }),
     })

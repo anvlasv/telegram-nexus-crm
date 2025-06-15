@@ -100,9 +100,12 @@ Deno.serve(async (req) => {
             break
         }
 
-        // Отправляем пост через Telegram API
+        // Отправляем пост через Telegram API с правильным токеном
         const { data: telegramResponse, error: telegramError } = await supabaseClient.functions.invoke('telegram-api', {
           body: requestBody,
+          headers: {
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
         })
 
         if (telegramError || !telegramResponse?.ok) {
