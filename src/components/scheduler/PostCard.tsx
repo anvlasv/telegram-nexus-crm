@@ -73,9 +73,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 justify-end">
-        <Button size="sm" variant="outline" onClick={onEdit} className="text-xs">
-          {t('edit')}
-        </Button>
         <Button size="sm" variant="destructive" onClick={onDelete} className="text-xs">
           {t('delete')}
         </Button>

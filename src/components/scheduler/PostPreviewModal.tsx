@@ -177,9 +177,11 @@ export const PostPreviewModal: React.FC<PostPreviewModalProps> = ({
             <Button variant="outline" onClick={onClose}>
               {t('close')}
             </Button>
-            <Button variant="outline" onClick={handleEdit}>
-              {t('edit')}
-            </Button>
+            {post.status !== 'sent' && (
+              <Button variant="outline" onClick={handleEdit}>
+                {t('edit')}
+              </Button>
+            )}
             <Button variant="destructive" onClick={handleDelete}>
               {t('delete')}
             </Button>
