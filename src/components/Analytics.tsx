@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Users, Eye, MessageSquare, Share } from 'lucide-react';
+import { TrendingUp, Users, Eye, MessageSquare, Share, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChannels } from '@/hooks/useChannels';
+import { Badge } from '@/components/ui/badge';
 
 const chartData = [
   { name: 'Янв', views: 4000, reactions: 240, forwards: 400 },
@@ -23,12 +25,22 @@ const pieData = [
 
 export const Analytics: React.FC = () => {
   const { t } = useLanguage();
-  const { channels, isLoading } = useChannels();
+  const { channels, selectedChannelId, isLoading } = useChannels();
+  
+  const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
-  const stats = [
+  // Статистика для выбранного канала
+  const channelStats = selectedChannel ? {
+    totalViews: '2.4M',
+    totalReactions: '48.2K',
+    totalForwards: '12.1K',
+    subscriberGrowth: '+2.4K'
+  } : null;
+
+  const stats = channelStats ? [
     {
       title: t('total-views'),
-      value: '2.4M',
+      value: channelStats.totalViews,
       change: '+12.5%',
       trend: 'up',
       icon: Eye,
@@ -37,7 +49,7 @@ export const Analytics: React.FC = () => {
     },
     {
       title: t('total-reactions'),
-      value: '48.2K',
+      value: channelStats.totalReactions,
       change: '+8.2%',
       trend: 'up',
       icon: MessageSquare,
@@ -46,7 +58,7 @@ export const Analytics: React.FC = () => {
     },
     {
       title: t('total-forwards'),
-      value: '12.1K',
+      value: channelStats.totalForwards,
       change: '+5.4%',
       trend: 'up',
       icon: Share,
@@ -55,14 +67,14 @@ export const Analytics: React.FC = () => {
     },
     {
       title: t('subscriber-growth'),
-      value: '+2.4K',
+      value: channelStats.subscriberGrowth,
       change: '+18.2%',
       trend: 'up',
       icon: Users,
       color: 'text-orange-600 dark:text-orange-400',
       bgColor: 'bg-orange-100 dark:bg-orange-900/30',
     },
-  ];
+  ] : [];
 
   if (isLoading) {
     return (
@@ -72,14 +84,51 @@ export const Analytics: React.FC = () => {
     );
   }
 
+  // Если нет выбранного канала
+  if (!selectedChannel) {
+    return (
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            {t('channel-analytics')}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+            {t('detailed-analytics')}
+          </p>
+        </div>
+
+        <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+              <div>
+                <h3 className="font-medium text-yellow-800 dark:text-yellow-200">
+                  {t('no-channel-selected')}
+                </h3>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  {t('select-channel-to-view-analytics')}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-          {t('channel-analytics')}
-        </h1>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            {t('channel-analytics')}
+          </h1>
+          <Badge variant="outline" className="text-xs">
+            {selectedChannel.name}
+          </Badge>
+        </div>
         <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-          {t('detailed-analytics')}
+          {t('analytics-for-channel')} @{selectedChannel.username}
         </p>
       </div>
 
@@ -110,7 +159,7 @@ export const Analytics: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Views Chart */}
+        {/* Views Chart for Selected Channel */}
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
@@ -118,7 +167,7 @@ export const Analytics: React.FC = () => {
               {t('views')} {t('this-month')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Динамика просмотров по месяцам
+              Динамика просмотров канала {selectedChannel.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -160,14 +209,14 @@ export const Analytics: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Engagement Chart */}
+        {/* Engagement Chart for Selected Channel */}
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-gray-100">
-              {t('engagement-rate')} по каналам
+              {t('engagement-rate')} канала
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Распределение активности
+              Распределение активности в {selectedChannel.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -213,14 +262,14 @@ export const Analytics: React.FC = () => {
         </Card>
       </div>
 
-      {/* Detailed Stats */}
+      {/* Detailed Stats for Selected Channel */}
       <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-gray-100">
-            Подробная статистика
+            Подробная статистика канала
           </CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-400">
-            {t('reactions')} и {t('forwards')} за последние 6 месяцев
+            {t('reactions')} и {t('forwards')} за последние 6 месяцев для {selectedChannel.name}
           </CardDescription>
         </CardHeader>
         <CardContent>

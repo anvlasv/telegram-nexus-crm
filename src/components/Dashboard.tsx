@@ -3,56 +3,64 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, TrendingUp, DollarSign, Calendar, Clock } from 'lucide-react';
+import { Users, MessageSquare, TrendingUp, DollarSign, Calendar, Clock, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChannels } from '@/hooks/useChannels';
 import { usePartners } from '@/hooks/usePartners';
 import { useRecentPosts } from '@/hooks/useRecentPosts';
+import { ChannelSwitchLoader } from './ChannelSwitchLoader';
 import { format } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 
 export const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
-  const { channels, isLoading: channelsLoading } = useChannels();
+  const { channels, selectedChannelId, isLoading: channelsLoading } = useChannels();
   const { data: partners = [], isLoading: partnersLoading } = usePartners();
   const { data: recentPosts = [], isLoading: postsLoading } = useRecentPosts();
 
-  const totalSubscribers = channels.reduce((sum, channel) => sum + (channel.subscriber_count || 0), 0);
-  const activeChannels = channels.filter(channel => channel.status === 'active').length;
-  const avgEngagement = channels.length > 0 
-    ? channels.reduce((sum, channel) => sum + (channel.engagement_rate || 0), 0) / channels.length 
-    : 0;
+  const selectedChannel = channels.find(c => c.id === selectedChannelId);
 
-  const stats = [
+  // Фильтруем данные по выбранному каналу
+  const channelPosts = recentPosts.filter(post => post.channel_id === selectedChannelId);
+  
+  // Статистика для выбранного канала
+  const channelStats = selectedChannel ? {
+    subscribers: selectedChannel.subscriber_count || 0,
+    engagementRate: selectedChannel.engagement_rate || 0,
+    postsCount: channelPosts.length,
+    lastPostDate: selectedChannel.last_post_at
+  } : null;
+
+  const stats = channelStats ? [
     {
-      title: t('total-subscribers'),
-      value: totalSubscribers.toLocaleString(),
+      title: t('subscribers'),
+      value: channelStats.subscribers.toLocaleString(),
       change: '+12.5%',
       trend: 'up',
       icon: Users,
     },
     {
-      title: t('active-channels'),
-      value: activeChannels.toString(),
+      title: t('posts-this-month'),
+      value: channelStats.postsCount.toString(),
       change: '+2',
       trend: 'up',
       icon: MessageSquare,
     },
     {
       title: t('engagement-rate'),
-      value: `${avgEngagement.toFixed(1)}%`,
+      value: `${channelStats.engagementRate.toFixed(1)}%`,
       change: '+0.8%',
       trend: 'up',
       icon: TrendingUp,
     },
     {
       title: t('revenue'),
-      value: '$12,450',
+      value: '$1,250',
       change: '+18.2%',
       trend: 'up',
       icon: DollarSign,
     },
-  ];
+  ] : [];
 
   const pendingPartners = partners.filter(p => p.status === 'pending').slice(0, 2);
 
@@ -64,11 +72,48 @@ export const Dashboard: React.FC = () => {
     );
   }
 
+  // Если нет выбранного канала
+  if (!selectedChannel) {
+    return (
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">{t('overview')}</p>
+        </div>
+
+        <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+              <div>
+                <h3 className="font-medium text-yellow-800 dark:text-yellow-200">
+                  {t('no-channel-selected')}
+                </h3>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  {t('select-channel-to-view-dashboard')}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard')}</h1>
-        <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">{t('overview')}</p>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+            {t('dashboard')}
+          </h1>
+          <Badge variant="outline" className="text-xs">
+            {selectedChannel.name}
+          </Badge>
+        </div>
+        <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+          {t('overview-for-channel')} @{selectedChannel.username}
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -96,7 +141,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Recent Posts */}
+        {/* Recent Posts for Selected Channel */}
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
@@ -104,18 +149,15 @@ export const Dashboard: React.FC = () => {
               {t('scheduled-posts')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              {t('upcoming-posts')}
+              {t('upcoming-posts-for')} {selectedChannel.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 sm:space-y-4">
-              {recentPosts.map((post) => (
+              {channelPosts.map((post) => (
                 <div key={post.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">
-                      {post.telegram_channels?.name || 'Unknown Channel'}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                       {post.content}
                     </p>
                     <div className="flex items-center mt-1 sm:mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -133,9 +175,9 @@ export const Dashboard: React.FC = () => {
                   </Badge>
                 </div>
               ))}
-              {recentPosts.length === 0 && (
+              {channelPosts.length === 0 && (
                 <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                  {t('no-scheduled-posts')}
+                  {t('no-scheduled-posts-for-channel')}
                 </div>
               )}
             </div>
@@ -189,7 +231,7 @@ export const Dashboard: React.FC = () => {
                 ))
               ) : (
                 <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                  Нет ожидающих запросов
+                  {t('no-pending-requests')}
                 </div>
               )}
             </div>

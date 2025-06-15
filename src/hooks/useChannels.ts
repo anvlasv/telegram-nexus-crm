@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +10,7 @@ type ChannelUpdate = TablesUpdate<'telegram_channels'>;
 
 export const useChannels = () => {
   const [selectedChannelId, setSelectedChannelId] = useState<string>('');
+  const [isChannelSwitching, setIsChannelSwitching] = useState(false);
   
   const { data: channels = [], isLoading, error } = useQuery({
     queryKey: ['telegram-channels'],
@@ -23,24 +25,36 @@ export const useChannels = () => {
     },
   });
 
-  // Set first channel as selected ONLY if none selected and channels exist and no channel was previously selected
+  // Set first channel as selected ONLY if none selected and channels exist
   useEffect(() => {
     if (!selectedChannelId && channels.length > 0) {
       // Check if there's a stored channel preference
       const storedChannelId = localStorage.getItem('selectedChannelId');
       
       if (storedChannelId && channels.find(c => c.id === storedChannelId)) {
+        console.log('[useChannels] Восстанавливаем сохраненный канал:', storedChannelId);
         setSelectedChannelId(storedChannelId);
       } else if (channels.length > 0) {
+        console.log('[useChannels] Выбираем первый доступный канал:', channels[0].id);
         setSelectedChannelId(channels[0].id);
+        localStorage.setItem('selectedChannelId', channels[0].id);
       }
     }
   }, [channels, selectedChannelId]);
 
-  // Store channel selection in localStorage
+  // Store channel selection in localStorage with transition handling
   const handleSetSelectedChannelId = (channelId: string) => {
-    setSelectedChannelId(channelId);
-    localStorage.setItem('selectedChannelId', channelId);
+    if (channelId === selectedChannelId) return;
+    
+    console.log('[useChannels] Переключение канала:', { from: selectedChannelId, to: channelId });
+    setIsChannelSwitching(true);
+    
+    setTimeout(() => {
+      setSelectedChannelId(channelId);
+      localStorage.setItem('selectedChannelId', channelId);
+      setIsChannelSwitching(false);
+      console.log('[useChannels] Канал переключен успешно:', channelId);
+    }, 100);
   };
 
   return {
@@ -49,6 +63,7 @@ export const useChannels = () => {
     setSelectedChannelId: handleSetSelectedChannelId,
     isLoading,
     error,
+    isChannelSwitching,
   };
 };
 
