@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTelegram } from '@/hooks/useTelegram';
+import { useProfile } from '@/hooks/useProfile';
 import { 
   User, 
   Mail, 
@@ -22,54 +23,66 @@ import {
   Activity,
   MessageSquare,
   BarChart3,
-  Camera
+  Camera,
+  Loader2
 } from 'lucide-react';
 
 export const Profile: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { user: telegramUser } = useTelegram();
+  const { profile, loading, saving, updateProfile, uploadAvatar } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [formData, setFormData] = useState({
-    fullName: user?.user_metadata?.full_name || '',
-    email: user?.email || '',
+    full_name: '',
     bio: '',
-    position: t('channel-administrator'),
-    location: t('moscow-russia')
+    position: '',
+    location: ''
   });
 
-  const handleSave = () => {
-    // Здесь будет логика сохранения профиля
-    console.log('Сохранение профиля:', formData);
-    setIsEditing(false);
+  React.useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        bio: profile.bio || '',
+        position: profile.position || t('channel-administrator'),
+        location: profile.location || t('moscow-russia')
+      });
+    }
+  }, [profile, t]);
+
+  const handleSave = async () => {
+    const success = await updateProfile(formData);
+    if (success) {
+      setIsEditing(false);
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setFormData({
-      fullName: user?.user_metadata?.full_name || '',
-      email: user?.email || '',
-      bio: '',
-      position: t('channel-administrator'),
-      location: t('moscow-russia')
-    });
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        bio: profile.bio || '',
+        position: profile.position || t('channel-administrator'),
+        location: profile.location || t('moscow-russia')
+      });
+    }
   };
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setAvatarUrl(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (file && profile) {
+      const avatarUrl = await uploadAvatar(file);
+      if (avatarUrl) {
+        await updateProfile({ avatar_url: avatarUrl });
+      }
     }
   };
 
   const getAvatarFallback = () => {
-    if (formData.fullName) {
-      return formData.fullName[0].toUpperCase();
+    if (formData.full_name) {
+      return formData.full_name[0].toUpperCase();
     }
     if (telegramUser?.first_name) {
       return telegramUser.first_name[0].toUpperCase();
@@ -77,11 +90,28 @@ export const Profile: React.FC = () => {
     return 'U';
   };
 
+  const getDisplayName = () => {
+    if (formData.full_name) return formData.full_name;
+    if (telegramUser?.first_name && telegramUser?.last_name) {
+      return `${telegramUser.first_name} ${telegramUser.last_name}`.trim();
+    }
+    if (telegramUser?.first_name) return telegramUser.first_name;
+    return t('user');
+  };
+
   const stats = [
     { label: t('active-channels'), value: '3', icon: MessageSquare },
     { label: t('published-posts'), value: '127', icon: Activity },
     { label: t('views'), value: '45.2K', icon: BarChart3 }
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-4 sm:p-0">
@@ -95,7 +125,6 @@ export const Profile: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Основная информация профиля */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -120,6 +149,7 @@ export const Profile: React.FC = () => {
                     size="sm"
                     onClick={handleCancel}
                     className="text-gray-600 dark:text-gray-400"
+                    disabled={saving}
                   >
                     <X className="h-4 w-4 mr-2" />
                     {t('cancel')}
@@ -128,8 +158,13 @@ export const Profile: React.FC = () => {
                     size="sm"
                     onClick={handleSave}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={saving}
                   >
-                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
                     {t('save')}
                   </Button>
                 </div>
@@ -141,7 +176,7 @@ export const Profile: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     <div className="relative">
                       <Avatar className="h-16 w-16">
-                        {avatarUrl && <AvatarImage src={avatarUrl} />}
+                        {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
                         <AvatarFallback className="text-lg">
                           {getAvatarFallback()}
                         </AvatarFallback>
@@ -149,7 +184,7 @@ export const Profile: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        {formData.fullName || `${telegramUser?.first_name || ''} ${telegramUser?.last_name || ''}`.trim() || t('user')}
+                        {getDisplayName()}
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400">{formData.position}</p>
                       <Badge className="mt-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
@@ -164,7 +199,7 @@ export const Profile: React.FC = () => {
                       <Label className="text-gray-700 dark:text-gray-300">Email</Label>
                       <div className="flex items-center mt-1 text-gray-900 dark:text-gray-100">
                         <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                        {formData.email}
+                        {profile?.email || user?.email}
                       </div>
                     </div>
                     <div>
@@ -187,7 +222,7 @@ export const Profile: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     <div className="relative">
                       <Avatar className="h-16 w-16">
-                        {avatarUrl && <AvatarImage src={avatarUrl} />}
+                        {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
                         <AvatarFallback className="text-lg">
                           {getAvatarFallback()}
                         </AvatarFallback>
@@ -211,8 +246,8 @@ export const Profile: React.FC = () => {
                       </Label>
                       <Input
                         id="fullName"
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        value={formData.full_name}
+                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                         className="mt-1"
                       />
                     </div>
@@ -284,7 +319,6 @@ export const Profile: React.FC = () => {
 
         {/* Боковая панель */}
         <div className="space-y-6">
-          {/* Быстрые действия */}
           <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-gray-100 flex items-center space-x-2">
@@ -308,7 +342,6 @@ export const Profile: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Telegram информация */}
           {telegramUser && (
             <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
               <CardHeader>

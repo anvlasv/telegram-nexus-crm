@@ -43,7 +43,6 @@ const loadNotificationsFromStorage = () => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsedNotifications = JSON.parse(stored);
-      // Проверяем, что структура данных корректна
       if (Array.isArray(parsedNotifications) && parsedNotifications.length > 0) {
         return parsedNotifications;
       }
@@ -65,7 +64,6 @@ const saveNotificationsToStorage = (notifications: any[]) => {
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState(() => loadNotificationsFromStorage());
 
-  // Сохраняем состояние в localStorage при изменении уведомлений
   useEffect(() => {
     saveNotificationsToStorage(notifications);
   }, [notifications]);
@@ -94,6 +92,7 @@ export const useNotifications = () => {
 
   return {
     notifications,
+    setNotifications,
     unreadCount,
     markAsRead,
     markAllAsRead,

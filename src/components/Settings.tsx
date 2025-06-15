@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -8,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { TelegramInfo } from './TelegramInfo';
 import { Globe, Bot, Database, ExternalLink, Settings as SettingsIcon, Bell, Shield, Palette, Users, Download, Upload, RefreshCw } from 'lucide-react';
 
@@ -20,6 +20,7 @@ interface SettingsModule {
 
 export const Settings: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
+  const { settings, updateSettings, notifyPostPublished, notifyPublishingError, notifyLowActivity, notifyNewPartner } = useNotificationSystem();
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
 
   const settingsModules: SettingsModule[] = [
@@ -73,6 +74,13 @@ export const Settings: React.FC = () => {
 
   const closeModule = () => {
     setSelectedModule(null);
+  };
+
+  const testNotifications = () => {
+    notifyPostPublished('Tech News');
+    setTimeout(() => notifyPublishingError('Crypto News', 'Недостаточно прав доступа'), 1000);
+    setTimeout(() => notifyLowActivity('Marketing Tips'), 2000);
+    setTimeout(() => notifyNewPartner('Digital Agency'), 3000);
   };
 
   const renderModuleContent = (moduleId: string) => {
@@ -197,35 +205,62 @@ export const Settings: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('push-notifications')}</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">{t('push-notifications')}</h4>
+                <Button variant="outline" size="sm" onClick={testNotifications}>
+                  Тест уведомлений
+                </Button>
+              </div>
               <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Основные уведомления</Label>
+                    <p className="text-xs text-gray-500">Показывать всплывающие уведомления</p>
+                  </div>
+                  <Switch 
+                    checked={settings.push_notifications}
+                    onCheckedChange={(checked) => updateSettings({ push_notifications: checked })}
+                  />
+                </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-sm font-medium">{t('new-messages')}</Label>
                     <p className="text-xs text-gray-500">{t('new-messages-desc')}</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={settings.new_messages}
+                    onCheckedChange={(checked) => updateSettings({ new_messages: checked })}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-sm font-medium">{t('scheduled-posts-notifications')}</Label>
                     <p className="text-xs text-gray-500">{t('scheduled-posts-desc')}</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={settings.scheduled_posts}
+                    onCheckedChange={(checked) => updateSettings({ scheduled_posts: checked })}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-sm font-medium">{t('channel-statistics')}</Label>
                     <p className="text-xs text-gray-500">{t('channel-statistics-desc')}</p>
                   </div>
-                  <Switch />
+                  <Switch 
+                    checked={settings.channel_statistics}
+                    onCheckedChange={(checked) => updateSettings({ channel_statistics: checked })}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-sm font-medium">{t('publishing-errors')}</Label>
                     <p className="text-xs text-gray-500">{t('publishing-errors-desc')}</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={settings.publishing_errors}
+                    onCheckedChange={(checked) => updateSettings({ publishing_errors: checked })}
+                  />
                 </div>
               </div>
             </div>
@@ -234,24 +269,43 @@ export const Settings: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
+                    <Label className="text-sm font-medium">Email уведомления</Label>
+                    <p className="text-xs text-gray-500">Отправлять уведомления на email</p>
+                  </div>
+                  <Switch 
+                    checked={settings.email_notifications}
+                    onCheckedChange={(checked) => updateSettings({ email_notifications: checked })}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
                     <Label className="text-sm font-medium">{t('weekly-reports')}</Label>
                     <p className="text-xs text-gray-500">{t('weekly-reports-desc')}</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={settings.weekly_reports}
+                    onCheckedChange={(checked) => updateSettings({ weekly_reports: checked })}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-sm font-medium">{t('critical-errors')}</Label>
                     <p className="text-xs text-gray-500">{t('critical-errors-desc')}</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={settings.critical_errors}
+                    onCheckedChange={(checked) => updateSettings({ critical_errors: checked })}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-sm font-medium">{t('product-news')}</Label>
                     <p className="text-xs text-gray-500">{t('product-news-desc')}</p>
                   </div>
-                  <Switch />
+                  <Switch 
+                    checked={settings.product_news}
+                    onCheckedChange={(checked) => updateSettings({ product_news: checked })}
+                  />
                 </div>
               </div>
             </div>
@@ -260,11 +314,17 @@ export const Settings: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium">{t('notification-sound')}</Label>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={settings.notification_sound}
+                    onCheckedChange={(checked) => updateSettings({ notification_sound: checked })}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium">{t('vibration')}</Label>
-                  <Switch defaultChecked />
+                  <Switch 
+                    checked={settings.vibration}
+                    onCheckedChange={(checked) => updateSettings({ vibration: checked })}
+                  />
                 </div>
               </div>
             </div>
