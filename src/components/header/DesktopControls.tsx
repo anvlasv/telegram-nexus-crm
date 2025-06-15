@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { ChevronDown, Bell, Sun, Moon, Globe, User, Settings, LogOut } from 'lucide-react';
+import { ChevronDown, Bell, Globe, User, Settings, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -26,7 +25,7 @@ interface DesktopControlsProps {
 export const DesktopControls: React.FC<DesktopControlsProps> = ({
   onNotificationsClick
 }) => {
-  const { isDarkTheme, toggleTheme, user: telegramUser } = useTelegram();
+  const { user: telegramUser } = useTelegram();
   const { language, setLanguage, t } = useLanguage();
   const { unreadCount } = useNotifications();
   const { profile } = useProfile();
@@ -78,13 +77,6 @@ export const DesktopControls: React.FC<DesktopControlsProps> = ({
         )}
       </Button>
 
-      {/* Desktop Theme Switcher */}
-      <div className="hidden lg:flex items-center gap-1">
-        <Sun className="h-4 w-4 text-muted-foreground" />
-        <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
-        <Moon className="h-4 w-4 text-muted-foreground" />
-      </div>
-
       {/* Desktop Language toggle */}
       <Button
         variant="ghost"
@@ -96,7 +88,7 @@ export const DesktopControls: React.FC<DesktopControlsProps> = ({
         <span className="ml-1 text-xs">{language.toUpperCase()}</span>
       </Button>
 
-      {/* Profile menu */}
+      {/* Profile menu - only on desktop */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="hidden lg:flex items-center gap-2">

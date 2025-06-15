@@ -9,7 +9,9 @@ import {
   Zap,
   Target,
   Bell,
-  Bot
+  Bot,
+  Sun,
+  Moon
 } from 'lucide-react';
 import {
   Sidebar,
@@ -25,7 +27,10 @@ import {
   SidebarTrigger,
   useSidebar
 } from '@/components/ui/sidebar';
+import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTelegram } from '@/hooks/useTelegram';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const navigation = [
   { name: 'dashboard', href: '/', icon: BarChart3 },
@@ -41,16 +46,18 @@ const navigation = [
 export function AppSidebar() {
   const location = useLocation();
   const { t } = useLanguage();
-  const { setOpenMobile, isMobile } = useSidebar();
+  const { setOpenMobile, isMobile: sidebarIsMobile, state } = useSidebar();
+  const isMobile = useIsMobile();
+  const { isDarkTheme, toggleTheme } = useTelegram();
 
   const handleLinkClick = () => {
-    if (isMobile) {
+    if (sidebarIsMobile) {
       setOpenMobile(false);
     }
   };
 
   return (
-    <Sidebar variant="inset" collapsible="icon" className="sidebar-collapsed">
+    <Sidebar variant="inset" collapsible="icon" className="sidebar-collapsed w-16 group-data-[state=expanded]:w-64">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
@@ -87,11 +94,37 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Theme toggle for desktop/tablet - middle of sidebar */}
+        {!isMobile && (
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupContent>
+              <div className="flex items-center justify-center gap-2 px-4 py-2">
+                <Sun className="h-4 w-4 text-muted-foreground" />
+                <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
+                <Moon className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
+        {/* Theme toggle for mobile - bottom of sidebar */}
+        {isMobile && (
+          <div className="flex items-center justify-center gap-2 px-4 py-2 border-t">
+            <Sun className="h-4 w-4 text-muted-foreground" />
+            <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
+            <Moon className="h-4 w-4 text-muted-foreground" />
+          </div>
+        )}
+        
         <div className="flex items-center justify-between px-4 py-2">
           <span className="truncate text-xs text-muted-foreground">v2.0</span>
-          <SidebarTrigger />
+          {state === 'collapsed' ? (
+            <SidebarTrigger />
+          ) : (
+            <SidebarTrigger />
+          )}
         </div>
       </SidebarFooter>
       <SidebarRail />

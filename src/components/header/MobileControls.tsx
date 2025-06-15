@@ -1,12 +1,10 @@
 
 import React from 'react';
-import { Bell, Sun, Moon, Globe, Menu } from 'lucide-react';
+import { Bell, Globe, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MiniAppMenu } from "../MiniAppMenu";
-import { useTelegram } from '@/hooks/useTelegram';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -21,7 +19,6 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
   setShowMenuSheet,
   onNotificationsClick
 }) => {
-  const { isDarkTheme, toggleTheme } = useTelegram();
   const { language, setLanguage } = useLanguage();
   const { unreadCount } = useNotifications();
 
@@ -44,14 +41,7 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
         )}
       </Button>
 
-      {/* Mobile Theme Switcher */}
-      <div className="flex lg:hidden items-center gap-1">
-        <Sun className="h-4 w-4 text-muted-foreground" />
-        <Switch checked={isDarkTheme} onCheckedChange={toggleTheme} />
-        <Moon className="h-4 w-4 text-muted-foreground" />
-      </div>
-
-      {/* Mobile Language toggle - глобус и буквы в одну строчку */}
+      {/* Mobile Language toggle */}
       <Button
         variant="ghost"
         size="sm"
@@ -62,8 +52,8 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
         <span className="text-xs">{language.toUpperCase()}</span>
       </Button>
 
-      {/* Mobile Menu Sheet */}
-      <div className="block lg:hidden">
+      {/* Mobile Menu Sheet - only show on mobile (below md breakpoint) */}
+      <div className="block md:hidden">
         <Sheet open={showMenuSheet} onOpenChange={setShowMenuSheet}>
           <SheetTrigger asChild>
             <Button
