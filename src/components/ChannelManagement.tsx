@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
@@ -156,26 +157,6 @@ export const ChannelManagement: React.FC = () => {
 
   const getRelatedCampaignsCount = (channelId: string) => {
     return campaigns.filter((campaign: any) => campaign.channel_id === channelId).length;
-  };
-
-  const handleDelete = async (id: string) => {
-    if (confirm('Вы уверены, что хотите удалить этот канал?')) {
-      try {
-        await deleteChannel.mutateAsync(id);
-        toast.success('Канал успешно удален');
-      } catch (error) {
-        console.error('Error deleting channel:', error);
-        
-        // Проверяем специфичные ошибки
-        if (error instanceof Error && error.message.includes('foreign key constraint')) {
-          toast.error('Невозможно удалить канал: у него есть связанные рекламные кампании. Сначала удалите все кампании этого канала.');
-        } else if (error instanceof Error && error.message.includes('23503')) {
-          toast.error('Невозможно удалить канал: у него есть связанные данные. Сначала удалите все связанные записи.');
-        } else {
-          toast.error('Ошибка при удалении канала: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
-        }
-      }
-    }
   };
 
   const handleAddChannel = () => {
