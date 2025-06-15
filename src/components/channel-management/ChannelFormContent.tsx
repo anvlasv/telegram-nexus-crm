@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -140,7 +139,7 @@ export const ChannelFormContent: React.FC<ChannelFormContentProps> = ({
   });
 
   return (
-    <>
+    <div className="space-y-4">
       <ChannelVerification
         verificationStatus={verificationStatus}
         verificationMessage={verificationMessage}
@@ -155,7 +154,7 @@ export const ChannelFormContent: React.FC<ChannelFormContentProps> = ({
           editingChannel={editingChannel}
         />
         
-        <DialogFooter>
+        <DialogFooter className="pt-4 border-t border-gray-200 dark:border-gray-600">
           <Button
             type="button"
             variant="outline"
@@ -174,6 +173,6 @@ export const ChannelFormContent: React.FC<ChannelFormContentProps> = ({
           </Button>
         </DialogFooter>
       </form>
-    </>
+    </div>
   );
 };
