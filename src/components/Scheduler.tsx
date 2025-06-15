@@ -181,13 +181,12 @@ export const Scheduler: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={cn(
-                      "w-full h-10 pl-10 pr-4 transition-opacity",
+                      "w-full h-10 pl-4 pr-4 transition-opacity",
                       !searchOpen && "opacity-0 p-0 border-0"
                     )}
                     disabled={!searchOpen}
                     ref={input => searchOpen && input?.focus()}
                   />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 </div>
                 <Button
                   variant="outline"
