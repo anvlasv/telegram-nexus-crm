@@ -18,7 +18,7 @@ export const ChannelVerification: React.FC<ChannelVerificationProps> = ({
 }) => {
   return (
     <>
-      {!editingChannel && (
+      {!editingChannel && verificationStatus !== 'success' && (
         <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 mb-4">
           <Bot className="h-4 w-4" />
           <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
@@ -49,7 +49,7 @@ export const ChannelVerification: React.FC<ChannelVerificationProps> = ({
       {chatData && (
         <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg space-y-2 mb-4">
           <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">Информация о канале:</h4>
-          <div className="grid grid-cols-1 gap-1 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-xs">
             <p><strong>Название:</strong> {chatData.title}</p>
             <p><strong>Username:</strong> @{chatData.username}</p>
             <p><strong>ID:</strong> {chatData.id}</p>
