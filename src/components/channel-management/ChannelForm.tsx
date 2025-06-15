@@ -39,28 +39,32 @@ export const ChannelForm: React.FC<ChannelFormProps> = ({
   const [chatData, setChatData] = useState<any>(null);
 
   useEffect(() => {
-    if (editingChannel) {
-      setFormData({
-        username: editingChannel.username,
-        type: editingChannel.type,
-        status: editingChannel.status,
-        timezone: editingChannel.timezone || 'Europe/Moscow',
-      });
-    } else {
-      setFormData({
-        username: '',
-        type: 'channel',
-        status: 'active',
-        timezone: 'Europe/Moscow',
-      });
-      setVerificationStatus('idle');
-      setVerificationMessage('');
-      setChatData(null);
+    if (isOpen) {
+      if (editingChannel) {
+        setFormData({
+          username: editingChannel.username,
+          type: editingChannel.type,
+          status: editingChannel.status,
+          timezone: editingChannel.timezone || 'Europe/Moscow',
+        });
+        setVerificationStatus('success');
+        setChatData(editingChannel);
+      } else {
+        setFormData({
+          username: '',
+          type: 'channel',
+          status: 'active',
+          timezone: 'Europe/Moscow',
+        });
+        setVerificationStatus('idle');
+        setVerificationMessage('');
+        setChatData(null);
+      }
     }
   }, [editingChannel, isOpen]);
 
   const verifyChannel = async (username: string) => {
-    if (!username) return;
+    if (!username || editingChannel) return;
 
     setVerificationStatus('checking');
     setVerificationMessage('');
@@ -120,13 +124,13 @@ export const ChannelForm: React.FC<ChannelFormProps> = ({
   };
 
   useEffect(() => {
-    if (formData.username && !editingChannel) {
+    if (formData.username && !editingChannel && verificationStatus === 'idle') {
       const timer = setTimeout(() => {
         verifyChannel(formData.username);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [formData.username]);
+  }, [formData.username, editingChannel, verificationStatus]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

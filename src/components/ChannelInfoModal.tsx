@@ -9,7 +9,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Users, Calendar, Activity, Globe, Hash, AtSign } from 'lucide-react';
+import { Users, Calendar, Activity, Globe, Hash, AtSign, Clock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
@@ -25,6 +25,7 @@ interface Channel {
   last_post_at?: string;
   engagement_rate?: number;
   type?: string;
+  timezone?: string;
 }
 
 interface ChannelInfoModalProps {
@@ -54,6 +55,32 @@ export const ChannelInfoModal: React.FC<ChannelInfoModalProps> = ({
       case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
     }
+  };
+
+  const getTimezoneDisplay = (timezone?: string) => {
+    if (!timezone) return '—';
+    
+    // Найдем соответствующую запись в списке часовых поясов
+    const timezones = [
+      { value: 'Europe/Moscow', label: 'Москва (UTC+3)' },
+      { value: 'Europe/Kiev', label: 'Киев (UTC+2)' },
+      { value: 'Europe/Minsk', label: 'Минск (UTC+3)' },
+      { value: 'Asia/Almaty', label: 'Алматы (UTC+6)' },
+      { value: 'Asia/Tashkent', label: 'Ташкент (UTC+5)' },
+      { value: 'Asia/Yerevan', label: 'Ереван (UTC+4)' },
+      { value: 'Asia/Baku', label: 'Баку (UTC+4)' },
+      { value: 'Europe/London', label: 'Лондон (UTC+0)' },
+      { value: 'Europe/Berlin', label: 'Берлин (UTC+1)' },
+      { value: 'America/New_York', label: 'Нью-Йорк (UTC-5)' },
+      { value: 'America/Los_Angeles', label: 'Лос-Анджелес (UTC-8)' },
+      { value: 'Asia/Tokyo', label: 'Токио (UTC+9)' },
+      { value: 'Asia/Shanghai', label: 'Шанхай (UTC+8)' },
+      { value: 'Asia/Dubai', label: 'Дубай (UTC+4)' },
+      { value: 'Australia/Sydney', label: 'Сидней (UTC+10)' },
+    ];
+    
+    const timezoneInfo = timezones.find(tz => tz.value === timezone);
+    return timezoneInfo ? timezoneInfo.label : timezone;
   };
 
   return (
@@ -128,6 +155,14 @@ export const ChannelInfoModal: React.FC<ChannelInfoModalProps> = ({
               <p className="font-medium">
                 {channel.type === 'channel' ? t('public-channel') : t('private-channel')}
               </p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Часовой пояс
+              </label>
+              <p className="font-medium">{getTimezoneDisplay(channel.timezone)}</p>
             </div>
             
             <div>
