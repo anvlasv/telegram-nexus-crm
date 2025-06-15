@@ -303,6 +303,7 @@ export type Database = {
           name: string
           status: string | null
           subscriber_count: number | null
+          timezone: string | null
           type: string | null
           updated_at: string
           user_id: string
@@ -318,6 +319,7 @@ export type Database = {
           name: string
           status?: string | null
           subscriber_count?: number | null
+          timezone?: string | null
           type?: string | null
           updated_at?: string
           user_id: string
@@ -333,6 +335,7 @@ export type Database = {
           name?: string
           status?: string | null
           subscriber_count?: number | null
+          timezone?: string | null
           type?: string | null
           updated_at?: string
           user_id?: string

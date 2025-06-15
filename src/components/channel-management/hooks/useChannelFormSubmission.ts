@@ -24,7 +24,15 @@ export const useChannelFormSubmission = ({
   ) => {
     e.preventDefault();
     
+    console.log('[Form Submission] Starting submission with data:', {
+      formData,
+      chatData,
+      editingChannel,
+      verificationStatus
+    });
+    
     if (!editingChannel && (!chatData || verificationStatus !== 'success')) {
+      console.log('[Form Submission] Validation failed - missing chat data or verification');
       toast.error('Сначала введите корректный username канала');
       return;
     }
@@ -32,21 +40,33 @@ export const useChannelFormSubmission = ({
     setIsSubmitting(true);
 
     try {
-      console.log('Submitting form data:', formData);
-      console.log('Channel data:', editingChannel || chatData);
+      console.log('[Form Submission] Calling onSubmit with:', {
+        formData,
+        channelData: editingChannel || chatData
+      });
       
       // Для редактирования передаем form data и оригинальные данные канала
       if (editingChannel) {
+        console.log('[Form Submission] Updating existing channel');
         await onSubmit(formData, editingChannel);
       } else {
+        console.log('[Form Submission] Creating new channel');
         await onSubmit(formData, chatData);
       }
       
+      console.log('[Form Submission] Submit successful, closing form');
       onClose();
       resetForm();
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('Ошибка при сохранении канала');
+      console.error('[Form Submission] Error submitting form:', error);
+      
+      // More detailed error logging
+      if (error instanceof Error) {
+        console.error('[Form Submission] Error message:', error.message);
+        console.error('[Form Submission] Error stack:', error.stack);
+      }
+      
+      toast.error('Ошибка при сохранении канала: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
     } finally {
       setIsSubmitting(false);
     }

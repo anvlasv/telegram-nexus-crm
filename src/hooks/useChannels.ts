@@ -101,21 +101,40 @@ export const useCreateChannel = () => {
   
   return useMutation({
     mutationFn: async (channel: Omit<ChannelInsert, 'user_id'>) => {
+      console.log('[useCreateChannel] Starting channel creation with data:', channel);
+      
       const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error('User not authenticated');
+      if (!userData.user) {
+        console.error('[useCreateChannel] User not authenticated');
+        throw new Error('User not authenticated');
+      }
+      
+      console.log('[useCreateChannel] User authenticated, inserting channel');
+      
+      const insertData = { ...channel, user_id: userData.user.id };
+      console.log('[useCreateChannel] Insert data:', insertData);
       
       const { data, error } = await supabase
         .from('telegram_channels')
-        .insert([{ ...channel, user_id: userData.user.id }])
+        .insert([insertData])
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('[useCreateChannel] Database error:', error);
+        throw error;
+      }
+      
+      console.log('[useCreateChannel] Channel created successfully:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[useCreateChannel] Success callback, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['telegram-channels'] });
     },
+    onError: (error) => {
+      console.error('[useCreateChannel] Error callback:', error);
+    }
   });
 };
 
@@ -124,6 +143,8 @@ export const useUpdateChannel = () => {
   
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<ChannelUpdate>) => {
+      console.log('[useUpdateChannel] Starting channel update:', { id, updates });
+      
       const { data, error } = await supabase
         .from('telegram_channels')
         .update(updates)
@@ -131,12 +152,21 @@ export const useUpdateChannel = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('[useUpdateChannel] Database error:', error);
+        throw error;
+      }
+      
+      console.log('[useUpdateChannel] Channel updated successfully:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[useUpdateChannel] Success callback, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['telegram-channels'] });
     },
+    onError: (error) => {
+      console.error('[useUpdateChannel] Error callback:', error);
+    }
   });
 };
 

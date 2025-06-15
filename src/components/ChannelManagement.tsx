@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
@@ -25,6 +24,12 @@ export const ChannelManagement: React.FC = () => {
   };
 
   const handleFormSubmit = async (formData: any, chatData: any) => {
+    console.log('[ChannelManagement] handleFormSubmit called with:', {
+      formData,
+      chatData,
+      editingChannel
+    });
+
     try {
       const channelData = {
         name: chatData?.title || chatData?.username || formData.username || 'Untitled Channel',
@@ -32,26 +37,43 @@ export const ChannelManagement: React.FC = () => {
         channel_id: chatData?.id || editingChannel?.channel_id,
         type: formData.type,
         status: formData.status,
-        timezone: formData.timezone,
+        timezone: formData.timezone || 'Europe/Moscow',
         subscriber_count: chatData?.member_count || editingChannel?.subscriber_count || 0,
         avatar_url: chatData?.avatar_url || (editingChannel ? editingChannel.avatar_url : null),
       };
 
+      console.log('[ChannelManagement] Prepared channel data:', channelData);
+
       if (editingChannel) {
+        console.log('[ChannelManagement] Updating channel with ID:', editingChannel.id);
         await updateChannel.mutateAsync({
           id: editingChannel.id,
           ...channelData,
         });
+        console.log('[ChannelManagement] Channel update successful');
         toast.success('Канал успешно обновлен');
       } else {
+        console.log('[ChannelManagement] Creating new channel');
         await createChannel.mutateAsync(channelData);
+        console.log('[ChannelManagement] Channel creation successful');
         toast.success('Канал успешно подключен');
       }
       
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {
-      toast.error('Ошибка при сохранении канала');
+      console.error('[ChannelManagement] Error in handleFormSubmit:', error);
+      
+      // More detailed error information
+      if (error instanceof Error) {
+        console.error('[ChannelManagement] Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+      }
+      
+      toast.error('Ошибка при сохранении канала: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
       console.error('Error saving channel:', error);
     }
   };
