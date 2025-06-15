@@ -16,11 +16,54 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useMutation } from '@tanstack/react-query';
+
+async function generateWithAI(prompt: string): Promise<string> {
+  const resp = await fetch('/functions/v1/generate-with-ai', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ prompt }),
+  });
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    throw new Error(data.error || 'AI generation failed');
+  }
+  const data = await resp.json();
+  return data.generatedText || '';
+}
 
 export const Assistant: React.FC = () => {
   const { t } = useLanguage();
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{id: string, role: 'user' | 'assistant', content: string}>>([]);
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const aiMutation = useMutation({
+    mutationFn: async (prompt: string) => {
+      setErrorMsg(null);
+      return await generateWithAI(prompt);
+    },
+    onSuccess: (aiReply: string) => {
+      setChatHistory(prev => [
+        ...prev,
+        {
+          id: `${Date.now()}-ai`,
+          role: 'assistant',
+          content: aiReply || t('ai-response-placeholder'),
+        }
+      ]);
+      setIsLoading(false);
+      setMessage('');
+    },
+    onError: (err: any) => {
+      setErrorMsg(err instanceof Error ? err.message : 'AI error');
+      setIsLoading(false);
+    }
+  });
 
   const assistantFeatures = [
     {
@@ -28,48 +71,93 @@ export const Assistant: React.FC = () => {
       title: t('content-generation'),
       description: t('content-generation-desc'),
       action: t('generate-post'),
+      onClick: () => {
+        // Пример prompt для генерации поста
+        const postPrompt = t('generate-post-idea') + ': ' + t('give-me-a-fresh-post-idea');
+        setChatHistory(prev => [
+          ...prev,
+          {
+            id: `${Date.now()}-user-feature`,
+            role: 'user',
+            content: postPrompt,
+          }
+        ]);
+        setIsLoading(true);
+        aiMutation.mutate(postPrompt);
+      }
     },
     {
       icon: Image,
       title: t('image-generation'),
       description: t('image-generation-desc'),
       action: t('create-image'),
+      onClick: () => {
+        const imagePrompt = t('generate-image-ai');
+        setChatHistory(prev => [
+          ...prev,
+          {
+            id: `${Date.now()}-user-image`,
+            role: 'user',
+            content: imagePrompt,
+          }
+        ]);
+        setIsLoading(true);
+        aiMutation.mutate(imagePrompt);
+      }
     },
     {
       icon: TrendingUp,
       title: t('analytics-insights'),
       description: t('analytics-insights-desc'),
       action: t('analyze-data'),
+      onClick: () => {
+        const analyticsPrompt = t('analytics-insight-prompt') || 'Проанализируй недавние показатели канала и предложи улучшения.';
+        setChatHistory(prev => [
+          ...prev,
+          {
+            id: `${Date.now()}-user-analytics`,
+            role: 'user',
+            content: analyticsPrompt,
+          }
+        ]);
+        setIsLoading(true);
+        aiMutation.mutate(analyticsPrompt);
+      }
     },
     {
       icon: Calendar,
       title: t('schedule-optimization'),
       description: t('schedule-optimization-desc'),
       action: t('optimize-schedule'),
+      onClick: () => {
+        const schedulePrompt = t('schedule-optimization-prompt') || 'Оптимизируй расписание публикаций для максимального вовлечения.';
+        setChatHistory(prev => [
+          ...prev,
+          {
+            id: `${Date.now()}-user-schedule`,
+            role: 'user',
+            content: schedulePrompt,
+          }
+        ]);
+        setIsLoading(true);
+        aiMutation.mutate(schedulePrompt);
+      }
     },
   ];
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
-    
-    const newMessage = {
-      id: Date.now().toString(),
-      role: 'user' as const,
-      content: message
-    };
-    
-    setChatHistory(prev => [...prev, newMessage]);
-    setMessage('');
-    
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant' as const,
-        content: t('ai-response-placeholder')
-      };
-      setChatHistory(prev => [...prev, aiResponse]);
-    }, 1000);
+
+    setChatHistory(prev => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        role: 'user',
+        content: message,
+      }
+    ]);
+    setIsLoading(true);
+    aiMutation.mutate(message);
   };
 
   return (
@@ -86,7 +174,6 @@ export const Assistant: React.FC = () => {
             <Sparkles className="h-5 w-5 text-primary" />
             {t('ai-features')}
           </h2>
-          
           <div className="grid gap-4">
             {assistantFeatures.map((feature, index) => (
               <Card key={index} className="transition-shadow hover:shadow-md">
@@ -98,7 +185,7 @@ export const Assistant: React.FC = () => {
                   <CardDescription>{feature.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={feature.onClick}>
                     {feature.action}
                   </Button>
                 </CardContent>
@@ -145,6 +232,20 @@ export const Assistant: React.FC = () => {
                   </div>
                 ))
               )}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-lg px-3 py-2 bg-muted text-muted-foreground animate-pulse">
+                    {t('ai-typing') || 'AI печатает...'}
+                  </div>
+                </div>
+              )}
+              {errorMsg && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-lg px-3 py-2 bg-destructive/10 text-destructive">
+                    {errorMsg}
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Message Input */}
@@ -153,10 +254,11 @@ export const Assistant: React.FC = () => {
                 placeholder={t('type-message')}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
                 className="flex-1"
+                disabled={isLoading}
               />
-              <Button onClick={handleSendMessage} size="icon">
+              <Button onClick={handleSendMessage} size="icon" disabled={isLoading}>
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -172,19 +274,79 @@ export const Assistant: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => {
+              const quickPrompt = t('generate-post-idea');
+              setChatHistory(prev => [
+                ...prev,
+                {
+                  id: `${Date.now()}-user-quick`,
+                  role: 'user',
+                  content: quickPrompt,
+                }
+              ]);
+              setIsLoading(true);
+              aiMutation.mutate(quickPrompt);
+            }}>
               {t('generate-post-idea')}
             </Badge>
-            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => {
+              const quickPrompt = t('improve-engagement');
+              setChatHistory(prev => [
+                ...prev,
+                {
+                  id: `${Date.now()}-user-quick2`,
+                  role: 'user',
+                  content: quickPrompt,
+                }
+              ]);
+              setIsLoading(true);
+              aiMutation.mutate(quickPrompt);
+            }}>
               {t('improve-engagement')}
             </Badge>
-            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => {
+              const quickPrompt = t('analyze-competitors');
+              setChatHistory(prev => [
+                ...prev,
+                {
+                  id: `${Date.now()}-user-quick3`,
+                  role: 'user',
+                  content: quickPrompt,
+                }
+              ]);
+              setIsLoading(true);
+              aiMutation.mutate(quickPrompt);
+            }}>
               {t('analyze-competitors')}
             </Badge>
-            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => {
+              const quickPrompt = t('optimize-hashtags');
+              setChatHistory(prev => [
+                ...prev,
+                {
+                  id: `${Date.now()}-user-quick4`,
+                  role: 'user',
+                  content: quickPrompt,
+                }
+              ]);
+              setIsLoading(true);
+              aiMutation.mutate(quickPrompt);
+            }}>
               {t('optimize-hashtags')}
             </Badge>
-            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground" onClick={() => {
+              const quickPrompt = t('create-content-plan');
+              setChatHistory(prev => [
+                ...prev,
+                {
+                  id: `${Date.now()}-user-quick5`,
+                  role: 'user',
+                  content: quickPrompt,
+                }
+              ]);
+              setIsLoading(true);
+              aiMutation.mutate(quickPrompt);
+            }}>
               {t('create-content-plan')}
             </Badge>
           </div>
@@ -193,3 +355,4 @@ export const Assistant: React.FC = () => {
     </div>
   );
 };
+// ... остальные импорты/экспорт как были
