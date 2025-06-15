@@ -1,11 +1,10 @@
 
 import React from 'react';
-import { Bell, Globe, Menu } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MiniAppMenu } from "../MiniAppMenu";
-import { useLanguage } from '@/contexts/LanguageContext';
 import { useNotifications } from '@/hooks/useNotifications';
 
 interface MobileControlsProps {
@@ -19,7 +18,6 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
   setShowMenuSheet,
   onNotificationsClick
 }) => {
-  const { language, setLanguage } = useLanguage();
   const { unreadCount } = useNotifications();
 
   return (
@@ -39,17 +37,6 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
             {unreadCount}
           </Badge>
         )}
-      </Button>
-
-      {/* Mobile Language toggle */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
-        className="flex lg:hidden items-center gap-1 px-2"
-      >
-        <Globe className="h-4 w-4" />
-        <span className="text-xs">{language.toUpperCase()}</span>
       </Button>
 
       {/* Mobile Menu Sheet - only show on mobile (below md breakpoint) */}
