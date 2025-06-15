@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ChevronDown, Bell, Sun, Moon, Globe, User, Settings, LogOut } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ import {
 import { useTelegram } from '@/hooks/useTelegram';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
 
 interface DesktopControlsProps {
@@ -25,9 +26,10 @@ interface DesktopControlsProps {
 export const DesktopControls: React.FC<DesktopControlsProps> = ({
   onNotificationsClick
 }) => {
-  const { isDarkTheme, toggleTheme } = useTelegram();
+  const { isDarkTheme, toggleTheme, user: telegramUser } = useTelegram();
   const { language, setLanguage, t } = useLanguage();
   const { unreadCount } = useNotifications();
+  const { profile } = useProfile();
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
@@ -36,6 +38,25 @@ export const DesktopControls: React.FC<DesktopControlsProps> = ({
 
   const handleSettingsClick = () => {
     navigate('/settings');
+  };
+
+  const getAvatarFallback = () => {
+    if (profile?.full_name) {
+      return profile.full_name[0].toUpperCase();
+    }
+    if (telegramUser?.first_name) {
+      return telegramUser.first_name[0].toUpperCase();
+    }
+    return 'U';
+  };
+
+  const getDisplayName = () => {
+    if (profile?.full_name) return profile.full_name;
+    if (telegramUser?.first_name && telegramUser?.last_name) {
+      return `${telegramUser.first_name} ${telegramUser.last_name}`.trim();
+    }
+    if (telegramUser?.first_name) return telegramUser.first_name;
+    return t('user');
   };
 
   return (
@@ -80,8 +101,12 @@ export const DesktopControls: React.FC<DesktopControlsProps> = ({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="hidden lg:flex items-center gap-2">
             <Avatar className="h-6 w-6">
-              <AvatarFallback className="text-xs">U</AvatarFallback>
+              {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
+              <AvatarFallback className="text-xs">
+                {getAvatarFallback()}
+              </AvatarFallback>
             </Avatar>
+            <span className="text-sm max-w-24 truncate">{getDisplayName()}</span>
             <ChevronDown className="h-3 w-3" />
           </Button>
         </DropdownMenuTrigger>

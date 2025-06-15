@@ -35,7 +35,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 
 export const useNotificationSystem = () => {
   const { toast } = useToast();
-  const { notifications, setNotifications } = useNotifications();
+  const { addNotification } = useNotifications();
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     const stored = localStorage.getItem('notification_settings');
     return stored ? JSON.parse(stored) : DEFAULT_SETTINGS;
@@ -51,24 +51,14 @@ export const useNotificationSystem = () => {
     return settings[type] === true;
   }, [settings]);
 
-  const addNotification = useCallback((
+  const showNotification = useCallback(async (
     title: string,
     message: string,
     severity: NotificationSeverity = 'info',
     category: keyof NotificationSettings = 'push_notifications'
   ) => {
-    const id = Date.now().toString();
-    const newNotification = {
-      id,
-      title,
-      message,
-      type: severity,
-      time: new Date().toLocaleString('ru-RU'),
-      read: false
-    };
-
-    // Add to notifications list
-    setNotifications(prev => [newNotification, ...prev]);
+    // Add to database
+    await addNotification(title, message, severity, category);
 
     // Show toast if enabled
     if (shouldShowNotification(category) && shouldShowNotification('push_notifications')) {
@@ -79,50 +69,50 @@ export const useNotificationSystem = () => {
       });
     }
 
-    console.log(`Notification added: ${severity} - ${title}`);
-  }, [toast, setNotifications, shouldShowNotification]);
+    console.log(`Notification: ${severity} - ${title}`);
+  }, [toast, addNotification, shouldShowNotification]);
 
   // Predefined notification methods
   const notifyPostPublished = useCallback((channelName: string) => {
-    addNotification(
+    showNotification(
       'Пост опубликован',
       `Ваш пост в канале "${channelName}" успешно опубликован`,
       'success',
       'scheduled_posts'
     );
-  }, [addNotification]);
+  }, [showNotification]);
 
   const notifyPublishingError = useCallback((channelName: string, error: string) => {
-    addNotification(
+    showNotification(
       'Ошибка публикации',
       `Не удалось опубликовать пост в канале "${channelName}": ${error}`,
       'error',
       'publishing_errors'
     );
-  }, [addNotification]);
+  }, [showNotification]);
 
   const notifyLowActivity = useCallback((channelName: string) => {
-    addNotification(
+    showNotification(
       'Низкая активность',
       `Канал "${channelName}" показывает снижение активности`,
       'warning',
       'channel_statistics'
     );
-  }, [addNotification]);
+  }, [showNotification]);
 
   const notifyNewPartner = useCallback((partnerName: string) => {
-    addNotification(
+    showNotification(
       'Новый партнер',
       `Заявка на сотрудничество от "${partnerName}"`,
       'info',
       'new_messages'
     );
-  }, [addNotification]);
+  }, [showNotification]);
 
   return {
     settings,
     updateSettings,
-    addNotification,
+    showNotification,
     notifyPostPublished,
     notifyPublishingError,
     notifyLowActivity,

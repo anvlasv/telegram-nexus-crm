@@ -19,7 +19,7 @@ export interface UserProfile {
 }
 
 export const useProfile = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,6 +130,12 @@ export const useProfile = () => {
       };
 
       setProfile(updatedProfile);
+      
+      // Refresh user context to update header
+      if (refreshUser) {
+        await refreshUser();
+      }
+      
       toast({
         title: 'Успешно',
         description: 'Профиль сохранен',
@@ -161,6 +167,11 @@ export const useProfile = () => {
 
       if (uploadError) {
         console.error('Error uploading avatar:', uploadError);
+        toast({
+          title: 'Ошибка',
+          description: 'Не удалось загрузить аватар',
+          variant: 'destructive',
+        });
         return null;
       }
 
@@ -171,6 +182,11 @@ export const useProfile = () => {
       return data.publicUrl;
     } catch (error) {
       console.error('Error in uploadAvatar:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Произошла ошибка при загрузке аватара',
+        variant: 'destructive',
+      });
       return null;
     }
   };

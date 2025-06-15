@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, CheckCircle, AlertCircle, Info, Trash2, Check } from 'lucide-react';
+import { Bell, CheckCircle, AlertCircle, Info, Trash2, Check, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -12,6 +12,7 @@ export const Notifications: React.FC = () => {
   const { t } = useLanguage();
   const { 
     notifications, 
+    loading,
     unreadCount, 
     markAsRead, 
     markAllAsRead, 
@@ -43,6 +44,14 @@ export const Notifications: React.FC = () => {
     return true;
   });
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -60,10 +69,12 @@ export const Notifications: React.FC = () => {
             Управление уведомлениями и оповещениями
           </p>
         </div>
-        <Button variant="outline" onClick={markAllAsRead}>
-          <Check className="mr-2 h-4 w-4" />
-          Отметить все как прочитанные
-        </Button>
+        {unreadCount > 0 && (
+          <Button variant="outline" onClick={markAllAsRead}>
+            <Check className="mr-2 h-4 w-4" />
+            Отметить все как прочитанные
+          </Button>
+        )}
       </div>
 
       <Tabs value={filter} onValueChange={setFilter} className="w-full">
@@ -106,7 +117,7 @@ export const Notifications: React.FC = () => {
                             {notification.message}
                           </p>
                           <p className="text-xs text-muted-foreground mt-2">
-                            {notification.time}
+                            {new Date(notification.created_at).toLocaleString('ru-RU')}
                           </p>
                         </div>
                         <div className="flex gap-2">
