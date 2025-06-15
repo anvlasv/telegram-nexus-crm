@@ -136,15 +136,21 @@ export const ChannelForm: React.FC<ChannelFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!chatData && !editingChannel) {
+    if (!editingChannel && (!chatData || verificationStatus !== 'success')) {
       toast.error('Сначала введите корректный username канала');
       return;
     }
 
     try {
-      // Для редактирования используем существующие данные канала
-      const submitData = editingChannel ? editingChannel : chatData;
-      await onSubmit(formData, submitData);
+      console.log('Submitting form data:', formData);
+      console.log('Channel data:', editingChannel || chatData);
+      
+      // Для редактирования передаем form data и оригинальные данные канала
+      if (editingChannel) {
+        await onSubmit(formData, editingChannel);
+      } else {
+        await onSubmit(formData, chatData);
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Ошибка при сохранении канала');
