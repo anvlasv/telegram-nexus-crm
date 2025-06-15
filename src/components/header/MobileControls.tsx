@@ -1,15 +1,24 @@
 
 import React from 'react';
-import { Bell, Menu, Globe, Moon, Sun } from 'lucide-react';
+import { Bell, Menu, Globe, Moon, Sun, ChevronDown, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { MiniAppMenu } from "../MiniAppMenu";
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTelegram } from '@/hooks/useTelegram';
 import { useProfile } from '@/hooks/useProfile';
+import { useNavigate } from 'react-router-dom';
 
 interface MobileControlsProps {
   showMenuSheet: boolean;
@@ -23,9 +32,18 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
   onNotificationsClick
 }) => {
   const { unreadCount } = useNotifications();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const { user: telegramUser, isDarkTheme, toggleTheme } = useTelegram();
   const { profile } = useProfile();
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
+  };
 
   const getAvatarFallback = () => {
     if (profile?.full_name) {
@@ -61,10 +79,10 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
         variant="ghost"
         size="sm"
         onClick={() => setLanguage(language === 'ru' ? 'en' : 'ru')}
-        className="block lg:hidden"
+        className="block lg:hidden flex items-center gap-1"
       >
         <Globe className="h-4 w-4" />
-        <span className="ml-1 text-xs">{language.toUpperCase()}</span>
+        <span className="text-xs">{language.toUpperCase()}</span>
       </Button>
 
       {/* Mobile Theme toggle */}
@@ -77,14 +95,72 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
         {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>
 
-      {/* Mobile Avatar */}
-      <div className="block lg:hidden">
-        <Avatar className="h-8 w-8">
-          {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
-          <AvatarFallback className="text-xs">
-            {getAvatarFallback()}
-          </AvatarFallback>
-        </Avatar>
+      {/* Mobile Avatar with dropdown (only for md and above) */}
+      <div className="hidden md:block lg:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="flex items-center gap-1 p-1">
+              <Avatar className="h-7 w-7">
+                {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
+                <AvatarFallback className="text-xs">
+                  {getAvatarFallback()}
+                </AvatarFallback>
+              </Avatar>
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>{t('account')}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleProfileClick}>
+              <User className="mr-2 h-4 w-4" />
+              {t('profile')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSettingsClick}>
+              <Settings className="mr-2 h-4 w-4" />
+              {t('settings')}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <LogOut className="mr-2 h-4 w-4" />
+              {t('logout')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Mobile Avatar (small screens only) with dropdown */}
+      <div className="block md:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="flex items-center gap-1 p-1">
+              <Avatar className="h-7 w-7">
+                {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
+                <AvatarFallback className="text-xs">
+                  {getAvatarFallback()}
+                </AvatarFallback>
+              </Avatar>
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>{t('account')}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleProfileClick}>
+              <User className="mr-2 h-4 w-4" />
+              {t('profile')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSettingsClick}>
+              <Settings className="mr-2 h-4 w-4" />
+              {t('settings')}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <LogOut className="mr-2 h-4 w-4" />
+              {t('logout')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Mobile Menu Sheet - only show on mobile (below md breakpoint) */}
