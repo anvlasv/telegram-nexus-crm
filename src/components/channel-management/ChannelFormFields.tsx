@@ -7,7 +7,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { TimezoneSelector } from './TimezoneSelector';
 
 interface FormData {
-  name?: string;
   username: string;
   type: 'channel' | 'group';
   status: 'active' | 'paused' | 'archived';
@@ -29,21 +28,6 @@ export const ChannelFormFields: React.FC<ChannelFormFieldsProps> = ({
 
   return (
     <>
-      {editingChannel && (
-        <div>
-          <Label htmlFor="name" className="text-gray-900 dark:text-gray-100">
-            Название канала
-          </Label>
-          <Input
-            id="name"
-            value={formData.name || ''}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Введите название канала"
-            className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-          />
-        </div>
-      )}
-
       <div>
         <Label htmlFor="username" className="text-gray-900 dark:text-gray-100">
           {t('channel-username')}

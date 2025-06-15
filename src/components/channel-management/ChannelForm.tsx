@@ -26,10 +26,10 @@ export const ChannelForm: React.FC<ChannelFormProps> = ({
       <DialogContent className="sm:max-w-[500px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-gray-100">
-            {editingChannel ? 'Редактировать канал' : t('add-channel')}
+            {editingChannel ? `Редактировать канал: ${editingChannel.name}` : t('add-channel')}
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
-            {editingChannel ? 'Обновите информацию о канале' : 'Подключите новый Telegram канал'}
+            {editingChannel ? 'Обновите настройки канала' : 'Подключите новый Telegram канал'}
           </DialogDescription>
         </DialogHeader>
 

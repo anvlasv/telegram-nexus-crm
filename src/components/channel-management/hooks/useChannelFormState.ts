@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 
 interface FormData {
-  name?: string;
   username: string;
   type: 'channel' | 'group';
   status: 'active' | 'paused' | 'archived';
@@ -11,7 +10,6 @@ interface FormData {
 
 export const useChannelFormState = (editingChannel: any, isOpen: boolean) => {
   const [formData, setFormData] = useState<FormData>({
-    name: '',
     username: '',
     type: 'channel' as 'channel' | 'group',
     status: 'active' as 'active' | 'paused' | 'archived',
@@ -20,7 +18,6 @@ export const useChannelFormState = (editingChannel: any, isOpen: boolean) => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
       username: '',
       type: 'channel',
       status: 'active',
@@ -32,7 +29,6 @@ export const useChannelFormState = (editingChannel: any, isOpen: boolean) => {
     if (isOpen) {
       if (editingChannel) {
         setFormData({
-          name: editingChannel.name || '',
           username: editingChannel.username,
           type: editingChannel.type,
           status: editingChannel.status,

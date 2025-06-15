@@ -32,9 +32,9 @@ export const ChannelManagement: React.FC = () => {
 
     try {
       if (editingChannel) {
-        // При редактировании используем данные из формы, но сохраняем существующее название если не изменилось
+        // При редактировании используем название из существующего канала (из Telegram API)
         const channelData = {
-          name: formData.name || editingChannel.name, // Используем название из формы или существующее
+          name: editingChannel.name, // Всегда используем существующее название
           username: formData.username,
           channel_id: editingChannel.channel_id,
           type: formData.type,
