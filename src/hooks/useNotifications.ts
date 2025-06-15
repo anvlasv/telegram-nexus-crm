@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,7 +64,13 @@ export const useNotifications = () => {
         return;
       }
 
-      setNotifications(data || []);
+      // Type assertion to ensure correct types
+      const typedNotifications: Notification[] = (data || []).map(notif => ({
+        ...notif,
+        type: notif.type as 'success' | 'warning' | 'info' | 'error'
+      }));
+
+      setNotifications(typedNotifications);
     } catch (error) {
       console.error('Error in loadNotifications:', error);
     } finally {

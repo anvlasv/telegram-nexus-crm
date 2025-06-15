@@ -19,7 +19,7 @@ export interface UserProfile {
 }
 
 export const useProfile = () => {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,11 +130,6 @@ export const useProfile = () => {
       };
 
       setProfile(updatedProfile);
-      
-      // Refresh user context to update header
-      if (refreshUser) {
-        await refreshUser();
-      }
       
       toast({
         title: 'Успешно',
