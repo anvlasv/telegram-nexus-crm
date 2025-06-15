@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
@@ -34,7 +35,8 @@ export const ChannelManagement: React.FC = () => {
       const channelData = {
         name: chatData?.title || chatData?.username || formData.username || 'Untitled Channel',
         username: chatData?.username || formData.username,
-        channel_id: chatData?.id || editingChannel?.channel_id,
+        // Исправлено: используем правильный channel_id для каждого случая
+        channel_id: editingChannel ? editingChannel.channel_id : (chatData?.id || chatData?.channel_id),
         type: formData.type,
         status: formData.status,
         timezone: formData.timezone || 'Europe/Moscow',
