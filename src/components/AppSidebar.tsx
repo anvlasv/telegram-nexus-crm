@@ -73,7 +73,11 @@ export function AppSidebar() {
                       asChild 
                       isActive={isActive} 
                       tooltip={t(item.name)}
-                      className="sidebar-menu-button"
+                      className={`sidebar-menu-button relative ${
+                        isActive 
+                          ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-l-2 border-blue-500' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-l-2 hover:border-blue-400'
+                      }`}
                       data-active={isActive}
                     >
                       <Link to={item.href} onClick={handleLinkClick}>
