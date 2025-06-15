@@ -1,11 +1,13 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useGetChatInfo, useGetChatMemberCount, useCheckBotAdmin } from '@/hooks/useTelegramApi';
+import { useChannels } from '@/hooks/useChannels';
 
 export const useChannelVerification = (editingChannel: any) => {
   const getChatInfo = useGetChatInfo();
   const getChatMemberCount = useGetChatMemberCount();
   const checkBotAdmin = useCheckBotAdmin();
+  const { channels } = useChannels();
 
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
   const [verificationMessage, setVerificationMessage] = useState('');
@@ -66,6 +68,23 @@ export const useChannelVerification = (editingChannel: any) => {
 
       const chat = chatInfoResponse.result;
       console.log('[useChannelVerification] Chat info received:', chat);
+
+      // Проверяем, не добавлен ли уже этот канал
+      const existingChannel = channels.find(channel => 
+        channel.channel_id === chat.id || 
+        channel.username === username.replace('@', '')
+      );
+
+      if (existingChannel) {
+        console.log('[useChannelVerification] Channel already exists:', existingChannel);
+        clearTimeout(timeout);
+        verificationTimeoutRef.current = null;
+        verificationInProgress.current = false;
+        setVerificationStatus('error');
+        setVerificationMessage(`Канал "${existingChannel.name}" уже добавлен в вашу систему. Вы не можете добавить один канал дважды.`);
+        return;
+      }
+
       setChatData(chat);
 
       // Шаг 2: Проверяем права администратора бота
@@ -126,7 +145,7 @@ export const useChannelVerification = (editingChannel: any) => {
         setVerificationMessage('Ошибка при проверке канала. Убедитесь, что канал существует и бот добавлен в администраторы.');
       }
     }
-  }, [editingChannel, getChatInfo, getChatMemberCount, checkBotAdmin]);
+  }, [editingChannel, getChatInfo, getChatMemberCount, checkBotAdmin, channels]);
 
   const resetVerification = useCallback(() => {
     console.log('[useChannelVerification] Resetting verification state');
