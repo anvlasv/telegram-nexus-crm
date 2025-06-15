@@ -109,9 +109,9 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
             {editingPost ? t('edit-post') : t('create-post')}
           </DialogTitle>
         </DialogHeader>
@@ -132,11 +132,20 @@ export const PostFormModal: React.FC<PostFormModalProps> = ({
             onScheduledTimeChange={setScheduledTime}
           />
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="min-w-[100px]"
+            >
               {t('cancel')}
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white"
+            >
               {isLoading ? t('loading') : t('schedule')}
             </Button>
           </div>

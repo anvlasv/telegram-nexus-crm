@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { FileDropZone } from '@/components/FileDropZone';
 import { MediaPreview } from '@/components/MediaPreview';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { CharacterCounter } from './CharacterCounter';
 
 interface MediaPostFormProps {
   postType: string;
@@ -14,6 +15,9 @@ interface MediaPostFormProps {
   onMediaFilesChange: (files: File[]) => void;
   existingMediaUrls?: string[];
 }
+
+// Telegram character limits for captions
+const TELEGRAM_CAPTION_LIMIT = 1024;
 
 export const MediaPostForm: React.FC<MediaPostFormProps> = ({
   postType,
@@ -58,7 +62,7 @@ export const MediaPostForm: React.FC<MediaPostFormProps> = ({
         <FileDropZone
           onFilesChange={onMediaFilesChange}
           accept={getAcceptedFileTypes()}
-          multiple={postType === 'photo' || postType === 'audio' || postType === 'document'}
+          multiple={postType === 'photo' || postType === 'document'}
           maxFiles={getMaxFiles()}
           currentFiles={mediaFiles}
         />
@@ -71,14 +75,23 @@ export const MediaPostForm: React.FC<MediaPostFormProps> = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="caption">{t('post-content')}</Label>
-        <Textarea
-          id="caption"
-          value={content}
-          onChange={(e) => onContentChange(e.target.value)}
-          placeholder={t('post-content-placeholder')}
-          rows={3}
-        />
+        <Label htmlFor="caption">{t('media-caption')}</Label>
+        <div className="relative">
+          <Textarea
+            id="caption"
+            value={content}
+            onChange={(e) => onContentChange(e.target.value)}
+            placeholder={t('media-caption-placeholder')}
+            rows={3}
+            className="resize-none"
+            maxLength={TELEGRAM_CAPTION_LIMIT}
+          />
+          <CharacterCounter
+            content={content}
+            postType={postType}
+            maxLength={TELEGRAM_CAPTION_LIMIT}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -69,7 +68,7 @@ Deno.serve(async (req) => {
     }
 
     const requestBody = await req.json()
-    const { action, chatId, username, text, question, options } = requestBody
+    const { action, chatId, username, text, question, options, mediaFiles, mediaUrls } = requestBody
     const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
 
     if (!botToken) {
@@ -164,8 +163,9 @@ Deno.serve(async (req) => {
         return new Response('Chat ID required', { status: 400, headers: corsHeaders })
       }
 
-      // For now, send a message indicating photo functionality
-      const messageText = text || 'Фото будет добавлено в ближайшее время'
+      // TODO: Implement actual photo upload
+      // For now, send a placeholder message indicating media functionality
+      const messageText = text || 'Фото загружается...'
       const response = await fetch(`${telegramApiBase}/sendMessage`, {
         method: 'POST',
         headers: {
@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({ 
           chat_id: chatId, 
-          text: `📷 ${messageText}`,
+          text: `📷 ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
           parse_mode: 'Markdown' 
         }),
       })
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         return new Response('Chat ID required', { status: 400, headers: corsHeaders })
       }
 
-      const messageText = text || 'Видео будет добавлено в ближайшее время'
+      const messageText = text || 'Видео загружается...'
       const response = await fetch(`${telegramApiBase}/sendMessage`, {
         method: 'POST',
         headers: {
@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({ 
           chat_id: chatId, 
-          text: `🎥 ${messageText}`,
+          text: `🎥 ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
           parse_mode: 'Markdown' 
         }),
       })
@@ -215,7 +215,7 @@ Deno.serve(async (req) => {
         return new Response('Chat ID required', { status: 400, headers: corsHeaders })
       }
 
-      const messageText = text || 'Аудио будет добавлено в ближайшее время'
+      const messageText = text || 'Аудио загружается...'
       const response = await fetch(`${telegramApiBase}/sendMessage`, {
         method: 'POST',
         headers: {
@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({ 
           chat_id: chatId, 
-          text: `🎵 ${messageText}`,
+          text: `🎵 ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
           parse_mode: 'Markdown' 
         }),
       })
@@ -240,7 +240,7 @@ Deno.serve(async (req) => {
         return new Response('Chat ID required', { status: 400, headers: corsHeaders })
       }
 
-      const messageText = text || 'Документ будет добавлен в ближайшее время'
+      const messageText = text || 'Документ загружается...'
       const response = await fetch(`${telegramApiBase}/sendMessage`, {
         method: 'POST',
         headers: {
@@ -248,7 +248,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({ 
           chat_id: chatId, 
-          text: `📄 ${messageText}`,
+          text: `📄 ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
           parse_mode: 'Markdown' 
         }),
       })
