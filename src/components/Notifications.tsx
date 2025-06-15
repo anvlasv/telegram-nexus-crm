@@ -12,7 +12,7 @@ export const Notifications: React.FC = () => {
   const { t } = useLanguage();
   const { 
     notifications, 
-    loading,
+    isLoading,
     unreadCount, 
     markAsRead, 
     markAllAsRead, 
@@ -44,7 +44,7 @@ export const Notifications: React.FC = () => {
     return true;
   });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />

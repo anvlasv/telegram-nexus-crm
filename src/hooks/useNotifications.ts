@@ -8,6 +8,7 @@ type Notification = Tables<'notifications'>;
 
 export const useNotifications = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: notifications = [], isLoading, error } = useQuery({
     queryKey: ['notifications', user?.id],
@@ -26,14 +27,29 @@ export const useNotifications = () => {
     enabled: !!user?.id,
   });
 
-  const queryClient = useQueryClient();
-
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
         .eq('id', notificationId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
+  const markAllAsRead = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error('No user');
+      
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
       
       if (error) throw error;
     },
@@ -85,6 +101,7 @@ export const useNotifications = () => {
     error,
     unreadCount,
     markAsRead: markAsRead.mutate,
+    markAllAsRead: markAllAsRead.mutate,
     deleteNotification: deleteNotification.mutate,
     addNotification,
     isMarkingAsRead: markAsRead.isPending,

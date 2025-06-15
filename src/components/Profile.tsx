@@ -16,7 +16,7 @@ export const Profile: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { user: telegramUser } = useTelegram();
-  const { profile, loading, saving, updateProfile, uploadAvatar } = useProfile();
+  const { profile, isLoading, updateProfile, uploadAvatar, isUpdating } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -37,9 +37,11 @@ export const Profile: React.FC = () => {
   }, [profile, t]);
 
   const handleSave = async () => {
-    const success = await updateProfile(formData);
-    if (success) {
+    try {
+      await updateProfile(formData);
       setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
     }
   };
 
@@ -57,10 +59,11 @@ export const Profile: React.FC = () => {
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && profile) {
-      const avatarUrl = await uploadAvatar(file);
-      if (avatarUrl) {
-        await updateProfile({ avatar_url: avatarUrl });
+    if (file) {
+      try {
+        await uploadAvatar(file);
+      } catch (error) {
+        console.error('Failed to upload avatar:', error);
       }
     }
   };
@@ -74,7 +77,7 @@ export const Profile: React.FC = () => {
     return t('user');
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -118,7 +121,7 @@ export const Profile: React.FC = () => {
                     size="sm"
                     onClick={handleCancel}
                     className="text-gray-600 dark:text-gray-400"
-                    disabled={saving}
+                    disabled={isUpdating}
                   >
                     <X className="h-4 w-4 mr-2" />
                     {t('cancel')}
@@ -127,9 +130,9 @@ export const Profile: React.FC = () => {
                     size="sm"
                     onClick={handleSave}
                     className="bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={saving}
+                    disabled={isUpdating}
                   >
-                    {saving ? (
+                    {isUpdating ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                       <Save className="h-4 w-4 mr-2" />
