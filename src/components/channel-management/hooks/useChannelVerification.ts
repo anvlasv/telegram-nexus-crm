@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useGetChatInfo, useGetChatMemberCount, useCheckBotAdmin } from '@/hooks/useTelegramApi';
 
 export const useChannelVerification = (editingChannel: any) => {
@@ -10,16 +10,29 @@ export const useChannelVerification = (editingChannel: any) => {
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
   const [verificationMessage, setVerificationMessage] = useState('');
   const [chatData, setChatData] = useState<any>(null);
-  const [verificationTimeout, setVerificationTimeout] = useState<NodeJS.Timeout | null>(null);
+  
+  // Используем ref для отслеживания активной верификации
+  const verificationInProgress = useRef(false);
+  const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const verifyChannel = async (username: string) => {
-    if (!username || editingChannel) return;
+  const verifyChannel = useCallback(async (username: string) => {
+    if (!username || editingChannel || verificationInProgress.current) {
+      console.log('[useChannelVerification] Skipping verification:', {
+        hasUsername: !!username,
+        isEditing: !!editingChannel,
+        inProgress: verificationInProgress.current
+      });
+      return;
+    }
 
     console.log('[useChannelVerification] Starting verification for:', username);
     
+    // Устанавливаем флаг активной верификации
+    verificationInProgress.current = true;
+    
     // Очищаем предыдущий таймаут
-    if (verificationTimeout) {
-      clearTimeout(verificationTimeout);
+    if (verificationTimeoutRef.current) {
+      clearTimeout(verificationTimeoutRef.current);
     }
 
     setVerificationStatus('checking');
@@ -29,11 +42,12 @@ export const useChannelVerification = (editingChannel: any) => {
     // Устанавливаем таймаут на 30 секунд
     const timeout = setTimeout(() => {
       console.log('[useChannelVerification] Verification timeout');
+      verificationInProgress.current = false;
       setVerificationStatus('error');
       setVerificationMessage('Превышено время ожидания. Попробуйте еще раз.');
     }, 30000);
     
-    setVerificationTimeout(timeout);
+    verificationTimeoutRef.current = timeout;
 
     try {
       const cleanUsername = username.startsWith('@') ? username : `@${username}`;
@@ -47,11 +61,7 @@ export const useChannelVerification = (editingChannel: any) => {
 
       if (!chatInfoResponse?.ok) {
         console.log('[useChannelVerification] Chat info failed:', chatInfoResponse);
-        clearTimeout(timeout);
-        setVerificationTimeout(null);
-        setVerificationStatus('error');
-        setVerificationMessage('Канал не найден или не доступен. Проверьте правильность username.');
-        return;
+        throw new Error('Канал не найден или не доступен. Проверьте правильность username.');
       }
 
       const chat = chatInfoResponse.result;
@@ -66,22 +76,14 @@ export const useChannelVerification = (editingChannel: any) => {
 
       if (!botAdminResponse?.ok) {
         console.log('[useChannelVerification] Bot admin check failed:', botAdminResponse);
-        clearTimeout(timeout);
-        setVerificationTimeout(null);
-        setVerificationStatus('error');
-        setVerificationMessage('Бот @Teleg_CRMbot не является администратором этого канала. Добавьте бота в администраторы и дайте ему необходимые права.');
-        return;
+        throw new Error('Бот @Teleg_CRMbot не является администратором этого канала. Добавьте бота в администраторы и дайте ему необходимые права.');
       }
 
       const memberStatus = botAdminResponse.result?.status;
       console.log('[useChannelVerification] Bot status:', memberStatus);
       
       if (memberStatus !== 'administrator' && memberStatus !== 'creator') {
-        clearTimeout(timeout);
-        setVerificationTimeout(null);
-        setVerificationStatus('error');
-        setVerificationMessage('Бот @Teleg_CRMbot должен быть администратором канала с правами на отправку сообщений.');
-        return;
+        throw new Error('Бот @Teleg_CRMbot должен быть администратором канала с правами на отправку сообщений.');
       }
 
       // Шаг 3: Получаем количество участников
@@ -92,10 +94,10 @@ export const useChannelVerification = (editingChannel: any) => {
         });
 
         if (memberCountResponse?.ok) {
-          setChatData({
-            ...chat,
+          setChatData(prev => ({
+            ...prev,
             member_count: memberCountResponse.result
-          });
+          }));
           console.log('[useChannelVerification] Member count:', memberCountResponse.result);
         }
       } catch (error) {
@@ -105,7 +107,8 @@ export const useChannelVerification = (editingChannel: any) => {
 
       // Успешная верификация
       clearTimeout(timeout);
-      setVerificationTimeout(null);
+      verificationTimeoutRef.current = null;
+      verificationInProgress.current = false;
       setVerificationStatus('success');
       setVerificationMessage('Канал успешно верифицирован и готов к подключению!');
       console.log('[useChannelVerification] Verification successful');
@@ -113,31 +116,39 @@ export const useChannelVerification = (editingChannel: any) => {
     } catch (error) {
       console.error('[useChannelVerification] Verification error:', error);
       clearTimeout(timeout);
-      setVerificationTimeout(null);
+      verificationTimeoutRef.current = null;
+      verificationInProgress.current = false;
       setVerificationStatus('error');
-      setVerificationMessage('Ошибка при проверке канала. Убедитесь, что канал существует и бот добавлен в администраторы.');
+      
+      if (error instanceof Error) {
+        setVerificationMessage(error.message);
+      } else {
+        setVerificationMessage('Ошибка при проверке канала. Убедитесь, что канал существует и бот добавлен в администраторы.');
+      }
     }
-  };
+  }, [editingChannel, getChatInfo, getChatMemberCount, checkBotAdmin]);
 
-  const resetVerification = () => {
+  const resetVerification = useCallback(() => {
     console.log('[useChannelVerification] Resetting verification state');
-    if (verificationTimeout) {
-      clearTimeout(verificationTimeout);
-      setVerificationTimeout(null);
+    if (verificationTimeoutRef.current) {
+      clearTimeout(verificationTimeoutRef.current);
+      verificationTimeoutRef.current = null;
     }
+    verificationInProgress.current = false;
     setVerificationStatus('idle');
     setVerificationMessage('');
     setChatData(null);
-  };
+  }, []);
 
   // Очищаем таймаут при размонтировании компонента
   useEffect(() => {
     return () => {
-      if (verificationTimeout) {
-        clearTimeout(verificationTimeout);
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
       }
+      verificationInProgress.current = false;
     };
-  }, [verificationTimeout]);
+  }, []);
 
   return {
     verificationStatus,

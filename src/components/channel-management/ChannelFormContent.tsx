@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -42,42 +42,76 @@ export const ChannelFormContent: React.FC<ChannelFormContentProps> = ({
     resetForm
   });
 
-  // Initialize verification data for editing
+  // Ref для отслеживания текущего username, чтобы избежать лишних верификаций
+  const lastVerifiedUsername = useRef<string>('');
+  const verificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Инициализация при открытии формы
   useEffect(() => {
-    if (isOpen && editingChannel) {
+    if (!isOpen) return;
+
+    if (editingChannel) {
       console.log('[ChannelFormContent] Setting up editing mode for:', editingChannel.name);
       setVerificationStatus('success');
       setChatData(editingChannel);
-    } else if (isOpen && !editingChannel) {
+      lastVerifiedUsername.current = editingChannel.username;
+    } else {
       console.log('[ChannelFormContent] Setting up creation mode');
       resetVerification();
+      lastVerifiedUsername.current = '';
     }
   }, [editingChannel, isOpen, setVerificationStatus, setChatData, resetVerification]);
 
-  // Auto-verify for new channels with debouncing
+  // Автоматическая верификация для новых каналов с дебаунсингом
   useEffect(() => {
-    if (formData.username && !editingChannel && verificationStatus === 'idle') {
-      console.log('[ChannelFormContent] Starting auto-verification for:', formData.username);
+    // Очищаем предыдущий таймер
+    if (verificationTimeoutRef.current) {
+      clearTimeout(verificationTimeoutRef.current);
+      verificationTimeoutRef.current = null;
+    }
+
+    // Условия для запуска верификации:
+    // 1. Есть username
+    // 2. Не в режиме редактирования
+    // 3. Username изменился с последней верификации
+    // 4. Верификация не в процессе
+    if (
+      formData.username && 
+      !editingChannel && 
+      formData.username !== lastVerifiedUsername.current &&
+      verificationStatus !== 'checking'
+    ) {
+      console.log('[ChannelFormContent] Setting up auto-verification for:', formData.username);
       
       // Дебаунсинг: ждем 1.5 секунды после последнего ввода
-      const timer = setTimeout(() => {
-        verifyChannel(formData.username);
+      verificationTimeoutRef.current = setTimeout(() => {
+        if (formData.username && formData.username !== lastVerifiedUsername.current) {
+          console.log('[ChannelFormContent] Starting auto-verification for:', formData.username);
+          lastVerifiedUsername.current = formData.username;
+          verifyChannel(formData.username);
+        }
       }, 1500);
-      
-      return () => {
-        console.log('[ChannelFormContent] Clearing verification timer');
-        clearTimeout(timer);
-      };
     }
+
+    // Очистка при размонтировании
+    return () => {
+      if (verificationTimeoutRef.current) {
+        clearTimeout(verificationTimeoutRef.current);
+        verificationTimeoutRef.current = null;
+      }
+    };
   }, [formData.username, editingChannel, verificationStatus, verifyChannel]);
 
   const handleUsernameChange = (newFormData: any) => {
     console.log('[ChannelFormContent] Username changed to:', newFormData.username);
     setFormData(newFormData);
     
-    // Сбрасываем верификацию при изменении username
-    if (!editingChannel && newFormData.username !== formData.username) {
-      resetVerification();
+    // Сбрасываем верификацию только если username действительно изменился
+    if (!editingChannel && newFormData.username !== lastVerifiedUsername.current) {
+      if (verificationStatus !== 'idle') {
+        console.log('[ChannelFormContent] Resetting verification due to username change');
+        resetVerification();
+      }
     }
   };
 
@@ -101,7 +135,8 @@ export const ChannelFormContent: React.FC<ChannelFormContentProps> = ({
     isLoading,
     verificationStatus,
     hasUsername: !!formData.username,
-    editingChannel: !!editingChannel
+    editingChannel: !!editingChannel,
+    lastVerifiedUsername: lastVerifiedUsername.current
   });
 
   return (
