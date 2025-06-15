@@ -48,6 +48,184 @@ interface ChatMemberCount {
   result: number;
 }
 
+// Функция для загрузки файла через URL
+async function uploadFileFromUrl(botToken: string, fileUrl: string): Promise<string | null> {
+  try {
+    // Скачиваем файл
+    const fileResponse = await fetch(fileUrl)
+    if (!fileResponse.ok) {
+      console.error('[uploadFileFromUrl] Ошибка скачивания файла:', fileResponse.statusText)
+      return null
+    }
+    
+    const fileBlob = await fileResponse.blob()
+    const formData = new FormData()
+    formData.append('document', fileBlob)
+    
+    // Загружаем файл в Telegram
+    const uploadResponse = await fetch(`https://api.telegram.org/bot${botToken}/uploadStickerFile`, {
+      method: 'POST',
+      body: formData
+    })
+    
+    const uploadData = await uploadResponse.json()
+    if (uploadData.ok) {
+      return uploadData.result.file_id
+    } else {
+      console.error('[uploadFileFromUrl] Ошибка загрузки в Telegram:', uploadData)
+      return null
+    }
+  } catch (error) {
+    console.error('[uploadFileFromUrl] Общая ошибка загрузки файла:', error)
+    return null
+  }
+}
+
+// Функция для отправки медиафайлов
+async function sendMediaMessage(botToken: string, chatId: string, action: string, text: string, mediaUrls?: string[]) {
+  const telegramApiBase = `https://api.telegram.org/bot${botToken}`
+  
+  if (!mediaUrls || mediaUrls.length === 0) {
+    // Если нет медиафайлов, отправляем как обычное сообщение с иконкой
+    const iconMap: Record<string, string> = {
+      'sendPhoto': '📷',
+      'sendVideo': '🎥', 
+      'sendAudio': '🎵',
+      'sendDocument': '📄'
+    }
+    
+    const icon = iconMap[action] || '📎'
+    const messageText = text || 'Медиафайл'
+    
+    const response = await fetch(`${telegramApiBase}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        chat_id: chatId, 
+        text: `${icon} ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
+        parse_mode: 'Markdown' 
+      }),
+    })
+    return await response.json()
+  }
+
+  // Если есть медиафайлы, пытаемся их отправить
+  try {
+    if (mediaUrls.length === 1) {
+      // Отправляем один файл
+      const mediaUrl = mediaUrls[0]
+      
+      let endpoint = ''
+      let mediaField = ''
+      
+      switch (action) {
+        case 'sendPhoto':
+          endpoint = 'sendPhoto'
+          mediaField = 'photo'
+          break
+        case 'sendVideo':
+          endpoint = 'sendVideo'
+          mediaField = 'video'
+          break
+        case 'sendAudio':
+          endpoint = 'sendAudio'
+          mediaField = 'audio'
+          break
+        case 'sendDocument':
+          endpoint = 'sendDocument'
+          mediaField = 'document'
+          break
+        default:
+          endpoint = 'sendDocument'
+          mediaField = 'document'
+      }
+      
+      const requestBody: any = {
+        chat_id: chatId,
+        [mediaField]: mediaUrl
+      }
+      
+      if (text) {
+        requestBody.caption = text
+      }
+      
+      const response = await fetch(`${telegramApiBase}/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      })
+      
+      return await response.json()
+      
+    } else {
+      // Отправляем альбом медиафайлов (для фото и документов)
+      if (action === 'sendPhoto') {
+        const media = mediaUrls.map((url, index) => ({
+          type: 'photo',
+          media: url,
+          caption: index === 0 && text ? text : undefined
+        }))
+        
+        const response = await fetch(`${telegramApiBase}/sendMediaGroup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            media: media
+          }),
+        })
+        
+        return await response.json()
+      } else {
+        // Для других типов отправляем по одному
+        const results = []
+        for (const [index, mediaUrl] of mediaUrls.entries()) {
+          const requestBody: any = {
+            chat_id: chatId,
+            document: mediaUrl
+          }
+          
+          if (index === 0 && text) {
+            requestBody.caption = text
+          }
+          
+          const response = await fetch(`${telegramApiBase}/sendDocument`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+          })
+          
+          results.push(await response.json())
+        }
+        return results[0] // Возвращаем результат первого сообщения
+      }
+    }
+  } catch (error) {
+    console.error('[sendMediaMessage] Ошибка отправки медиафайлов:', error)
+    // Fallback: отправляем как текст с иконкой
+    const iconMap: Record<string, string> = {
+      'sendPhoto': '📷',
+      'sendVideo': '🎥', 
+      'sendAudio': '🎵',
+      'sendDocument': '📄'
+    }
+    
+    const icon = iconMap[action] || '📎'
+    const messageText = text || 'Медиафайл'
+    
+    const response = await fetch(`${telegramApiBase}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        chat_id: chatId, 
+        text: `${icon} ${messageText}\n\n[Ошибка загрузки медиафайла]`,
+        parse_mode: 'Markdown' 
+      }),
+    })
+    return await response.json()
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -158,101 +336,12 @@ Deno.serve(async (req) => {
       })
     }
 
-    if (action === 'sendPhoto') {
+    if (['sendPhoto', 'sendVideo', 'sendAudio', 'sendDocument'].includes(action)) {
       if (!chatId) {
         return new Response('Chat ID required', { status: 400, headers: corsHeaders })
       }
 
-      // TODO: Implement actual photo upload
-      // For now, send a placeholder message indicating media functionality
-      const messageText = text || 'Фото загружается...'
-      const response = await fetch(`${telegramApiBase}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          chat_id: chatId, 
-          text: `📷 ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
-          parse_mode: 'Markdown' 
-        }),
-      })
-      const data = await response.json()
-
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: data.ok ? 200 : 400
-      })
-    }
-
-    if (action === 'sendVideo') {
-      if (!chatId) {
-        return new Response('Chat ID required', { status: 400, headers: corsHeaders })
-      }
-
-      const messageText = text || 'Видео загружается...'
-      const response = await fetch(`${telegramApiBase}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          chat_id: chatId, 
-          text: `🎥 ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
-          parse_mode: 'Markdown' 
-        }),
-      })
-      const data = await response.json()
-
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: data.ok ? 200 : 400
-      })
-    }
-
-    if (action === 'sendAudio') {
-      if (!chatId) {
-        return new Response('Chat ID required', { status: 400, headers: corsHeaders })
-      }
-
-      const messageText = text || 'Аудио загружается...'
-      const response = await fetch(`${telegramApiBase}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          chat_id: chatId, 
-          text: `🎵 ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
-          parse_mode: 'Markdown' 
-        }),
-      })
-      const data = await response.json()
-
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: data.ok ? 200 : 400
-      })
-    }
-
-    if (action === 'sendDocument') {
-      if (!chatId) {
-        return new Response('Chat ID required', { status: 400, headers: corsHeaders })
-      }
-
-      const messageText = text || 'Документ загружается...'
-      const response = await fetch(`${telegramApiBase}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          chat_id: chatId, 
-          text: `📄 ${messageText}\n\n[Медиафайлы будут поддерживаться в следующих обновлениях]`,
-          parse_mode: 'Markdown' 
-        }),
-      })
-      const data = await response.json()
+      const data = await sendMediaMessage(botToken, chatId, action, text || '', mediaUrls)
 
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

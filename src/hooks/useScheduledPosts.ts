@@ -7,6 +7,29 @@ type ScheduledPost = Tables<'scheduled_posts'>;
 type ScheduledPostInsert = TablesInsert<'scheduled_posts'>;
 type ScheduledPostUpdate = TablesUpdate<'scheduled_posts'>;
 
+// Функция для загрузки файлов и получения URL
+const uploadMediaFiles = async (files: File[]): Promise<string[]> => {
+  if (!files || files.length === 0) return [];
+  
+  const urls: string[] = [];
+  
+  for (const file of files) {
+    try {
+      // Создаем blob URL для временного хранения
+      const blobUrl = URL.createObjectURL(file);
+      urls.push(blobUrl);
+      
+      // TODO: В будущем здесь можно добавить реальную загрузку в облачное хранилище
+      // Например, в Supabase Storage или другой сервис
+      console.log(`[uploadMediaFiles] Файл подготовлен для загрузки: ${file.name}`);
+    } catch (error) {
+      console.error(`[uploadMediaFiles] Ошибка обработки файла ${file.name}:`, error);
+    }
+  }
+  
+  return urls;
+};
+
 export const useScheduledPosts = () => {
   return useQuery({
     queryKey: ['scheduled-posts'],
@@ -33,13 +56,28 @@ export const useCreateScheduledPost = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (post: Omit<ScheduledPostInsert, 'user_id'>) => {
+    mutationFn: async (post: Omit<ScheduledPostInsert, 'user_id'> & { mediaFiles?: File[] }) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('User not authenticated');
       
+      // Обрабатываем медиафайлы, если они есть
+      let mediaUrls: string[] | null = null;
+      if (post.mediaFiles && post.mediaFiles.length > 0) {
+        mediaUrls = await uploadMediaFiles(post.mediaFiles);
+      } else if (post.media_urls) {
+        mediaUrls = post.media_urls;
+      }
+      
+      // Убираем mediaFiles из данных перед отправкой в базу
+      const { mediaFiles, ...postData } = post;
+      
       const { data, error } = await supabase
         .from('scheduled_posts')
-        .insert([{ ...post, user_id: userData.user.id }])
+        .insert([{ 
+          ...postData, 
+          user_id: userData.user.id,
+          media_urls: mediaUrls
+        }])
         .select()
         .single();
       
@@ -56,10 +94,23 @@ export const useUpdateScheduledPost = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string } & Partial<ScheduledPostUpdate>) => {
+    mutationFn: async ({ id, mediaFiles, ...updates }: { id: string; mediaFiles?: File[] } & Partial<ScheduledPostUpdate>) => {
+      // Обрабатываем медиафайлы, если они есть
+      let mediaUrls: string[] | null = null;
+      if (mediaFiles && mediaFiles.length > 0) {
+        mediaUrls = await uploadMediaFiles(mediaFiles);
+      } else if (updates.media_urls) {
+        mediaUrls = updates.media_urls;
+      }
+      
+      const updateData = {
+        ...updates,
+        media_urls: mediaUrls
+      };
+      
       const { data, error } = await supabase
         .from('scheduled_posts')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -151,21 +202,25 @@ export const usePublishPost = () => {
           case 'photo':
             requestBody.action = 'sendPhoto';
             requestBody.text = postData.content || '';
+            requestBody.mediaUrls = postData.media_urls;
             break;
             
           case 'video':
             requestBody.action = 'sendVideo';
             requestBody.text = postData.content || '';
+            requestBody.mediaUrls = postData.media_urls;
             break;
             
           case 'audio':
             requestBody.action = 'sendAudio';
             requestBody.text = postData.content || '';
+            requestBody.mediaUrls = postData.media_urls;
             break;
             
           case 'document':
             requestBody.action = 'sendDocument';
             requestBody.text = postData.content || '';
+            requestBody.mediaUrls = postData.media_urls;
             break;
             
           default:

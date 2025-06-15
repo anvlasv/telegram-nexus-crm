@@ -27,7 +27,7 @@ export const useSchedulerActions = (selectedChannel: any) => {
           id: editingPost.id,
           content: formData.content || formData.pollQuestion || '',
           scheduled_for: formData.scheduledFor,
-          media_urls: formData.mediaFiles?.length > 0 ? formData.mediaFiles.map((file: File) => file.name) : null,
+          mediaFiles: formData.mediaFiles,
           post_type: formData.type,
           poll_options: formData.pollOptions?.length > 0 ? formData.pollOptions : null,
         });
@@ -42,7 +42,7 @@ export const useSchedulerActions = (selectedChannel: any) => {
           content: formData.content || formData.pollQuestion || '',
           scheduled_for: formData.scheduledFor,
           status: 'pending',
-          media_urls: formData.mediaFiles?.length > 0 ? formData.mediaFiles.map((file: File) => file.name) : null,
+          mediaFiles: formData.mediaFiles,
           post_type: formData.type,
           poll_options: formData.pollOptions?.length > 0 ? formData.pollOptions : null,
         });

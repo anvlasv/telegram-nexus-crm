@@ -4,6 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { PostCard } from './PostCard';
+import { PostPreviewModal } from './PostPreviewModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
@@ -26,6 +27,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onDeletePost,
 }) => {
   const { t, language } = useLanguage();
+  const [previewPost, setPreviewPost] = React.useState<any>(null);
 
   const getPostsForDate = (date: Date) => {
     return posts.filter(post => 
@@ -42,6 +44,31 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     });
     return data;
   }, [posts]);
+
+  const handlePostClick = (post: any) => {
+    setPreviewPost(post);
+  };
+
+  const handleEditFromPreview = () => {
+    if (previewPost) {
+      onEditPost(previewPost);
+      setPreviewPost(null);
+    }
+  };
+
+  const handlePublishFromPreview = async () => {
+    if (previewPost) {
+      await onPublishPost(previewPost.id);
+      setPreviewPost(null);
+    }
+  };
+
+  const handleDeleteFromPreview = () => {
+    if (previewPost) {
+      onDeletePost(previewPost.id);
+      setPreviewPost(null);
+    }
+  };
 
   const WeekView = () => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -66,7 +93,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </div>
               <div className="space-y-2">
                 {postsForDay.map((post) => (
-                  <div key={post.id} className="text-xs md:text-sm p-2 bg-blue-100 dark:bg-blue-900 rounded truncate cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
+                  <div 
+                    key={post.id} 
+                    className="text-xs md:text-sm p-2 bg-blue-100 dark:bg-blue-900 rounded truncate cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                    onClick={() => handlePostClick(post)}
+                  >
                     {format(new Date(post.scheduled_for), 'HH:mm')} - {post.content.substring(0, 30)}...
                   </div>
                 ))}
@@ -144,14 +175,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </h3>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {getPostsForDate(selectedDate).map((post) => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    channel={post.telegram_channels}
-                    onEdit={() => onEditPost(post)}
-                    onPublish={async () => await onPublishPost(post.id)}
-                    onDelete={() => onDeletePost(post.id)}
-                  />
+                  <div key={post.id} onClick={() => handlePostClick(post)} className="cursor-pointer">
+                    <PostCard
+                      post={post}
+                      channel={post.telegram_channels}
+                      onEdit={() => onEditPost(post)}
+                      onPublish={async () => await onPublishPost(post.id)}
+                      onDelete={() => onDeletePost(post.id)}
+                    />
+                  </div>
                 ))}
                 {getPostsForDate(selectedDate).length === 0 && (
                   <p className="text-muted-foreground text-center py-8 text-sm md:text-base">
@@ -163,6 +195,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Post Preview Modal */}
+      <PostPreviewModal
+        isOpen={!!previewPost}
+        onClose={() => setPreviewPost(null)}
+        post={previewPost}
+        onEdit={handleEditFromPreview}
+        onPublish={handlePublishFromPreview}
+        onDelete={handleDeleteFromPreview}
+      />
     </div>
   );
 };

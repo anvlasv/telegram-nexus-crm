@@ -54,6 +54,25 @@ export const MediaPostForm: React.FC<MediaPostFormProps> = ({
     onMediaFilesChange(newFiles);
   };
 
+  // Функция для конвертации файлов в URL (для предварительного просмотра)
+  const convertFilesToUrls = React.useCallback((files: File[]): string[] => {
+    return files.map(file => {
+      // Создаем URL для предварительного просмотра
+      if (file.type.startsWith('image/')) {
+        return URL.createObjectURL(file);
+      }
+      // Для других типов файлов возвращаем имя файла
+      return file.name;
+    });
+  }, []);
+
+  // Обновляем URL при изменении файлов
+  React.useEffect(() => {
+    const urls = convertFilesToUrls(mediaFiles);
+    // Здесь можно добавить логику для обновления URL в родительском компоненте
+    // если это необходимо для формы
+  }, [mediaFiles, convertFilesToUrls]);
+
   return (
     <div className="space-y-4">
       <div>
@@ -93,6 +112,12 @@ export const MediaPostForm: React.FC<MediaPostFormProps> = ({
           />
         </div>
       </div>
+
+      {mediaFiles.length > 0 && (
+        <div className="text-sm text-muted-foreground">
+          {t('selected-files')}: {mediaFiles.length} / {getMaxFiles()}
+        </div>
+      )}
     </div>
   );
 };
