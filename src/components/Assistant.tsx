@@ -27,8 +27,20 @@ async function generateWithAI(prompt: string): Promise<string> {
     body: JSON.stringify({ prompt }),
   });
   if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    throw new Error(data.error || 'AI generation failed');
+    let errorText = 'AI generation failed';
+    try {
+      const data = await resp.json();
+      if (data && data.error) {
+        errorText = data.error;
+      }
+      // Выведем ошибку из edge-функции в консоль для отладки
+      console.error('[AI Error]', data);
+    } catch (e) {
+      // если не json
+      errorText = await resp.text();
+      console.error('[AI Error, not JSON]', errorText);
+    }
+    throw new Error(errorText);
   }
   const data = await resp.json();
   return data.generatedText || '';
@@ -60,7 +72,8 @@ export const Assistant: React.FC = () => {
       setMessage('');
     },
     onError: (err: any) => {
-      setErrorMsg(err instanceof Error ? err.message : 'AI error');
+      // тут отобразим полный текст ошибки
+      setErrorMsg(err instanceof Error ? err.message : String(err));
       setIsLoading(false);
     }
   });
