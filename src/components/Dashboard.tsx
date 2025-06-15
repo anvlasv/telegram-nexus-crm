@@ -3,26 +3,20 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, TrendingUp, Hash, Calendar, Clock, Eye } from 'lucide-react';
+import { Users, MessageSquare, TrendingUp, Hash, Calendar, Clock, DollarSign } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useChannels } from '@/hooks/useChannels';
 import { usePartners } from '@/hooks/usePartners';
 import { useAggregatedData } from '@/hooks/useAggregatedData';
-import { ChannelSwitchLoader } from './ChannelSwitchLoader';
+import { useAdvertisingCampaigns } from '@/hooks/useAdvertisingCampaigns';
 import { format } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export const Dashboard: React.FC = () => {
   const { t, language } = useLanguage();
-  const { isChannelSwitching } = useChannels();
   const { data: partners = [], isLoading: partnersLoading } = usePartners();
+  const { data: campaigns = [] } = useAdvertisingCampaigns();
   const { data: aggregatedData, isLoading: aggregatedLoading } = useAggregatedData();
-
-  // Показываем лоадер переключения канала
-  if (isChannelSwitching) {
-    return <ChannelSwitchLoader />;
-  }
 
   if (partnersLoading || aggregatedLoading) {
     return (
@@ -39,6 +33,17 @@ export const Dashboard: React.FC = () => {
       </div>
     );
   }
+
+  // Calculate partner revenues from campaigns
+  const getPartnerRevenue = (partnerId: string) => {
+    return campaigns
+      .filter(c => c.partner_id === partnerId && c.status === 'published')
+      .reduce((sum, c) => sum + c.price, 0);
+  };
+
+  const totalRevenue = campaigns
+    .filter(c => c.status === 'published')
+    .reduce((sum, c) => sum + c.price, 0);
 
   // Агрегированная статистика по всем каналам
   const aggregatedStats = [
@@ -165,7 +170,7 @@ export const Dashboard: React.FC = () => {
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
-              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               {t('revenue-summary')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
@@ -174,23 +179,44 @@ export const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 sm:space-y-4">
-              {partners.slice(0, 3).map((partner) => (
-                <div key={partner.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+              <div className="p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-green-50 dark:bg-green-900/20">
+                <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
-                      {partner.name}
+                    <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                      {t('total-revenue')}
                     </p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {partner.partnership_type}
+                      {t('revenue-by-partner')}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
-                    <p className="font-bold text-green-600 dark:text-green-400 text-sm">
-                      {partner.commission_rate ? `${partner.commission_rate}%` : '$0'}
+                    <p className="font-bold text-green-600 dark:text-green-400 text-lg">
+                      {totalRevenue.toLocaleString()} ₽
                     </p>
                   </div>
                 </div>
-              ))}
+              </div>
+              
+              {partners.slice(0, 3).map((partner) => {
+                const partnerRevenue = getPartnerRevenue(partner.id);
+                return (
+                  <div key={partner.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                        {partner.name}
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        {partner.partnership_type}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className="font-bold text-green-600 dark:text-green-400 text-sm">
+                        {partnerRevenue.toLocaleString()} ₽
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
               {partners.length === 0 && (
                 <div className="text-center py-6 text-gray-500 dark:text-gray-400">
                   {t('no-partners')}

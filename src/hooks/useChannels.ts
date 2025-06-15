@@ -50,17 +50,20 @@ export const useChannels = () => {
     console.log('[useChannels] Переключение канала:', { from: selectedChannelId, to: channelId });
     setIsChannelSwitching(true);
     
+    // Immediately update selected channel
+    setSelectedChannelId(channelId);
+    localStorage.setItem('selectedChannelId', channelId);
+    
     // Invalidate all related queries to trigger refetch
     queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
     queryClient.invalidateQueries({ queryKey: ['recent-posts'] });
     queryClient.invalidateQueries({ queryKey: ['aggregated-data'] });
     
+    // Short delay for smooth transition
     setTimeout(() => {
-      setSelectedChannelId(channelId);
-      localStorage.setItem('selectedChannelId', channelId);
       setIsChannelSwitching(false);
       console.log('[useChannels] Канал переключен успешно:', channelId);
-    }, 300);
+    }, 100);
   };
 
   return {
