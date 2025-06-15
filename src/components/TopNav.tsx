@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Info, ChevronDown, User, Settings, LogOut } from 'lucide-react';
 import { useChannels } from '@/hooks/useChannels';
@@ -71,71 +72,14 @@ export const TopNav: React.FC = () => {
     return 'U';
   };
 
-  // Mobile User Avatar Dropdown (768px and below)
-  const MobileUserAvatar = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 md:hidden">
-          <Avatar className="h-6 w-6">
-            {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
-            <AvatarFallback className="text-xs">
-              {getAvatarFallback()}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{t('account')}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleProfileClick}>
-          <User className="mr-2 h-4 w-4" />
-          {t('profile')}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleSettingsClick}>
-          <Settings className="mr-2 h-4 w-4" />
-          {t('settings')}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <LogOut className="mr-2 h-4 w-4" />
-          {t('logout')}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
-  // Tablet User Avatar Dropdown (769px - 1023px)
-  const TabletUserAvatar = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="hidden md:flex lg:hidden h-8 w-8 p-0">
-          <Avatar className="h-6 w-6">
-            {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
-            <AvatarFallback className="text-xs">
-              {getAvatarFallback()}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>{t('account')}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleProfileClick}>
-          <User className="mr-2 h-4 w-4" />
-          {t('profile')}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleSettingsClick}>
-          <Settings className="mr-2 h-4 w-4" />
-          {t('settings')}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <LogOut className="mr-2 h-4 w-4" />
-          {t('logout')}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  const getDisplayName = () => {
+    if (profile?.full_name) return profile.full_name;
+    if (telegramUser?.first_name && telegramUser?.last_name) {
+      return `${telegramUser.first_name} ${telegramUser.last_name}`.trim();
+    }
+    if (telegramUser?.first_name) return telegramUser.first_name;
+    return t('user');
+  };
 
   return (
     <>
@@ -160,20 +104,14 @@ export const TopNav: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Mobile User Avatar */}
-          <MobileUserAvatar />
-          
-          {/* Tablet User Avatar */}
-          <TabletUserAvatar />
-          
-          {/* Mobile Controls - only show hamburger menu on mobile now */}
+          {/* Mobile Controls */}
           <MobileControls 
             showMenuSheet={showMenuSheet}
             setShowMenuSheet={setShowMenuSheet}
             onNotificationsClick={handleNotificationsClick}
           />
           
-          {/* Desktop Controls - unchanged */}
+          {/* Desktop Controls */}
           <DesktopControls onNotificationsClick={handleNotificationsClick} />
         </div>
       </header>
