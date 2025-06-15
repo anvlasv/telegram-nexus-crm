@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, Users, Eye, MessageSquare, Share, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChannels } from '@/hooks/useChannels';
-import { Badge } from '@/components/ui/badge';
 
 const chartData = [
   { name: 'Янв', views: 4000, reactions: 240, forwards: 400 },
@@ -118,16 +118,11 @@ export const Analytics: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       <div>
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {t('channel-analytics')}
-          </h1>
-          <Badge variant="outline" className="text-xs">
-            {selectedChannel.name}
-          </Badge>
-        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+          {t('channel-analytics')}
+        </h1>
         <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-          {t('analytics-for-channel')} @{selectedChannel.username}
+          {t('detailed-analytics')}
         </p>
       </div>
 
@@ -158,7 +153,7 @@ export const Analytics: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Views Chart for Selected Channel */}
+        {/* Views Chart */}
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">
@@ -166,7 +161,7 @@ export const Analytics: React.FC = () => {
               {t('views')} {t('this-month')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              {t('analytics-for-channel')} {selectedChannel.name}
+              {t('analytics-for-channel')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -208,14 +203,14 @@ export const Analytics: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Engagement Chart for Selected Channel */}
+        {/* Engagement Chart */}
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-gray-100">
-              {t('engagement-rate')} {t('channel')}
+              {t('engagement-rate')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              {t('analytics-for-channel')} {selectedChannel.name}
+              {t('analytics-for-channel')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -261,14 +256,14 @@ export const Analytics: React.FC = () => {
         </Card>
       </div>
 
-      {/* Detailed Stats for Selected Channel */}
+      {/* Detailed Stats */}
       <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-gray-100">
             {t('detailed-analytics')}
           </CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-400">
-            {t('reactions')} и {t('forwards')} за последние 6 месяцев для {selectedChannel.name}
+            {t('reactions')} и {t('forwards')} за последние 6 месяцев
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -28,6 +28,20 @@ export const ChannelFormFields: React.FC<ChannelFormFieldsProps> = ({
 
   return (
     <>
+      {editingChannel && (
+        <div>
+          <Label htmlFor="channel-name" className="text-gray-900 dark:text-gray-100">
+            Название
+          </Label>
+          <Input
+            id="channel-name"
+            value={editingChannel.name || editingChannel.title || ''}
+            disabled
+            className="bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
+          />
+        </div>
+      )}
+
       <div>
         <Label htmlFor="username" className="text-gray-900 dark:text-gray-100">
           {t('channel-username')}
