@@ -2,6 +2,7 @@
 import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Bot, AlertCircle, CheckCircle } from 'lucide-react';
+import { ChannelConnectionHint } from './ChannelConnectionHint';
 
 interface ChannelVerificationProps {
   verificationStatus: 'idle' | 'checking' | 'success' | 'error';
@@ -16,8 +17,13 @@ export const ChannelVerification: React.FC<ChannelVerificationProps> = ({
   chatData,
   editingChannel
 }) => {
+  // Показываем подсказку только для новых каналов в состоянии idle
+  const showHint = !editingChannel && verificationStatus === 'idle';
+  
   return (
     <>
+      {showHint && <ChannelConnectionHint />}
+
       {verificationStatus === 'checking' && (
         <p className="text-sm text-blue-600 mb-2">Проверяем канал...</p>
       )}
