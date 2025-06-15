@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, List, Calendar as CalendarIcon, Search, X } from 'lucide-react';
@@ -11,6 +10,7 @@ import { CalendarView } from './scheduler/CalendarView';
 import { ListView } from './scheduler/ListView';
 import { useChannels } from '@/hooks/useChannels';
 import { ChannelSwitchLoader } from './ChannelSwitchLoader';
+import { cn } from '@/lib/utils';
 
 export const Scheduler: React.FC = () => {
   const { t } = useLanguage();
@@ -171,38 +171,32 @@ export const Scheduler: React.FC = () => {
             
             {/* Search Bar - только для списочного режима */}
             {viewMode === 'list' && (
-              <div className="flex items-center justify-end">
-                {searchOpen ? (
-                  <div className="flex items-center gap-2" style={{ width: '33%' }}>
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder={t('search-posts-placeholder') || 'Поиск по постам...'}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-4"
-                        autoFocus
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={toggleSearch}
-                      className="h-10 w-10 flex-shrink-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={toggleSearch}
-                    className="h-10 w-10"
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                )}
+              <div className="flex items-center justify-end gap-2">
+                <div className={cn(
+                  "relative transition-all duration-300 ease-in-out",
+                  searchOpen ? "w-40 sm:w-48 md:w-64" : "w-0"
+                )}>
+                  <Input
+                    placeholder={t('search-posts-placeholder') || 'Поиск по постам...'}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={cn(
+                      "w-full h-10 pl-10 pr-4 transition-opacity",
+                      !searchOpen && "opacity-0 p-0 border-0"
+                    )}
+                    disabled={!searchOpen}
+                    ref={input => searchOpen && input?.focus()}
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={toggleSearch}
+                  className="h-10 w-10 flex-shrink-0"
+                >
+                  {searchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+                </Button>
               </div>
             )}
           </div>
