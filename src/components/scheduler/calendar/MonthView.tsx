@@ -27,12 +27,38 @@ export const MonthView: React.FC<MonthViewProps> = ({
 }) => {
   const { t, language } = useLanguage();
 
+  const parsePostDate = (scheduledFor: string) => {
+    try {
+      // Пробуем разные варианты парсинга даты
+      let postDate: Date;
+      
+      if (scheduledFor.includes('T')) {
+        // Если уже есть время, парсим как есть
+        postDate = new Date(scheduledFor);
+      } else {
+        // Если только дата, добавляем время
+        postDate = new Date(scheduledFor + 'T00:00:00');
+      }
+      
+      // Проверяем, что дата валидна
+      if (isNaN(postDate.getTime())) {
+        console.warn('Invalid date:', scheduledFor);
+        return null;
+      }
+      
+      return postDate;
+    } catch (error) {
+      console.warn('Error parsing date:', scheduledFor, error);
+      return null;
+    }
+  };
+
   const getPostsForDate = (date: Date) => {
     return posts.filter(post => {
-      // Создаем дату из строки scheduled_for в локальной временной зоне
-      const postDate = new Date(post.scheduled_for + 'Z'); // Добавляем Z чтобы интерпретировать как UTC
-      const localPostDate = new Date(postDate.getTime() - postDate.getTimezoneOffset() * 60000);
-      return isSameDay(localPostDate, date);
+      const postDate = parsePostDate(post.scheduled_for);
+      if (!postDate) return false;
+      
+      return isSameDay(postDate, date);
     });
   };
 
@@ -40,10 +66,14 @@ export const MonthView: React.FC<MonthViewProps> = ({
   const postsData = React.useMemo(() => {
     const data: Record<string, number> = {};
     posts.forEach(post => {
-      // Создаем дату из строки scheduled_for в локальной временной зоне
-      const postDate = new Date(post.scheduled_for + 'Z');
-      const localPostDate = new Date(postDate.getTime() - postDate.getTimezoneOffset() * 60000);
-      const dateKey = localPostDate.toISOString().split('T')[0];
+      const postDate = parsePostDate(post.scheduled_for);
+      if (!postDate) return;
+      
+      const year = postDate.getFullYear();
+      const month = String(postDate.getMonth() + 1).padStart(2, '0');
+      const day = String(postDate.getDate()).padStart(2, '0');
+      const dateKey = `${year}-${month}-${day}`;
+      
       data[dateKey] = (data[dateKey] || 0) + 1;
     });
     return data;

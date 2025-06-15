@@ -22,10 +22,35 @@ export const WeekView: React.FC<WeekViewProps> = ({
   const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
+  const parsePostDate = (scheduledFor: string) => {
+    try {
+      let postDate: Date;
+      
+      if (scheduledFor.includes('T')) {
+        postDate = new Date(scheduledFor);
+      } else {
+        postDate = new Date(scheduledFor + 'T00:00:00');
+      }
+      
+      if (isNaN(postDate.getTime())) {
+        console.warn('Invalid date:', scheduledFor);
+        return null;
+      }
+      
+      return postDate;
+    } catch (error) {
+      console.warn('Error parsing date:', scheduledFor, error);
+      return null;
+    }
+  };
+
   const getPostsForDate = (date: Date) => {
-    return posts.filter(post => 
-      isSameDay(new Date(post.scheduled_for), date)
-    );
+    return posts.filter(post => {
+      const postDate = parsePostDate(post.scheduled_for);
+      if (!postDate) return false;
+      
+      return isSameDay(postDate, date);
+    });
   };
 
   return (
@@ -45,15 +70,20 @@ export const WeekView: React.FC<WeekViewProps> = ({
               )}
             </div>
             <div className="space-y-2">
-              {postsForDay.map((post) => (
-                <div 
-                  key={post.id} 
-                  className="text-xs md:text-sm p-2 bg-blue-100 dark:bg-blue-900 rounded truncate cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                  onClick={() => onPostClick(post)}
-                >
-                  {format(new Date(post.scheduled_for), 'HH:mm')} - {post.content.substring(0, 30)}...
-                </div>
-              ))}
+              {postsForDay.map((post) => {
+                const postDate = parsePostDate(post.scheduled_for);
+                const timeStr = postDate ? format(postDate, 'HH:mm') : '00:00';
+                
+                return (
+                  <div 
+                    key={post.id} 
+                    className="text-xs md:text-sm p-2 bg-blue-100 dark:bg-blue-900 rounded truncate cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                    onClick={() => onPostClick(post)}
+                  >
+                    {timeStr} - {post.content.substring(0, 30)}...
+                  </div>
+                );
+              })}
               {postCount === 0 && (
                 <div className="text-xs text-gray-400 text-center py-2">
                   {t('no-posts-scheduled-for-date')}
