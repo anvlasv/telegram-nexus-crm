@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
@@ -5,14 +6,45 @@ import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+  postsData?: Record<string, number>; // Date string -> number of posts
+};
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  postsData = {},
   ...props
 }: CalendarProps) {
+  
+  const getDayContent = (day: Date) => {
+    const dateKey = day.toISOString().split('T')[0];
+    const postCount = postsData[dateKey] || 0;
+    
+    return (
+      <div className="relative w-full h-full flex items-center justify-center">
+        <span>{day.getDate()}</span>
+        {postCount > 0 && (
+          <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2">
+            <div className="flex space-x-0.5">
+              {Array.from({ length: Math.min(postCount, 3) }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1 h-1 bg-blue-500 rounded-full"
+                  title={`${postCount} ${postCount === 1 ? 'post' : 'posts'} scheduled`}
+                />
+              ))}
+              {postCount > 3 && (
+                <div className="w-1 h-1 bg-blue-700 rounded-full" />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -37,7 +69,7 @@ function Calendar({
         cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 relative"
         ),
         day_range_end: "day-range-end",
         day_selected:
@@ -54,6 +86,7 @@ function Calendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        DayContent: ({ date }) => getDayContent(date),
       }}
       {...props}
     />

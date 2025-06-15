@@ -166,7 +166,7 @@ export const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Revenue Summary */}
+        {/* Revenue Summary - Fully Translated */}
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center text-gray-900 dark:text-gray-100">

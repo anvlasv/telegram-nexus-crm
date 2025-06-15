@@ -72,6 +72,14 @@ const translations = {
     'total-partner-revenue': 'Общий доход от партнеров',
     'monthly-partner-income': 'Ежемесячный доход',
     'rub': '₽',
+    'revenue-summary': 'Сводка доходов',
+    'partner-revenue-overview': 'Обзор доходов от партнерских программ',
+    'total-revenue': 'Общий доход',
+    'revenue-by-partner': 'Доходы по партнерам',
+    'no-partners': 'Нет партнеров',
+    'view-all-partners': 'Все партнеры',
+    'latest-posts-across-channels': 'Последние посты по всем каналам',
+    'no-data': 'Нет данных',
     
     // Channel Management
     'add-channel': 'Добавить канал',
@@ -191,6 +199,7 @@ const translations = {
     'sent': 'Отправлено',
     'failed': 'Ошибка',
     'draft': 'Черновик',
+    'posts-scheduled': 'постов запланировано',
     
     // Assistant module translations
     'assistant-description': 'ИИ-помощник для автоматизации управления каналами',
@@ -392,6 +401,14 @@ const translations = {
     'total-partner-revenue': 'Total Partner Revenue',
     'monthly-partner-income': 'Monthly Income',
     'rub': '$',
+    'revenue-summary': 'Revenue Summary',
+    'partner-revenue-overview': 'Partner program revenue overview',
+    'total-revenue': 'Total Revenue',
+    'revenue-by-partner': 'Revenue by Partner',
+    'no-partners': 'No Partners',
+    'view-all-partners': 'All Partners',
+    'latest-posts-across-channels': 'Latest posts across all channels',
+    'no-data': 'No data',
     
     // Channel Management
     'add-channel': 'Add Channel',
@@ -511,6 +528,7 @@ const translations = {
     'sent': 'Sent',
     'failed': 'Failed',
     'draft': 'Draft',
+    'posts-scheduled': 'posts scheduled',
     
     // Assistant module translations
     'assistant-description': 'AI assistant for channel management automation',
