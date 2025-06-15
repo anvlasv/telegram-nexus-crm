@@ -33,8 +33,8 @@ export const Profile: React.FC = () => {
     fullName: user?.user_metadata?.full_name || '',
     email: user?.email || '',
     bio: '',
-    position: 'Администратор канала',
-    location: 'Москва, Россия'
+    position: t('channel-administrator'),
+    location: t('moscow-russia')
   });
 
   const handleSave = () => {
@@ -49,15 +49,15 @@ export const Profile: React.FC = () => {
       fullName: user?.user_metadata?.full_name || '',
       email: user?.email || '',
       bio: '',
-      position: 'Администратор канала',
-      location: 'Москва, Россия'
+      position: t('channel-administrator'),
+      location: t('moscow-russia')
     });
   };
 
   const stats = [
-    { label: 'Активных каналов', value: '3', icon: MessageSquare },
-    { label: 'Опубликованных постов', value: '127', icon: Activity },
-    { label: 'Просмотров', value: '45.2K', icon: BarChart3 }
+    { label: t('active-channels'), value: '3', icon: MessageSquare },
+    { label: t('published-posts'), value: '127', icon: Activity },
+    { label: t('views'), value: '45.2K', icon: BarChart3 }
   ];
 
   return (
@@ -67,7 +67,7 @@ export const Profile: React.FC = () => {
           {t('profile')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Управление профилем и персональными настройками
+          {t('personal-information')}
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export const Profile: React.FC = () => {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-gray-900 dark:text-gray-100 flex items-center space-x-2">
                 <User className="h-5 w-5" />
-                <span>Личная информация</span>
+                <span>{t('personal-information')}</span>
               </CardTitle>
               {!isEditing ? (
                 <Button
@@ -88,7 +88,7 @@ export const Profile: React.FC = () => {
                   className="text-blue-600 dark:text-blue-400"
                 >
                   <Edit3 className="h-4 w-4 mr-2" />
-                  Редактировать
+                  {t('edit')}
                 </Button>
               ) : (
                 <div className="flex space-x-2">
@@ -99,7 +99,7 @@ export const Profile: React.FC = () => {
                     className="text-gray-600 dark:text-gray-400"
                   >
                     <X className="h-4 w-4 mr-2" />
-                    Отмена
+                    {t('cancel')}
                   </Button>
                   <Button
                     size="sm"
@@ -107,7 +107,7 @@ export const Profile: React.FC = () => {
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    Сохранить
+                    {t('save')}
                   </Button>
                 </div>
               )}
@@ -123,12 +123,12 @@ export const Profile: React.FC = () => {
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                        {formData.fullName || `${telegramUser?.first_name || ''} ${telegramUser?.last_name || ''}`.trim() || 'Пользователь'}
+                        {formData.fullName || `${telegramUser?.first_name || ''} ${telegramUser?.last_name || ''}`.trim() || t('user')}
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400">{formData.position}</p>
                       <Badge className="mt-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
                         <Shield className="h-3 w-3 mr-1" />
-                        Верифицирован
+                        {t('verified')}
                       </Badge>
                     </div>
                   </div>
@@ -142,7 +142,7 @@ export const Profile: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <Label className="text-gray-700 dark:text-gray-300">Местоположение</Label>
+                      <Label className="text-gray-700 dark:text-gray-300">{t('location')}</Label>
                       <div className="flex items-center mt-1 text-gray-900 dark:text-gray-100">
                         <Calendar className="h-4 w-4 mr-2 text-gray-500" />
                         {formData.location}
@@ -151,7 +151,7 @@ export const Profile: React.FC = () => {
                   </div>
                   {formData.bio && (
                     <div>
-                      <Label className="text-gray-700 dark:text-gray-300">О себе</Label>
+                      <Label className="text-gray-700 dark:text-gray-300">{t('about')}</Label>
                       <p className="mt-1 text-gray-900 dark:text-gray-100">{formData.bio}</p>
                     </div>
                   )}
@@ -161,7 +161,7 @@ export const Profile: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="fullName" className="text-gray-700 dark:text-gray-300">
-                        Полное имя
+                        {t('full-name')}
                       </Label>
                       <Input
                         id="fullName"
@@ -172,7 +172,7 @@ export const Profile: React.FC = () => {
                     </div>
                     <div>
                       <Label htmlFor="position" className="text-gray-700 dark:text-gray-300">
-                        Должность
+                        {t('position')}
                       </Label>
                       <Input
                         id="position"
@@ -184,7 +184,7 @@ export const Profile: React.FC = () => {
                   </div>
                   <div>
                     <Label htmlFor="location" className="text-gray-700 dark:text-gray-300">
-                      Местоположение
+                      {t('location')}
                     </Label>
                     <Input
                       id="location"
@@ -195,13 +195,13 @@ export const Profile: React.FC = () => {
                   </div>
                   <div>
                     <Label htmlFor="bio" className="text-gray-700 dark:text-gray-300">
-                      О себе
+                      {t('bio')}
                     </Label>
                     <Input
                       id="bio"
                       value={formData.bio}
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                      placeholder="Расскажите о себе..."
+                      placeholder={t('about-placeholder')}
                       className="mt-1"
                     />
                   </div>
@@ -215,7 +215,7 @@ export const Profile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-gray-100 flex items-center space-x-2">
                 <BarChart3 className="h-5 w-5" />
-                <span>Статистика</span>
+                <span>{t('statistics')}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -243,21 +243,21 @@ export const Profile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-gray-900 dark:text-gray-100 flex items-center space-x-2">
                 <Settings className="h-5 w-5" />
-                <span>Быстрые действия</span>
+                <span>{t('quick-actions')}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Button variant="outline" className="w-full justify-start">
                 <Settings className="h-4 w-4 mr-2" />
-                Настройки аккаунта
+                {t('account-settings')}
               </Button>
               <Button variant="outline" className="w-full justify-start">
                 <Shield className="h-4 w-4 mr-2" />
-                Безопасность
+                {t('security')}
               </Button>
               <Button variant="outline" className="w-full justify-start">
                 <Activity className="h-4 w-4 mr-2" />
-                История активности
+                {t('activity-history')}
               </Button>
             </CardContent>
           </Card>
@@ -267,7 +267,7 @@ export const Profile: React.FC = () => {
             <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-gray-100">
-                  Telegram профиль
+                  {t('telegram-profile')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -276,7 +276,7 @@ export const Profile: React.FC = () => {
                   <span className="ml-2 text-gray-900 dark:text-gray-100">{telegramUser.id}</span>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Имя:</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('name')}:</span>
                   <span className="ml-2 text-gray-900 dark:text-gray-100">
                     {telegramUser.first_name} {telegramUser.last_name}
                   </span>

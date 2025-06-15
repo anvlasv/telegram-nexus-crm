@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
@@ -167,7 +166,7 @@ export const Analytics: React.FC = () => {
               {t('views')} {t('this-month')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Динамика просмотров канала {selectedChannel.name}
+              {t('analytics-for-channel')} {selectedChannel.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -213,10 +212,10 @@ export const Analytics: React.FC = () => {
         <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-gray-100">
-              {t('engagement-rate')} канала
+              {t('engagement-rate')} {t('channel')}
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Распределение активности в {selectedChannel.name}
+              {t('analytics-for-channel')} {selectedChannel.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -266,7 +265,7 @@ export const Analytics: React.FC = () => {
       <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-gray-100">
-            Подробная статистика канала
+            {t('detailed-analytics')}
           </CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-400">
             {t('reactions')} и {t('forwards')} за последние 6 месяцев для {selectedChannel.name}

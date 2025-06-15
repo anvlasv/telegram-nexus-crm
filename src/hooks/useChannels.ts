@@ -41,6 +41,16 @@ export const useChannels = () => {
         localStorage.setItem('selectedChannelId', channels[0].id);
       }
     }
+
+    // Проверяем, существует ли выбранный канал в списке каналов
+    if (selectedChannelId && channels.length > 0) {
+      const channelExists = channels.find(c => c.id === selectedChannelId);
+      if (!channelExists) {
+        console.log('[useChannels] Выбранный канал не найден, сбрасываем выбор');
+        setSelectedChannelId('');
+        localStorage.removeItem('selectedChannelId');
+      }
+    }
   }, [channels, selectedChannelId]);
 
   // Store channel selection in localStorage with transition handling
@@ -54,16 +64,21 @@ export const useChannels = () => {
     setSelectedChannelId(channelId);
     localStorage.setItem('selectedChannelId', channelId);
     
-    // Invalidate all related queries to trigger refetch
+    // Полная очистка всех кешей для принудительного обновления
+    queryClient.clear();
+    
+    // Также инвалидируем конкретные запросы
     queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
     queryClient.invalidateQueries({ queryKey: ['recent-posts'] });
     queryClient.invalidateQueries({ queryKey: ['aggregated-data'] });
+    queryClient.invalidateQueries({ queryKey: ['channel-posts'] });
+    queryClient.invalidateQueries({ queryKey: ['channel-analytics'] });
     
     // Short delay for smooth transition
     setTimeout(() => {
       setIsChannelSwitching(false);
       console.log('[useChannels] Канал переключен успешно:', channelId);
-    }, 100);
+    }, 200);
   };
 
   return {
