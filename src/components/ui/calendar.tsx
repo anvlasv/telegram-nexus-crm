@@ -31,7 +31,7 @@ function Calendar({
       <div className="relative w-full h-full flex items-center justify-center">
         <span>{day.getDate()}</span>
         {postCount > 0 && (
-          <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2">
+          <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 z-10">
             <div className="flex space-x-0.5">
               {Array.from({ length: Math.min(postCount, 3) }).map((_, i) => (
                 <div
@@ -74,7 +74,7 @@ function Calendar({
         cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 relative"
+          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 relative hover:bg-accent/30 focus:bg-accent/30"
         ),
         day_range_end: "day-range-end",
         day_selected:

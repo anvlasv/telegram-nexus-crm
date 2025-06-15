@@ -123,6 +123,7 @@ export const ChannelForm: React.FC<ChannelFormProps> = ({
     }
   };
 
+  // Only verify for new channels (not editing) and when username changes
   useEffect(() => {
     if (formData.username && !editingChannel && verificationStatus === 'idle') {
       const timer = setTimeout(() => {
@@ -130,7 +131,7 @@ export const ChannelForm: React.FC<ChannelFormProps> = ({
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [formData.username, editingChannel, verificationStatus]);
+  }, [formData.username, editingChannel]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,7 +141,12 @@ export const ChannelForm: React.FC<ChannelFormProps> = ({
       return;
     }
 
-    await onSubmit(formData, chatData);
+    try {
+      await onSubmit(formData, chatData);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Ошибка при сохранении канала');
+    }
   };
 
   return (

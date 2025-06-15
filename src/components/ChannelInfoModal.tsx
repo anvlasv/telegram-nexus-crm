@@ -60,27 +60,47 @@ export const ChannelInfoModal: React.FC<ChannelInfoModalProps> = ({
   const getTimezoneDisplay = (timezone?: string) => {
     if (!timezone) return '—';
     
-    // Найдем соответствующую запись в списке часовых поясов
-    const timezones = [
-      { value: 'Europe/Moscow', label: 'Москва (UTC+3)' },
-      { value: 'Europe/Kiev', label: 'Киев (UTC+2)' },
-      { value: 'Europe/Minsk', label: 'Минск (UTC+3)' },
-      { value: 'Asia/Almaty', label: 'Алматы (UTC+6)' },
-      { value: 'Asia/Tashkent', label: 'Ташкент (UTC+5)' },
-      { value: 'Asia/Yerevan', label: 'Ереван (UTC+4)' },
-      { value: 'Asia/Baku', label: 'Баку (UTC+4)' },
-      { value: 'Europe/London', label: 'Лондон (UTC+0)' },
-      { value: 'Europe/Berlin', label: 'Берлин (UTC+1)' },
-      { value: 'America/New_York', label: 'Нью-Йорк (UTC-5)' },
-      { value: 'America/Los_Angeles', label: 'Лос-Анджелес (UTC-8)' },
-      { value: 'Asia/Tokyo', label: 'Токио (UTC+9)' },
-      { value: 'Asia/Shanghai', label: 'Шанхай (UTC+8)' },
-      { value: 'Asia/Dubai', label: 'Дубай (UTC+4)' },
-      { value: 'Australia/Sydney', label: 'Сидней (UTC+10)' },
-    ];
+    const timezones = {
+      // Россия и СНГ
+      'Europe/Kaliningrad': 'Калининград (UTC+2)',
+      'Europe/Moscow': 'Москва (UTC+3)',
+      'Europe/Samara': 'Самара (UTC+4)',
+      'Asia/Yekaterinburg': 'Екатеринбург (UTC+5)',
+      'Asia/Omsk': 'Омск (UTC+6)',
+      'Asia/Krasnoyarsk': 'Красноярск (UTC+7)',
+      'Asia/Irkutsk': 'Иркутск (UTC+8)',
+      'Asia/Yakutsk': 'Якутск (UTC+9)',
+      'Asia/Vladivostok': 'Владивосток (UTC+10)',
+      'Asia/Magadan': 'Магадан (UTC+11)',
+      'Asia/Kamchatka': 'Камчатка (UTC+12)',
+      'Europe/Kiev': 'Киев (UTC+2)',
+      'Europe/Minsk': 'Минск (UTC+3)',
+      'Asia/Almaty': 'Алматы (UTC+6)',
+      'Asia/Tashkent': 'Ташкент (UTC+5)',
+      'Asia/Yerevan': 'Ереван (UTC+4)',
+      'Asia/Baku': 'Баку (UTC+4)',
+      // Европа
+      'Europe/London': 'Лондон (UTC+0)',
+      'Europe/Berlin': 'Берлин (UTC+1)',
+      'Europe/Paris': 'Париж (UTC+1)',
+      'Europe/Rome': 'Рим (UTC+1)',
+      // Америка
+      'America/New_York': 'Нью-Йорк (UTC-5)',
+      'America/Los_Angeles': 'Лос-Анджелес (UTC-8)',
+      'America/Chicago': 'Чикаго (UTC-6)',
+      'America/Denver': 'Денвер (UTC-7)',
+      // Азия
+      'Asia/Tokyo': 'Токио (UTC+9)',
+      'Asia/Shanghai': 'Шанхай (UTC+8)',
+      'Asia/Dubai': 'Дубай (UTC+4)',
+      'Asia/Seoul': 'Сеул (UTC+9)',
+      'Asia/Mumbai': 'Мумбаи (UTC+5:30)',
+      // Океания
+      'Australia/Sydney': 'Сидней (UTC+10)',
+      'Pacific/Auckland': 'Окленд (UTC+12)',
+    } as Record<string, string>;
     
-    const timezoneInfo = timezones.find(tz => tz.value === timezone);
-    return timezoneInfo ? timezoneInfo.label : timezone;
+    return timezones[timezone] || timezone;
   };
 
   return (
