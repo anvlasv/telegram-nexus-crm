@@ -111,11 +111,6 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
               {t('settings')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={toggleTheme}>
-              {isDarkTheme ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-              {isDarkTheme ? t('light-theme') : t('dark-theme')}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut className="mr-2 h-4 w-4" />
               {t('logout')}
@@ -150,11 +145,6 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
               {t('settings')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={toggleTheme}>
-              {isDarkTheme ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-              {isDarkTheme ? t('light-theme') : t('dark-theme')}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut className="mr-2 h-4 w-4" />
               {t('logout')}
@@ -179,6 +169,18 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
           <SheetContent side="right" className="w-80 p-0">
             <div className="pt-4 pb-8 px-3">
               <MiniAppMenu onSelect={() => setShowMenuSheet(false)} />
+            </div>
+            {/* Theme toggle at the bottom */}
+            <div className="absolute bottom-4 right-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="p-2"
+                aria-label={isDarkTheme ? 'Светлая тема' : 'Темная тема'}
+              >
+                {isDarkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
             </div>
           </SheetContent>
         </Sheet>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
@@ -31,6 +32,7 @@ export const ChannelManagement: React.FC = () => {
         channel_id: chatData?.id || editingChannel?.channel_id,
         type: formData.type,
         status: formData.status,
+        timezone: formData.timezone,
         subscriber_count: chatData?.member_count || editingChannel?.subscriber_count || 0,
         avatar_url: chatData?.avatar_url || (editingChannel ? editingChannel.avatar_url : null),
       };
