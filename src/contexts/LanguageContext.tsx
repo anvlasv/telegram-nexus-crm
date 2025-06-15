@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'ru' | 'en';
@@ -157,6 +156,25 @@ const translations = {
     'tomorrow': 'Завтра',
     'this-week': 'На этой неделе',
     'next-week': 'На следующей неделе',
+    
+    // Enhanced Scheduler translations
+    'scheduler-description': 'Планируйте и управляйте публикациями для выбранного канала',
+    'schedule-post': 'Запланировать пост',
+    'post': 'Пост',
+    'list': 'Список',
+    'calendar': 'Календарь',
+    'no-scheduled-posts': 'Нет запланированных постов',
+    'create-first-post': 'Создать первый пост',
+    'select-channel-to-continue': 'Выберите канал для продолжения',
+    'publishing': 'Публикация...',
+    
+    // Dashboard enhancements
+    'latest-posts-across-channels': 'Последние посты со всех каналов',
+    'revenue-summary': 'Сводка доходов',
+    'partner-revenue-overview': 'Обзор доходов от партнеров',
+    'no-partners': 'Нет партнеров',
+    'view-all-partners': 'Все партнеры',
+    'no-data': 'Нет данных',
     
     // Analytics
     'analytics-overview': 'Обзор аналитики',
@@ -350,6 +368,25 @@ const translations = {
     'tomorrow': 'Tomorrow',
     'this-week': 'This Week',
     'next-week': 'Next Week',
+    
+    // Enhanced Scheduler translations
+    'scheduler-description': 'Schedule and manage posts for the selected channel',
+    'schedule-post': 'Schedule Post',
+    'post': 'Post',
+    'list': 'List',
+    'calendar': 'Calendar',
+    'no-scheduled-posts': 'No scheduled posts',
+    'create-first-post': 'Create first post',
+    'select-channel-to-continue': 'Select a channel to continue',
+    'publishing': 'Publishing...',
+    
+    // Dashboard enhancements
+    'latest-posts-across-channels': 'Latest posts across all channels',
+    'revenue-summary': 'Revenue Summary',
+    'partner-revenue-overview': 'Partner revenue overview',
+    'no-partners': 'No partners',
+    'view-all-partners': 'View All Partners',
+    'no-data': 'No data available',
     
     // Analytics
     'analytics-overview': 'Analytics Overview',

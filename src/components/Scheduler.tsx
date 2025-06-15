@@ -9,10 +9,11 @@ import { PostFormModal } from './PostFormModal';
 import { CalendarView } from './scheduler/CalendarView';
 import { ListView } from './scheduler/ListView';
 import { useChannels } from '@/hooks/useChannels';
+import { ChannelSwitchLoader } from './ChannelSwitchLoader';
 
 export const Scheduler: React.FC = () => {
   const { t } = useLanguage();
-  const { channels, selectedChannelId } = useChannels();
+  const { channels, selectedChannelId, isChannelSwitching } = useChannels();
   const { data: posts = [], isLoading } = useScheduledPosts();
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -21,6 +22,11 @@ export const Scheduler: React.FC = () => {
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
   const { handleCreatePost, handlePublishPost, handleDeletePost, isCreating, isUpdating } = useSchedulerActions(selectedChannel);
+
+  // Показываем лоадер переключения канала
+  if (isChannelSwitching) {
+    return <ChannelSwitchLoader channelName={selectedChannel?.name} />;
+  }
 
   // Filter posts by selected channel
   const filteredPosts = selectedChannel

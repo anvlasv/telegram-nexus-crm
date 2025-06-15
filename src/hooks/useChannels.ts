@@ -11,6 +11,7 @@ type ChannelUpdate = TablesUpdate<'telegram_channels'>;
 export const useChannels = () => {
   const [selectedChannelId, setSelectedChannelId] = useState<string>('');
   const [isChannelSwitching, setIsChannelSwitching] = useState(false);
+  const queryClient = useQueryClient();
   
   const { data: channels = [], isLoading, error } = useQuery({
     queryKey: ['telegram-channels'],
@@ -49,12 +50,17 @@ export const useChannels = () => {
     console.log('[useChannels] Переключение канала:', { from: selectedChannelId, to: channelId });
     setIsChannelSwitching(true);
     
+    // Invalidate all related queries to trigger refetch
+    queryClient.invalidateQueries({ queryKey: ['scheduled-posts'] });
+    queryClient.invalidateQueries({ queryKey: ['recent-posts'] });
+    queryClient.invalidateQueries({ queryKey: ['aggregated-data'] });
+    
     setTimeout(() => {
       setSelectedChannelId(channelId);
       localStorage.setItem('selectedChannelId', channelId);
       setIsChannelSwitching(false);
       console.log('[useChannels] Канал переключен успешно:', channelId);
-    }, 100);
+    }, 300);
   };
 
   return {

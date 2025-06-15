@@ -38,11 +38,11 @@ export const ListView: React.FC<ListViewProps> = ({
       ))}
       {posts.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">{t('no-scheduled-posts')}</p>
+          <p className="text-muted-foreground mb-4">{t('no-scheduled-posts')}</p>
           <Button 
             onClick={onCreatePost}
             disabled={!hasSelectedChannel}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="mr-2 h-4 w-4" />
             {t('create-first-post')}
