@@ -18,21 +18,6 @@ export const ChannelVerification: React.FC<ChannelVerificationProps> = ({
 }) => {
   return (
     <>
-      {!editingChannel && verificationStatus !== 'success' && (
-        <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 mb-4">
-          <Bot className="h-4 w-4" />
-          <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Как подключить канал:</strong>
-            <ol className="list-decimal list-inside mt-2 space-y-1 text-xs">
-              <li>Добавьте бота @Teleg_CRMbot в администраторы</li>
-              <li>Дайте боту права администратора</li>
-              <li>Введите username канала</li>
-              <li>Дождитесь автоматической проверки</li>
-            </ol>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {verificationStatus === 'checking' && (
         <p className="text-sm text-blue-600 mb-2">Проверяем канал...</p>
       )}
@@ -50,7 +35,7 @@ export const ChannelVerification: React.FC<ChannelVerificationProps> = ({
         <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg space-y-2 mb-4">
           <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">Информация о канале:</h4>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <p><strong>Название:</strong> {chatData.title}</p>
+            <p><strong>Название:</strong> {chatData.title || chatData.name || 'Без названия'}</p>
             <p><strong>Username:</strong> @{chatData.username}</p>
             <p><strong>ID:</strong> {chatData.id}</p>
             <p><strong>Подписчики:</strong> {chatData.member_count?.toLocaleString() || 'Неизвестно'}</p>
