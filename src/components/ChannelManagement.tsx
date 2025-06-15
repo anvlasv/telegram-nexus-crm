@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useChannels, useCreateChannel, useUpdateChannel, useDeleteChannel } from '@/hooks/useChannels';
+import { useAdvertisingCampaigns } from '@/hooks/useAdvertisingCampaigns';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ChannelCard } from './channel-management/ChannelCard';
 import { ChannelForm } from './channel-management/ChannelForm';
@@ -12,12 +15,16 @@ import { EmptyChannelState } from './channel-management/EmptyChannelState';
 export const ChannelManagement: React.FC = () => {
   const { t } = useLanguage();
   const { channels, isLoading } = useChannels();
+  const { data: campaigns = [] } = useAdvertisingCampaigns();
   const createChannel = useCreateChannel();
   const updateChannel = useUpdateChannel();
   const deleteChannel = useDeleteChannel();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [channelToDelete, setChannelToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const resetForm = () => {
     setEditingChannel(null);
@@ -92,6 +99,65 @@ export const ChannelManagement: React.FC = () => {
     setIsDialogOpen(true);
   };
 
+  const handleDeleteClick = (channel: any) => {
+    setChannelToDelete(channel);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!channelToDelete) return;
+
+    setIsDeleting(true);
+    
+    try {
+      // Находим все кампании связанные с каналом
+      const relatedCampaigns = campaigns.filter(
+        (campaign: any) => campaign.channel_id === channelToDelete.id
+      );
+
+      console.log('[ChannelManagement] Deleting channel with related campaigns:', {
+        channelId: channelToDelete.id,
+        campaignsCount: relatedCampaigns.length
+      });
+
+      // Сначала удаляем все связанные кампании
+      if (relatedCampaigns.length > 0) {
+        for (const campaign of relatedCampaigns) {
+          console.log('[ChannelManagement] Deleting campaign:', campaign.id);
+          const { error: campaignError } = await supabase
+            .from('advertising_campaigns')
+            .delete()
+            .eq('id', campaign.id);
+          
+          if (campaignError) {
+            console.error('[ChannelManagement] Error deleting campaign:', campaignError);
+            throw campaignError;
+          }
+        }
+        console.log('[ChannelManagement] All related campaigns deleted successfully');
+      }
+
+      // Теперь удаляем канал
+      console.log('[ChannelManagement] Deleting channel:', channelToDelete.id);
+      await deleteChannel.mutateAsync(channelToDelete.id);
+      
+      console.log('[ChannelManagement] Channel deleted successfully');
+      toast.success(`Канал "${channelToDelete.name}" и все связанные кампании (${relatedCampaigns.length}) успешно удалены`);
+      
+      setDeleteDialogOpen(false);
+      setChannelToDelete(null);
+    } catch (error) {
+      console.error('[ChannelManagement] Error during deletion process:', error);
+      toast.error('Ошибка при удалении: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const getRelatedCampaignsCount = (channelId: string) => {
+    return campaigns.filter((campaign: any) => campaign.channel_id === channelId).length;
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm('Вы уверены, что хотите удалить этот канал?')) {
       try {
@@ -159,7 +225,7 @@ export const ChannelManagement: React.FC = () => {
               key={channel.id}
               channel={channel}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={handleDeleteClick}
             />
           ))}
         </div>
@@ -175,6 +241,46 @@ export const ChannelManagement: React.FC = () => {
         onSubmit={handleFormSubmit}
         isSubmitting={createChannel.isPending || updateChannel.isPending}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить канал?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {channelToDelete && (
+                <div className="space-y-2">
+                  <p>Вы уверены, что хотите удалить канал <strong>"{channelToDelete.name}"</strong>?</p>
+                  {getRelatedCampaignsCount(channelToDelete.id) > 0 && (
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
+                      <p className="text-yellow-800 dark:text-yellow-200 font-medium">
+                        ⚠️ Внимание!
+                      </p>
+                      <p className="text-yellow-700 dark:text-yellow-300 text-sm mt-1">
+                        Вместе с каналом будут удалены <strong>{getRelatedCampaignsCount(channelToDelete.id)}</strong> связанных рекламных кампаний.
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Это действие нельзя отменить.
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              Отмена
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? 'Удаление...' : 'Удалить'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
