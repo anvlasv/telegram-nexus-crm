@@ -24,7 +24,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
 
-  const handlePublish = async () => {
+  const handlePublish = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     setLoading(true);
     try {
       await onPublish();
@@ -41,8 +42,13 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete();
+  };
+
   return (
-    <div className="bg-card p-3 sm:p-4 rounded-lg shadow border">
+    <div className="bg-card p-3 sm:p-4 rounded-lg shadow border hover:shadow-md transition-shadow">
       {/* Header with channel info */}
       <div className="flex items-center space-x-3 mb-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
@@ -73,7 +79,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 justify-end">
-        <Button size="sm" variant="destructive" onClick={onDelete} className="text-xs">
+        <Button size="sm" variant="destructive" onClick={handleDelete} className="text-xs">
           {t('delete')}
         </Button>
         <Button 
