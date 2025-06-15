@@ -102,7 +102,7 @@ export const Scheduler: React.FC = () => {
             <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">{t('scheduler')}</h1>
               <p className="text-sm md:text-base text-muted-foreground mt-1">
-                {t('scheduler-description')} - {selectedChannel.name}
+                {t('scheduler-description')}
               </p>
             </div>
             

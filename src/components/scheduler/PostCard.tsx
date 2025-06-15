@@ -56,7 +56,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-sm truncate">{channel.name}</div>
-          <div className="text-xs text-muted-foreground truncate">@{channel.username}</div>
         </div>
         <div className="text-xs text-muted-foreground text-right flex-shrink-0">
           {format(new Date(post.scheduled_for), 'dd.MM.yyyy HH:mm', { 
