@@ -28,17 +28,24 @@ async function generateWithAI(prompt: string): Promise<string> {
   });
   if (!resp.ok) {
     let errorText = 'AI generation failed';
+    let bodyText = '';
     try {
-      const data = await resp.json();
-      if (data && data.error) {
-        errorText = data.error;
+      bodyText = await resp.text();
+      try {
+        const data = JSON.parse(bodyText);
+        if (data && data.error) {
+          errorText = data.error;
+        } else {
+          errorText = bodyText;
+        }
+        console.error('[AI Error]', data);
+      } catch {
+        errorText = bodyText;
+        console.error('[AI Error, not JSON]', errorText);
       }
-      // Выведем ошибку из edge-функции в консоль для отладки
-      console.error('[AI Error]', data);
     } catch (e) {
-      // если не json
-      errorText = await resp.text();
-      console.error('[AI Error, not JSON]', errorText);
+      errorText = (e instanceof Error && e.message) ? e.message : 'AI generation failed';
+      console.error('[AI Error, unhandled]', errorText);
     }
     throw new Error(errorText);
   }
