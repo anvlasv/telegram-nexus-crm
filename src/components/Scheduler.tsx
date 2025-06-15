@@ -7,7 +7,7 @@ import { useScheduledPosts } from '@/hooks/useScheduledPosts';
 import { useSchedulerActions } from '@/hooks/useSchedulerActions';
 import { PostFormModal } from './PostFormModal';
 import { CalendarView } from './scheduler/CalendarView';
-import { ListView } from './scheduler/ListView';
+import { ListView, SearchBar } from './scheduler/ListView';
 import { useChannels } from '@/hooks/useChannels';
 import { ChannelSwitchLoader } from './ChannelSwitchLoader';
 
@@ -19,6 +19,10 @@ export const Scheduler: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [editingPost, setEditingPost] = useState<any>(null);
+  
+  // Search state
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
   const { handleCreatePost, handlePublishPost, handleDeletePost, isCreating, isUpdating } = useSchedulerActions(selectedChannel);
@@ -40,6 +44,21 @@ export const Scheduler: React.FC = () => {
   const filteredPosts = selectedChannel
     ? posts.filter((post) => post.channel_id === selectedChannel.id)
     : [];
+
+  // Фильтрация по поисковому запросу для списочного режима
+  const searchFilteredPosts = React.useMemo(() => {
+    if (viewMode !== 'list' || !searchQuery || searchQuery.replace(/\s/g, '').length < 4) {
+      return filteredPosts;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return filteredPosts.filter(post => 
+      post.content?.toLowerCase().includes(query) ||
+      (post.poll_options && post.poll_options.some((option: string) => 
+        option.toLowerCase().includes(query)
+      ))
+    );
+  }, [filteredPosts, searchQuery, viewMode]);
 
   console.log('[Scheduler] Отфильтрованные посты:', {
     selectedChannelId,
@@ -65,6 +84,13 @@ export const Scheduler: React.FC = () => {
       return;
     }
     setShowForm(true);
+  };
+
+  const toggleSearch = () => {
+    setSearchOpen(!searchOpen);
+    if (searchOpen) {
+      setSearchQuery('');
+    }
   };
 
   if (isLoading) {
@@ -119,28 +145,47 @@ export const Scheduler: React.FC = () => {
             </div>
           </div>
           
-          {/* View Mode Toggles */}
-          <div className="flex gap-2">
-            <Button 
-              variant={viewMode === 'list' ? 'default' : 'outline'} 
-              onClick={() => setViewMode('list')}
-              size="default"
-              className="flex-1 md:flex-initial"
-            >
-              <List className="mr-2 h-4 w-4" />
-              <span>{t('list')}</span>
-            </Button>
-            <Button 
-              variant={viewMode === 'calendar' ? 'default' : 'outline'} 
-              onClick={() => setViewMode('calendar')}
-              size="default"
-              className="flex-1 md:flex-initial"
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              <span>{t('calendar')}</span>
-            </Button>
+          {/* View Mode Toggles with Search */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-2">
+              <Button 
+                variant={viewMode === 'list' ? 'default' : 'outline'} 
+                onClick={() => setViewMode('list')}
+                size="default"
+                className="flex-1 md:flex-initial"
+              >
+                <List className="mr-2 h-4 w-4" />
+                <span>{t('list')}</span>
+              </Button>
+              <Button 
+                variant={viewMode === 'calendar' ? 'default' : 'outline'} 
+                onClick={() => setViewMode('calendar')}
+                size="default"
+                className="flex-1 md:flex-initial"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                <span>{t('calendar')}</span>
+              </Button>
+            </div>
+            
+            {/* Search Bar - только для списочного режима */}
+            {viewMode === 'list' && (
+              <SearchBar
+                searchOpen={searchOpen}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                toggleSearch={toggleSearch}
+              />
+            )}
           </div>
         </div>
+
+        {/* Search Results Info - только для списочного режима */}
+        {viewMode === 'list' && searchQuery && searchQuery.replace(/\s/g, '').length >= 4 && (
+          <div className="text-sm text-muted-foreground">
+            {t('search-results') || 'Результаты поиска'}: {searchFilteredPosts.length} {t('posts') || 'постов'}
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-h-0 overflow-hidden">
@@ -156,7 +201,7 @@ export const Scheduler: React.FC = () => {
               />
             ) : (
               <ListView
-                posts={filteredPosts}
+                posts={searchFilteredPosts}
                 onEditPost={handleEditPost}
                 onPublishPost={handlePublishPost}
                 onDeletePost={handleDeletePost}

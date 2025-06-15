@@ -78,41 +78,6 @@ export const ListView: React.FC<ListViewProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* Search Bar */}
-      <div className="flex items-center gap-2">
-        {searchOpen ? (
-          <div className="flex items-center gap-2 flex-1">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t('search-posts-placeholder') || 'Поиск по постам...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4"
-                autoFocus
-              />
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleSearch}
-              className="h-10 w-10"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleSearch}
-            className="h-10 w-10"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
       {/* Search Results Info */}
       {searchQuery && searchQuery.replace(/\s/g, '').length >= 4 && (
         <div className="text-sm text-muted-foreground">
@@ -168,6 +133,52 @@ export const ListView: React.FC<ListViewProps> = ({
         onPublish={handlePublishFromPreview}
         onDelete={handleDeleteFromPreview}
       />
+    </div>
+  );
+};
+
+// Экспортируем также SearchBar для использования в Scheduler
+export const SearchBar: React.FC<{
+  searchOpen: boolean;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  toggleSearch: () => void;
+}> = ({ searchOpen, searchQuery, setSearchQuery, toggleSearch }) => {
+  const { t } = useLanguage();
+
+  return (
+    <div className="flex items-center gap-2">
+      {searchOpen ? (
+        <div className="flex items-center gap-2 w-1/3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t('search-posts-placeholder') || 'Поиск по постам...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4"
+              autoFocus
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleSearch}
+            className="h-10 w-10"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleSearch}
+          className="h-10 w-10"
+        >
+          <Search className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 };
