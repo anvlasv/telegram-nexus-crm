@@ -1,197 +1,100 @@
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Tables } from '@/integrations/supabase/types';
 
-export interface UserProfile {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  username: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  // Virtual fields for display
-  email?: string;
-  bio?: string;
-  position?: string;
-  location?: string;
-}
+export type UserProfile = Tables<'profiles'>;
 
 export const useProfile = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const loadProfile = async () => {
-    if (!user) return;
-
-    try {
+  const { data: profile, isLoading, error } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data as UserProfile | null;
+    },
+    enabled: !!user?.id,
+  });
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile:', error);
-        return;
-      }
-
-      if (data) {
-        const profileWithVirtualFields: UserProfile = {
-          ...data,
-          email: user.email || '',
-          bio: '',
-          position: 'Администратор канала',
-          location: 'Москва, Россия',
-        };
-        setProfile(profileWithVirtualFields);
-      } else {
-        // Create initial profile
-        const newProfile = {
-          id: user.id,
-          full_name: user.user_metadata?.full_name || '',
-          avatar_url: null,
-          username: null,
-        };
-
-        const { data: created, error: createError } = await supabase
-          .from('profiles')
-          .insert(newProfile)
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating profile:', createError);
-        } else {
-          const profileWithVirtualFields: UserProfile = {
-            ...created,
-            email: user.email || '',
-            bio: '',
-            position: 'Администратор канала',
-            location: 'Москва, Россия',
-          };
-          setProfile(profileWithVirtualFields);
-        }
-      }
-    } catch (error) {
-      console.error('Error in loadProfile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!user || !profile) return false;
-
-    setSaving(true);
-    try {
-      // Filter out virtual fields that don't exist in the database
-      const dbUpdates = {
-        ...(updates.full_name !== undefined && { full_name: updates.full_name }),
-        ...(updates.avatar_url !== undefined && { avatar_url: updates.avatar_url }),
-        ...(updates.username !== undefined && { username: updates.username }),
-      };
-
+  const updateProfile = useMutation({
+    mutationFn: async (updates: Partial<UserProfile>) => {
+      if (!user?.id) throw new Error('No user');
+      
       const { data, error } = await supabase
         .from('profiles')
-        .update(dbUpdates)
-        .eq('id', user.id)
+        .upsert({ 
+          id: user.id, 
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .select()
         .single();
-
-      if (error) {
-        console.error('Error updating profile:', error);
-        toast({
-          title: 'Ошибка',
-          description: 'Не удалось сохранить профиль',
-          variant: 'destructive',
-        });
-        return false;
-      }
-
-      const updatedProfile: UserProfile = {
-        ...data,
-        email: profile.email,
-        bio: updates.bio !== undefined ? updates.bio : profile.bio,
-        position: updates.position !== undefined ? updates.position : profile.position,
-        location: updates.location !== undefined ? updates.location : profile.location,
-      };
-
-      setProfile(updatedProfile);
       
-      toast({
-        title: 'Успешно',
-        description: 'Профиль сохранен',
-      });
-      return true;
-    } catch (error) {
-      console.error('Error in updateProfile:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Произошла ошибка при сохранении',
-        variant: 'destructive',
-      });
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  };
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile', user?.id], data);
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
 
-  const uploadAvatar = async (file: File) => {
-    if (!user) return null;
-
-    try {
+  const uploadAvatar = useMutation({
+    mutationFn: async (file: File) => {
+      if (!user?.id) throw new Error('No user');
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
-
+      
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true });
-
-      if (uploadError) {
-        console.error('Error uploading avatar:', uploadError);
-        toast({
-          title: 'Ошибка',
-          description: 'Не удалось загрузить аватар',
-          variant: 'destructive',
-        });
-        return null;
-      }
-
+      
+      if (uploadError) throw uploadError;
+      
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Error in uploadAvatar:', error);
-      toast({
-        title: 'Ошибка',
-        description: 'Произошла ошибка при загрузке аватара',
-        variant: 'destructive',
-      });
-      return null;
-    }
-  };
+      
+      const avatarUrl = data.publicUrl;
+      
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('profiles')
+        .upsert({ 
+          id: user.id, 
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (updateError) throw updateError;
+      return updatedProfile;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile', user?.id], data);
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
 
   return {
     profile,
-    loading,
-    saving,
-    updateProfile,
-    uploadAvatar,
-    refreshProfile: loadProfile,
+    isLoading,
+    error,
+    updateProfile: updateProfile.mutate,
+    uploadAvatar: uploadAvatar.mutate,
+    isUpdating: updateProfile.isPending,
+    isUploading: uploadAvatar.isPending,
   };
 };
