@@ -28,16 +28,22 @@ export const MonthView: React.FC<MonthViewProps> = ({
   const { t, language } = useLanguage();
 
   const getPostsForDate = (date: Date) => {
-    return posts.filter(post => 
-      isSameDay(new Date(post.scheduled_for), date)
-    );
+    return posts.filter(post => {
+      // Создаем дату из строки scheduled_for в локальной временной зоне
+      const postDate = new Date(post.scheduled_for + 'Z'); // Добавляем Z чтобы интерпретировать как UTC
+      const localPostDate = new Date(postDate.getTime() - postDate.getTimezoneOffset() * 60000);
+      return isSameDay(localPostDate, date);
+    });
   };
 
   // Prepare posts data for calendar markers
   const postsData = React.useMemo(() => {
     const data: Record<string, number> = {};
     posts.forEach(post => {
-      const dateKey = new Date(post.scheduled_for).toISOString().split('T')[0];
+      // Создаем дату из строки scheduled_for в локальной временной зоне
+      const postDate = new Date(post.scheduled_for + 'Z');
+      const localPostDate = new Date(postDate.getTime() - postDate.getTimezoneOffset() * 60000);
+      const dateKey = localPostDate.toISOString().split('T')[0];
       data[dateKey] = (data[dateKey] || 0) + 1;
     });
     return data;

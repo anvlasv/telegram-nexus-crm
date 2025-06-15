@@ -19,7 +19,12 @@ function Calendar({
 }: CalendarProps) {
   
   const getDayContent = (day: Date) => {
-    const dateKey = day.toISOString().split('T')[0];
+    // Получаем дату в локальной временной зоне без учета времени
+    const year = day.getFullYear();
+    const month = String(day.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(day.getDate()).padStart(2, '0');
+    const dateKey = `${year}-${month}-${dayOfMonth}`;
+    
     const postCount = postsData[dateKey] || 0;
     
     return (
