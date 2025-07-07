@@ -41,7 +41,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
     channel_id: '',
     title: '',
     content: '',
-    post_type: 'text' as const,
+    post_type: 'photo' as const, // Устанавливаем альбом как тип по умолчанию
     price: 0,
     currency: 'RUB',
     scheduled_for: undefined as Date | undefined,
@@ -77,7 +77,7 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
         channel_id: '',
         title: '',
         content: '',
-        post_type: 'text',
+        post_type: 'photo',
         price: 0,
         currency: 'RUB',
         scheduled_for: undefined,
@@ -168,8 +168,6 @@ export const CreateCampaignModal: React.FC<CreateCampaignModalProps> = ({
                   <SelectItem value="audio">🎵 Аудио</SelectItem>
                   <SelectItem value="document">📄 Документ</SelectItem>
                   <SelectItem value="poll">📊 Опрос</SelectItem>
-                  <SelectItem value="location">📍 Локация</SelectItem>
-                  <SelectItem value="contact">👤 Контакт</SelectItem>
                   <SelectItem value="sticker">😀 Стикер</SelectItem>
                   <SelectItem value="animation">🎬 GIF/Анимация</SelectItem>
                   <SelectItem value="voice">🎤 Голосовое сообщение</SelectItem>

@@ -78,7 +78,9 @@ export const useCreateScheduledPost = () => {
         .insert([{ 
           ...postData, 
           user_id: userData.user.id,
-          media_urls: mediaUrls
+          media_urls: mediaUrls,
+          // Устанавливаем "photo" (альбом) как тип по умолчанию, если не указан
+          post_type: postData.post_type || 'photo'
         }])
         .select()
         .single();

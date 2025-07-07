@@ -8,7 +8,8 @@ interface UsePostFormProps {
 }
 
 export const usePostForm = ({ isOpen, editingPost }: UsePostFormProps) => {
-  const [postType, setPostType] = useState('text');
+  // Устанавливаем "photo" (альбом) как тип по умолчанию
+  const [postType, setPostType] = useState('photo');
   const [content, setContent] = useState('');
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['', '']);
@@ -34,7 +35,7 @@ export const usePostForm = ({ isOpen, editingPost }: UsePostFormProps) => {
   useEffect(() => {
     if (editingPost) {
       setContent(editingPost.content || '');
-      setPostType(editingPost.post_type || 'text');
+      setPostType(editingPost.post_type || 'photo');
       
       if (editingPost.post_type === 'poll') {
         setPollQuestion(editingPost.content || '');
@@ -57,7 +58,8 @@ export const usePostForm = ({ isOpen, editingPost }: UsePostFormProps) => {
     setPollQuestion('');
     setPollOptions(['', '']);
     setMediaFiles([]);
-    setPostType('text');
+    // Устанавливаем "photo" (альбом) как тип по умолчанию
+    setPostType('photo');
     const now = new Date();
     now.setMinutes(now.getMinutes() + 30);
     setScheduledDate(format(now, 'yyyy-MM-dd'));
