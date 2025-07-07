@@ -67,56 +67,128 @@ export const PostPreviewModal: React.FC<PostPreviewModalProps> = ({
     }
   };
 
+  const renderMedia = () => {
+    if (!post.media_urls || post.media_urls.length === 0) return null;
+
+    return (
+      <div className="space-y-3">
+        <div className="text-sm text-muted-foreground">
+          {t('attached-media')} ({post.media_urls.length})
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {post.media_urls.map((url: string, index: number) => {
+            const fileExtension = url.split('.').pop()?.toLowerCase();
+            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension || '');
+            const isVideo = ['mp4', 'avi', 'mov', 'webm', 'mkv'].includes(fileExtension || '');
+            
+            if (isImage) {
+              return (
+                <div key={index} className="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <img 
+                    src={url} 
+                    alt={`Media ${index + 1}`}
+                    className="w-full h-32 object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <div className="hidden absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                    <div className="text-center">
+                      <div className="text-2xl mb-1">📷</div>
+                      <div className="text-xs text-muted-foreground">
+                        {url.split('/').pop() || `${t('image')} ${index + 1}`}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            if (isVideo) {
+              return (
+                <div key={index} className="relative rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <video 
+                    src={url} 
+                    className="w-full h-32 object-cover"
+                    controls={false}
+                    muted
+                    onError={(e) => {
+                      const target = e.target as HTMLVideoElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <div className="hidden absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                    <div className="text-center">
+                      <div className="text-2xl mb-1">🎥</div>
+                      <div className="text-xs text-muted-foreground">
+                        {url.split('/').pop() || `${t('video')} ${index + 1}`}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                      <div className="w-0 h-0 border-l-[6px] border-l-white border-y-[4px] border-y-transparent ml-0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            // Для других типов файлов
+            return (
+              <div key={index} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <div className="text-center">
+                  <div className="text-2xl mb-2">{getPostTypeIcon()}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {url.split('/').pop() || `${t('media-file')} ${index + 1}`}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderPostContent = () => {
     if (post.post_type === 'poll') {
       return (
-        <div className="space-y-3">
-          <div className="font-medium">{post.content}</div>
+        <div className="space-y-4">
+          <div className="font-medium text-base">{post.content}</div>
           {post.poll_options && (
             <div className="space-y-2">
               {post.poll_options.map((option: string, index: number) => (
-                <div key={index} className="flex items-center p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                  <div className="w-4 h-4 border border-gray-400 rounded-sm mr-3"></div>
-                  <span>{option}</span>
+                <div key={index} className="flex items-center p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <div className="w-4 h-4 border-2 border-gray-400 rounded-sm mr-3 flex-shrink-0"></div>
+                  <span className="text-sm">{option}</span>
                 </div>
               ))}
             </div>
           )}
+          {renderMedia()}
         </div>
       );
     }
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {post.content && (
-          <div className="whitespace-pre-wrap break-words">
+          <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
             {post.content}
           </div>
         )}
-        {post.media_urls && post.media_urls.length > 0 && (
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">
-              {t('attached-media')} ({post.media_urls.length})
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {post.media_urls.map((url: string, index: number) => (
-                <div key={index} className="p-3 bg-gray-100 dark:bg-gray-800 rounded text-center">
-                  <div className="text-2xl mb-1">{getPostTypeIcon()}</div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {url.split('/').pop() || `${t('media-file')} ${index + 1}`}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {renderMedia()}
       </div>
     );
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="text-xl">{getPostTypeIcon()}</span>
@@ -126,7 +198,7 @@ export const PostPreviewModal: React.FC<PostPreviewModalProps> = ({
 
         <div className="space-y-6">
           {/* Header with channel info */}
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <div className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
             <Avatar className="h-10 w-10">
               <AvatarImage
                 src={post.telegram_channels?.avatar_url || undefined}
@@ -153,7 +225,7 @@ export const PostPreviewModal: React.FC<PostPreviewModalProps> = ({
 
           {/* Post content preview */}
           <div className="border rounded-lg p-4 bg-white dark:bg-gray-950">
-            <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
               <span>{getPostTypeIcon()}</span>
               <span>{t(`post-type-${post.post_type}`)}</span>
             </div>

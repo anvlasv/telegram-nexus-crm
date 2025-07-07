@@ -48,35 +48,33 @@ export const ViewModeSelector: React.FC<ViewModeSelectorProps> = ({
         </Button>
       </div>
       
-      {/* Search Bar - только для списочного режима */}
-      {viewMode === 'list' && (
-        <div className="flex items-center justify-end gap-2">
-          <div className={cn(
-            "relative transition-all duration-300 ease-in-out",
-            searchOpen ? "w-40 sm:w-48 md:w-64" : "w-0"
-          )}>
-            <Input
-              placeholder={t('search-posts-placeholder') || 'Поиск по постам...'}
-              value={searchQuery}
-              onChange={(e) => onSearchQueryChange(e.target.value)}
-              className={cn(
-                "w-full h-10 pl-4 pr-4 transition-opacity",
-                !searchOpen && "opacity-0 p-0 border-0"
-              )}
-              disabled={!searchOpen}
-              ref={input => searchOpen && input?.focus()}
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onSearchToggle}
-            className="h-10 w-10 flex-shrink-0"
-          >
-            {searchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-          </Button>
+      {/* Search Bar - для обоих режимов */}
+      <div className="flex items-center justify-end gap-2">
+        <div className={cn(
+          "relative transition-all duration-300 ease-in-out",
+          searchOpen ? "w-40 sm:w-48 md:w-64" : "w-0"
+        )}>
+          <Input
+            placeholder={t('search-posts-placeholder') || 'Поиск по постам...'}
+            value={searchQuery}
+            onChange={(e) => onSearchQueryChange(e.target.value)}
+            className={cn(
+              "w-full h-10 pl-4 pr-4 transition-opacity",
+              !searchOpen && "opacity-0 p-0 border-0"
+            )}
+            disabled={!searchOpen}
+            ref={input => searchOpen && input?.focus()}
+          />
         </div>
-      )}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onSearchToggle}
+          className="h-10 w-10 flex-shrink-0"
+        >
+          {searchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+        </Button>
+      </div>
     </div>
   );
 };

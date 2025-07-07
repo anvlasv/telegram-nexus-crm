@@ -14,6 +14,7 @@ interface CalendarViewProps {
   onEditPost: (post: any) => void;
   onPublishPost: (postId: string) => void;
   onDeletePost: (postId: string) => void;
+  searchQuery?: string;
 }
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
@@ -23,9 +24,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onEditPost,
   onPublishPost,
   onDeletePost,
+  searchQuery = '',
 }) => {
   const { t } = useLanguage();
   const [previewPost, setPreviewPost] = React.useState<any>(null);
+
+  // Фильтрация постов по поисковому запросу
+  const filteredPosts = React.useMemo(() => {
+    if (!searchQuery || searchQuery.replace(/\s/g, '').length < 4) {
+      return posts;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return posts.filter(post => 
+      post.content?.toLowerCase().includes(query) ||
+      (post.poll_options && post.poll_options.some((option: string) => 
+        option.toLowerCase().includes(query)
+      ))
+    );
+  }, [posts, searchQuery]);
 
   const handlePostClick = (post: any) => {
     setPreviewPost(post);
@@ -66,7 +83,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           />
           <WeekView
             selectedDate={selectedDate}
-            posts={posts}
+            posts={filteredPosts}
             onPostClick={handlePostClick}
           />
         </TabsContent>
@@ -74,7 +91,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <MonthView
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
-            posts={posts}
+            posts={filteredPosts}
             onEditPost={onEditPost}
             onPublishPost={onPublishPost}
             onDeletePost={onDeletePost}

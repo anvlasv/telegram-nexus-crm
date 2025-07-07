@@ -124,7 +124,7 @@ export const Scheduler: React.FC = () => {
           />
         </div>
 
-        {/* Search Results Info */}
+        {/* Search Results Info - только для списочного режима */}
         <SearchResultsInfo
           viewMode={viewMode}
           searchQuery={searchQuery}
@@ -142,6 +142,7 @@ export const Scheduler: React.FC = () => {
                 onEditPost={handleEditPost}
                 onPublishPost={handlePublishPost}
                 onDeletePost={handleDeletePost}
+                searchQuery={searchQuery}
               />
             ) : (
               <ListView
