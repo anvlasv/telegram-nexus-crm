@@ -17,9 +17,17 @@ interface PostCardProps {
     username: string;
     avatar_url?: string | null;
   };
+  isPublishing?: boolean;
 }
 
-export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPublish, channel }) => {
+export const PostCard: React.FC<PostCardProps> = ({ 
+  post, 
+  onEdit, 
+  onDelete, 
+  onPublish, 
+  channel,
+  isPublishing = false 
+}) => {
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
@@ -29,7 +37,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
     setLoading(true);
     try {
       await onPublish();
-      toast({ title: t('success'), description: t('post-published') });
     } catch (err: any) {
       console.error('[PostCard] Publish error:', err);
       toast({
@@ -46,6 +53,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
     e.stopPropagation();
     onDelete();
   };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit();
+  };
+
+  const isPublished = post.status === 'sent';
+  const isDisabled = loading || isPublishing || isPublished;
 
   return (
     <div className="bg-card p-3 sm:p-4 rounded-lg shadow border hover:shadow-md transition-shadow">
@@ -75,20 +90,47 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onEdit, onDelete, onPu
         <p className="text-sm text-foreground line-clamp-3 break-words">
           {post.content}
         </p>
+        {post.media_urls && post.media_urls.length > 0 && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            📎 {post.media_urls.length} медиафайл(ов)
+          </div>
+        )}
       </div>
+
+      {/* Status indicator */}
+      {isPublished && (
+        <div className="mb-3">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+            ✓ {t('published')}
+          </span>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 justify-end">
-        <Button size="sm" variant="destructive" onClick={handleDelete} className="text-xs">
+        <Button 
+          size="sm" 
+          variant="outline" 
+          onClick={handleEdit}
+          className="text-xs"
+        >
+          {t('edit')}
+        </Button>
+        <Button 
+          size="sm" 
+          variant="destructive" 
+          onClick={handleDelete} 
+          className="text-xs"
+        >
           {t('delete')}
         </Button>
         <Button 
           size="sm" 
           onClick={handlePublish} 
-          disabled={loading || post.status === 'sent'}
+          disabled={isDisabled}
           className="text-xs"
         >
-          {loading ? t('publishing') : post.status === 'sent' ? t('published') : t('publish')}
+          {loading || isPublishing ? t('publishing') : isPublished ? t('published') : t('publish')}
         </Button>
       </div>
     </div>

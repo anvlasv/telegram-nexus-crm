@@ -18,7 +18,7 @@ export const useSchedulerActions = (selectedChannel: any) => {
         description: t('select-channel-first'),
         variant: 'destructive',
       });
-      return;
+      return false;
     }
 
     try {
@@ -54,11 +54,11 @@ export const useSchedulerActions = (selectedChannel: any) => {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating/updating scheduled post:', error);
       toast({
         title: t('error'),
-        description: editingPost ? t('error-updating-post') : t('error-scheduling-post'),
+        description: error?.message || (editingPost ? t('error-updating-post') : t('error-scheduling-post')),
         variant: 'destructive',
       });
       return false;
@@ -77,6 +77,7 @@ export const useSchedulerActions = (selectedChannel: any) => {
 
     try {
       console.log('[Scheduler] Publishing post:', { postId, channelId: selectedChannel.id });
+      
       await publishPost.mutateAsync({
         postId,
         channelId: selectedChannel.id
@@ -86,11 +87,11 @@ export const useSchedulerActions = (selectedChannel: any) => {
         title: t('success'),
         description: t('post-published'),
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Scheduler] Error publishing post:', error);
       toast({
         title: t('error'),
-        description: t('error-publishing-post'),
+        description: error?.message || t('error-publishing-post'),
         variant: 'destructive',
       });
     }
@@ -104,11 +105,11 @@ export const useSchedulerActions = (selectedChannel: any) => {
           title: t('success'),
           description: t('post-deleted'),
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error deleting post:', error);
         toast({
           title: t('error'),
-          description: t('error-deleting-post'),
+          description: error?.message || t('error-deleting-post'),
           variant: 'destructive',
         });
       }
@@ -121,5 +122,6 @@ export const useSchedulerActions = (selectedChannel: any) => {
     handleDeletePost,
     isCreating: createPost.isPending,
     isUpdating: updatePost.isPending,
+    isPublishing: publishPost.isPending,
   };
 };
