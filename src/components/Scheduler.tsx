@@ -1,19 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus, List, Calendar as CalendarIcon, Search, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useScheduledPosts } from '@/hooks/useScheduledPosts';
 import { useSchedulerActions } from '@/hooks/useSchedulerActions';
+import { useChannels } from '@/hooks/useChannels';
 import { PostFormModal } from './PostFormModal';
 import { CalendarView } from './scheduler/CalendarView';
 import { ListView } from './scheduler/ListView';
-import { useChannels } from '@/hooks/useChannels';
 import { ChannelSwitchLoader } from './ChannelSwitchLoader';
-import { cn } from '@/lib/utils';
+import { SchedulerHeader } from './scheduler/SchedulerHeader';
+import { ViewModeSelector } from './scheduler/ViewModeSelector';
+import { SearchResultsInfo } from './scheduler/SearchResultsInfo';
+import { NoChannelSelected } from './scheduler/NoChannelSelected';
+import { SchedulerLoading } from './scheduler/SchedulerLoading';
 
 export const Scheduler: React.FC = () => {
-  const { t } = useLanguage();
   const { channels, selectedChannelId, isChannelSwitching } = useChannels();
   const { data: posts = [], isLoading, refetch } = useScheduledPosts();
   const [showForm, setShowForm] = useState(false);
@@ -95,29 +96,11 @@ export const Scheduler: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64 p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          {t('loading')}
-        </div>
-      </div>
-    );
+    return <SchedulerLoading />;
   }
 
   if (!selectedChannel) {
-    return (
-      <div className="w-full h-full overflow-hidden">
-        <div className="h-full flex flex-col p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">{t('no-channel-selected')}</h2>
-              <p className="text-muted-foreground">{t('select-channel-to-continue')}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <NoChannelSelected />;
   }
 
   return (
@@ -125,88 +108,28 @@ export const Scheduler: React.FC = () => {
       <div className="h-full flex flex-col p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex-shrink-0 space-y-3 md:space-y-4">
-          <div className="flex flex-col space-y-3 md:space-y-0 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">{t('scheduler')}</h1>
-              <p className="text-sm md:text-base text-muted-foreground mt-1">
-                {t('scheduler-description')}
-              </p>
-            </div>
-            
-            <div className="flex-shrink-0">
-              <Button 
-                onClick={handleCreateNewPost}
-                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
-                size="default"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">{t('schedule-post')}</span>
-                <span className="sm:hidden">{t('post')}</span>
-              </Button>
-            </div>
-          </div>
+          <SchedulerHeader
+            onCreatePost={handleCreateNewPost}
+            selectedChannel={selectedChannel}
+          />
           
           {/* View Mode Toggles with Search */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex gap-2">
-              <Button 
-                variant={viewMode === 'list' ? 'default' : 'outline'} 
-                onClick={() => setViewMode('list')}
-                size="default"
-                className="flex-1 md:flex-initial"
-              >
-                <List className="mr-2 h-4 w-4" />
-                <span>{t('list')}</span>
-              </Button>
-              <Button 
-                variant={viewMode === 'calendar' ? 'default' : 'outline'} 
-                onClick={() => setViewMode('calendar')}
-                size="default"
-                className="flex-1 md:flex-initial"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                <span>{t('calendar')}</span>
-              </Button>
-            </div>
-            
-            {/* Search Bar - только для списочного режима */}
-            {viewMode === 'list' && (
-              <div className="flex items-center justify-end gap-2">
-                <div className={cn(
-                  "relative transition-all duration-300 ease-in-out",
-                  searchOpen ? "w-40 sm:w-48 md:w-64" : "w-0"
-                )}>
-                  <Input
-                    placeholder={t('search-posts-placeholder') || 'Поиск по постам...'}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={cn(
-                      "w-full h-10 pl-4 pr-4 transition-opacity",
-                      !searchOpen && "opacity-0 p-0 border-0"
-                    )}
-                    disabled={!searchOpen}
-                    ref={input => searchOpen && input?.focus()}
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={toggleSearch}
-                  className="h-10 w-10 flex-shrink-0"
-                >
-                  {searchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-                </Button>
-              </div>
-            )}
-          </div>
+          <ViewModeSelector
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            searchOpen={searchOpen}
+            searchQuery={searchQuery}
+            onSearchToggle={toggleSearch}
+            onSearchQueryChange={setSearchQuery}
+          />
         </div>
 
-        {/* Search Results Info - только для списочного режима */}
-        {viewMode === 'list' && searchQuery && searchQuery.replace(/\s/g, '').length >= 4 && (
-          <div className="text-sm text-muted-foreground">
-            {t('search-results') || 'Результаты поиска'}: {searchFilteredPosts.length} {t('posts') || 'постов'}
-          </div>
-        )}
+        {/* Search Results Info */}
+        <SearchResultsInfo
+          viewMode={viewMode}
+          searchQuery={searchQuery}
+          resultsCount={searchFilteredPosts.length}
+        />
 
         {/* Content */}
         <div className="flex-1 min-h-0 overflow-hidden">
