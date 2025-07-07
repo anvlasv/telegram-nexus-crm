@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useScheduledPosts } from '@/hooks/useScheduledPosts';
 import { useSchedulerActions } from '@/hooks/useSchedulerActions';
 import { useChannels } from '@/hooks/useChannels';
+import { useStorageSetup } from '@/hooks/useStorageSetup';
 import { PostFormModal } from './PostFormModal';
 import { CalendarView } from './scheduler/CalendarView';
 import { ListView } from './scheduler/ListView';
@@ -25,6 +26,9 @@ export const Scheduler: React.FC = () => {
   // Search state
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Настройка Supabase Storage
+  useStorageSetup();
 
   const selectedChannel = channels.find(c => c.id === selectedChannelId);
   const { handleCreatePost, handlePublishPost, handleDeletePost, isCreating, isUpdating } = useSchedulerActions(selectedChannel);
@@ -124,11 +128,11 @@ export const Scheduler: React.FC = () => {
           />
         </div>
 
-        {/* Search Results Info - только для списочного режима */}
+        {/* Search Results Info */}
         <SearchResultsInfo
           viewMode={viewMode}
           searchQuery={searchQuery}
-          resultsCount={searchFilteredPosts.length}
+          resultsCount={viewMode === 'list' ? searchFilteredPosts.length : filteredPosts.length}
         />
 
         {/* Content */}
